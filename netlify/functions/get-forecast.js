@@ -1,9 +1,29 @@
-const fs = require('fs');
-const path = require('path');
+// Embed surf spots data directly to avoid file path issues in Netlify
+const surfSpotsData = [
+  {
+    "name": "Fistral Beach",
+    "latitude": 50.4161,
+    "longitude": -5.0931,
+    "skillLevel": "Intermediate",
+    "reliability": "Very Consistent"
+  },
+  {
+    "name": "Watergate Bay", 
+    "latitude": 50.4425,
+    "longitude": -5.0394,
+    "skillLevel": "Beginner",
+    "reliability": "Consistent"
+  },
+  {
+    "name": "Polzeath",
+    "latitude": 50.5689,
+    "longitude": -4.9156,
+    "skillLevel": "Beginner",
+    "reliability": "Consistent"
+  }
+];
 
-// Load surf spots data  
-const surfSpotsPath = path.join(__dirname, '..', '..', 'app', 'data', 'surfSpots.json');
-const surfSpotsData = JSON.parse(fs.readFileSync(surfSpotsPath, 'utf8'));
+console.log('Netlify Function: get-forecast loaded');
 
 function directionScore(actualDir, optimalRange) {
   if (!actualDir || !optimalRange) return 0.5;

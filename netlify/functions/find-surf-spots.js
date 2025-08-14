@@ -1,9 +1,88 @@
-const fs = require('fs');
-const path = require('path');
+// Embed surf spots data directly to avoid file path issues in Netlify
+const surfSpotsData = [
+  {
+    "name": "Fistral Beach",
+    "latitude": 50.4161,
+    "longitude": -5.0931,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [270, 315],
+    "optimalWindDir": [45, 135],
+    "faces": "N",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Very Consistent",
+    "hazards": "crowded, rips",
+    "bestConditions": "Best conditions occur when west-southwest swell combines with offshore wind from southeast",
+    "description": "Fistral Beach is Cornwall's most famous surf spot. This fairly exposed beach break has consistent surf and is rarely flat."
+  },
+  {
+    "name": "Watergate Bay",
+    "latitude": 50.4425,
+    "longitude": -5.0394,
+    "region": "Cornwall",
+    "skillLevel": "Beginner",
+    "optimalSwellDir": [270, 315],
+    "optimalWindDir": [90, 180],
+    "faces": "NW",
+    "bestTide": "low_to_mid", 
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when northwest swell combines with offshore wind from southeast",
+    "description": "Two mile long sandy beach offering excellent surf for all levels."
+  },
+  {
+    "name": "Polzeath",
+    "latitude": 50.5689,
+    "longitude": -4.9156,
+    "region": "Cornwall",
+    "skillLevel": "Beginner",
+    "optimalSwellDir": [270, 330],
+    "optimalWindDir": [135, 225],
+    "faces": "NW",
+    "bestTide": "mid_to_high",
+    "breakType": "beach", 
+    "reliability": "Consistent",
+    "hazards": "crowded",
+    "bestConditions": "Best conditions occur when northwest swell combines with offshore wind from southeast to south",
+    "description": "Protected sandy bay that's popular with families and surf schools."
+  },
+  {
+    "name": "Croyde Bay",
+    "latitude": 51.1261,
+    "longitude": -4.2394,
+    "region": "Devon",
+    "skillLevel": "Beginner",
+    "optimalSwellDir": [270, 330],
+    "optimalWindDir": [90, 180],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Very Consistent",
+    "hazards": "crowded, rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Picturesque bay with consistent surf year-round."
+  },
+  {
+    "name": "Woolacombe",
+    "latitude": 51.1833,
+    "longitude": -4.2167,
+    "region": "Devon",
+    "skillLevel": "Beginner",
+    "optimalSwellDir": [270, 330],
+    "optimalWindDir": [90, 180],
+    "faces": "NW",
+    "bestTide": "all",
+    "breakType": "beach",
+    "reliability": "Very Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Three mile stretch of golden sand that works on all tides."
+  }
+];
 
-// Load surf spots data
-const surfSpotsPath = path.join(__dirname, '..', '..', 'app', 'data', 'surfSpots.json');
-const surfSpotsData = JSON.parse(fs.readFileSync(surfSpotsPath, 'utf8'));
+console.log('Netlify Function: find-surf-spots loaded with', surfSpotsData.length, 'spots');
 
 // Helper functions
 function calculateDistance(lat1, lng1, lat2, lng2) {
@@ -305,6 +384,8 @@ function calculateSurfScore(conditions, spot) {
 }
 
 exports.handler = async (event, context) => {
+  console.log('Function called:', event.httpMethod, event.path);
+  
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type',

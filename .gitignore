@@ -4,3 +4,17 @@
 # React Router
 /.react-router/
 /build/
+
+# Python files (not needed for deployment)
+*.py
+*.pyc
+__pycache__/
+requirements.txt
+
+# Claude settings
+.claude/
+
+# Environment variables
+.env
+.env.local
+.env.production.local

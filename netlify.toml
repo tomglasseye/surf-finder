@@ -2,6 +2,10 @@
   command = "npm run build"
   functions = "netlify/functions"
   publish = "build/client"
+  
+[build.environment]
+  NODE_VERSION = "20"
+  PYTHON_VERSION = ""
 
 [[redirects]]
   from = "/*"

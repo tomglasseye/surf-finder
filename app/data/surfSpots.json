@@ -1,0 +1,1707 @@
+[
+  {
+    "name": "Beacon Cove",
+    "latitude": 50.4664,
+    "longitude": -5.0475,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Beacon Cove surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots ",
+    "source_url": "https://www.surf-forecast.com/breaks/Beacon-Cove"
+  },
+  {
+    "name": "Bedruthan Steps",
+    "latitude": 50.4892,
+    "longitude": -5.0395,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Bedruthan Steps surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other sp",
+    "source_url": "https://www.surf-forecast.com/breaks/Bedruthan-Steps"
+  },
+  {
+    "name": "Boobys",
+    "latitude": 50.541,
+    "longitude": -5.0515,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Boobys surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots in th",
+    "source_url": "https://www.surf-forecast.com/breaks/Boobys"
+  },
+  {
+    "name": "Bossiney Haven",
+    "latitude": 50.6714,
+    "longitude": -4.7387,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Bossiney Haven surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spo",
+    "source_url": "https://www.surf-forecast.com/breaks/Bossiney-Haven"
+  },
+  {
+    "name": "Bude",
+    "latitude": 50.8311,
+    "longitude": -4.5579,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Bude surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots in the ",
+    "source_url": "https://www.surf-forecast.com/breaks/Bude"
+  },
+  {
+    "name": "Carbis Bay",
+    "latitude": 50.1963,
+    "longitude": -5.4612,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Carbis Bay surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots i",
+    "source_url": "https://www.surf-forecast.com/breaks/Carbis-Bay"
+  },
+  {
+    "name": "Chapel Porth",
+    "latitude": 50.3063,
+    "longitude": -5.2364,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Chapel Porth surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots",
+    "source_url": "https://www.surf-forecast.com/breaks/Chapel-Porth"
+  },
+  {
+    "name": "Constantine Bay",
+    "latitude": 50.5167,
+    "longitude": -4.9667,
+    "region": "Cornwall",
+    "skillLevel": "Beginner",
+    "optimalSwellDir": [
+      270,
+      330
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "low_to_mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when northwest swell combines with offshore wind from southeast",
+    "description": "Sandy beach break with consistent surf that's good for beginners and intermediates. Less crowded than nearby Polzeath while offering similar wave quality."
+  },
+  {
+    "name": "Crackington Haven",
+    "latitude": 50.7382,
+    "longitude": -4.643,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Crackington Haven surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other ",
+    "source_url": "https://www.surf-forecast.com/breaks/Crackington-Haven"
+  },
+  {
+    "name": "Crantock",
+    "latitude": 50.4037,
+    "longitude": -5.1247,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Crantock surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots in ",
+    "source_url": "https://www.surf-forecast.com/breaks/Crantock"
+  },
+  {
+    "name": "Crooklets-Bude",
+    "latitude": 50.8321,
+    "longitude": -4.5576,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Crooklets-Bude surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spo",
+    "source_url": "https://www.surf-forecast.com/breaks/Crooklets_Bude"
+  },
+  {
+    "name": "Droskyn Point",
+    "latitude": 50.3451,
+    "longitude": -5.1612,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Droskyn Point surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spot",
+    "source_url": "https://www.surf-forecast.com/breaks/Droskyn-Point"
+  },
+  {
+    "name": "Duckpool Bay",
+    "latitude": 50.8771,
+    "longitude": -4.5646,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "DuckPool in North Cornwall is an exposed beach break that has unreliable waves with no particular seasonal pattern. Offshore winds are from the east w",
+    "source_url": "https://www.surf-forecast.com/breaks/Duck-Pool"
+  },
+  {
+    "name": "Fistral Beach",
+    "latitude": 50.4161,
+    "longitude": -5.0931,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      45,
+      135
+    ],
+    "faces": "N",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Very Consistent",
+    "hazards": "crowded, rips",
+    "bestConditions": "Best conditions occur when west-southwest swell combines with offshore wind from southeast",
+    "description": "Fistral Beach is Cornwall's most famous surf spot. This fairly exposed beach break has consistent surf and is rarely flat. The sandbanks shift regularly so waves can vary greatly. Home to many surf competitions including Boardmasters festival."
+  },
+  {
+    "name": "Fistral-North",
+    "latitude": 50.4161,
+    "longitude": -5.0931,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "N",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "crowded, rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "beach break in North Cornwall",
+    "source_url": "https://www.surf-forecast.com/breaks/Fistral_North/photos/2205"
+  },
+  {
+    "name": "Godrevy",
+    "latitude": 50.232,
+    "longitude": -5.394,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Godrevy surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots in t",
+    "source_url": "https://www.surf-forecast.com/breaks/Godrevy"
+  },
+  {
+    "name": "Gwenvor",
+    "latitude": 50.0903,
+    "longitude": -5.692,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Gwenvor surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots in t",
+    "source_url": "https://www.surf-forecast.com/breaks/Gwenvor"
+  },
+  {
+    "name": "Gwithian",
+    "latitude": 50.2216,
+    "longitude": -5.3992,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Gwithian surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots in ",
+    "source_url": "https://www.surf-forecast.com/breaks/Gwithian"
+  },
+  {
+    "name": "Harlyn",
+    "latitude": 50.5441,
+    "longitude": -5.0181,
+    "region": "Cornwall",
+    "skillLevel": "Beginner",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "all",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Harlyn surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots in th",
+    "source_url": "https://www.surf-forecast.com/breaks/Harlyn"
+  },
+  {
+    "name": "Harlyn Bay",
+    "latitude": 50.5333,
+    "longitude": -4.9833,
+    "region": "Cornwall",
+    "skillLevel": "Beginner",
+    "optimalSwellDir": [
+      270,
+      330
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "all",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "crowds",
+    "bestConditions": "Best conditions occur when northwest swell combines with offshore wind from southeast",
+    "description": "Sheltered bay that works well when other spots are too big or blown out. Popular with families and surf schools due to its protected nature and consistent, manageable waves."
+  },
+  {
+    "name": "Hawkes Point",
+    "latitude": 50.2102,
+    "longitude": -5.4595,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Hawkes Point surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots",
+    "source_url": "https://www.surf-forecast.com/breaks/Hawkes-Point"
+  },
+  {
+    "name": "Hayle",
+    "latitude": 50.2002,
+    "longitude": -5.4378,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Hayle surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots in the",
+    "source_url": "https://www.surf-forecast.com/breaks/Hayle"
+  },
+  {
+    "name": "Holywell Bay",
+    "latitude": 50.3863,
+    "longitude": -5.1653,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Holywell Bay surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots",
+    "source_url": "https://www.surf-forecast.com/breaks/Holywell-Bay"
+  },
+  {
+    "name": "Little Fistral",
+    "latitude": 50.4229,
+    "longitude": -5.1138,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "N",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "crowded, rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Little Fistral surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spo",
+    "source_url": "https://www.surf-forecast.com/breaks/Little-Fistral"
+  },
+  {
+    "name": "Lundy Bay",
+    "latitude": 50.5812,
+    "longitude": -4.8889,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Lundy Bay surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots in",
+    "source_url": "https://www.surf-forecast.com/breaks/Lundy-Bay"
+  },
+  {
+    "name": "Lusty Glaze",
+    "latitude": 50.4269,
+    "longitude": -5.0717,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Lusty Glaze surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots ",
+    "source_url": "https://www.surf-forecast.com/breaks/Lusty-Glaze"
+  },
+  {
+    "name": "Mawgan Porth",
+    "latitude": 50.4732,
+    "longitude": -5.0504,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Mawgan Porth surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots",
+    "source_url": "https://www.surf-forecast.com/breaks/Mawgan-Porth"
+  },
+  {
+    "name": "Milook",
+    "latitude": 50.772,
+    "longitude": -4.583,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Milook surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots in th",
+    "source_url": "https://www.surf-forecast.com/breaks/Milook"
+  },
+  {
+    "name": "Mother Ivey s Spot M",
+    "latitude": 50.545,
+    "longitude": -5.018,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Mother Ivey s Spot M surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to oth",
+    "source_url": "https://www.surf-forecast.com/breaks/Mother-Iveys-Spot-M"
+  },
+  {
+    "name": "Newquay Town Beach",
+    "latitude": 50.4157,
+    "longitude": -5.0737,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Newquay Town Beach surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other",
+    "source_url": "https://www.surf-forecast.com/breaks/Newquay-Town-Beach"
+  },
+  {
+    "name": "Newtrain Bay",
+    "latitude": 50.5519,
+    "longitude": -4.9909,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Newtrain Bay surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots",
+    "source_url": "https://www.surf-forecast.com/breaks/Newtrain-Bay"
+  },
+  {
+    "name": "Noahs Right",
+    "latitude": 50.9407,
+    "longitude": -4.5653,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Noahs Right surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots ",
+    "source_url": "https://www.surf-forecast.com/breaks/Noahs-Right"
+  },
+  {
+    "name": "Northcott",
+    "latitude": 50.8361,
+    "longitude": -4.5591,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Northcott surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots in",
+    "source_url": "https://www.surf-forecast.com/breaks/Northcott"
+  },
+  {
+    "name": "Penhale",
+    "latitude": 50.3939,
+    "longitude": -5.148,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Penhale surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots in t",
+    "source_url": "https://www.surf-forecast.com/breaks/Penhale"
+  },
+  {
+    "name": "Perran Sands",
+    "latitude": 50.3766,
+    "longitude": -5.161,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Perran Sands surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots",
+    "source_url": "https://www.surf-forecast.com/breaks/Perran-Sands"
+  },
+  {
+    "name": "Perranporth",
+    "latitude": 50.3465,
+    "longitude": -5.157,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Perranporth surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots ",
+    "source_url": "https://www.surf-forecast.com/breaks/Perranporth"
+  },
+  {
+    "name": "Polzeath",
+    "latitude": 50.5689,
+    "longitude": -4.9156,
+    "region": "Cornwall",
+    "skillLevel": "Beginner",
+    "optimalSwellDir": [
+      270,
+      330
+    ],
+    "optimalWindDir": [
+      135,
+      225
+    ],
+    "faces": "NW",
+    "bestTide": "mid_to_high",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "crowded",
+    "bestConditions": "Best conditions occur when northwest swell combines with offshore wind from southeast to south",
+    "description": "Protected sandy bay that's popular with families and surf schools. The bay offers some protection from bigger swells making it ideal for beginners and intermediates."
+  },
+  {
+    "name": "Port Isaac",
+    "latitude": 50.5932,
+    "longitude": -4.8365,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Port Isaac surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots i",
+    "source_url": "https://www.surf-forecast.com/breaks/Port-Isaac"
+  },
+  {
+    "name": "Porth Beach",
+    "latitude": 50.4303,
+    "longitude": -5.0685,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Porth Beach surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots ",
+    "source_url": "https://www.surf-forecast.com/breaks/Porth-Beach"
+  },
+  {
+    "name": "Porthjoke",
+    "latitude": 50.4076,
+    "longitude": -5.1505,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Porthjoke surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots in",
+    "source_url": "https://www.surf-forecast.com/breaks/Porthjoke"
+  },
+  {
+    "name": "Porthmeor",
+    "latitude": 50.2241,
+    "longitude": -5.4884,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Porthmeor surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots in",
+    "source_url": "https://www.surf-forecast.com/breaks/Porthmeor"
+  },
+  {
+    "name": "Porthtowan",
+    "latitude": 50.2793,
+    "longitude": -5.2526,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Porthtowan surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots i",
+    "source_url": "https://www.surf-forecast.com/breaks/Porthtowan"
+  },
+  {
+    "name": "Portreath Beach",
+    "latitude": 50.55440588123692,
+    "longitude": -5.224206064189882,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "beach break in North Cornwall",
+    "source_url": "https://www.surf-forecast.com/breaks/Portreath-Beach/photos/1806"
+  },
+  {
+    "name": "Portreath Harbour Wall",
+    "latitude": 50.2618,
+    "longitude": -5.2954,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Portreath Harbour Wall surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to o",
+    "source_url": "https://www.surf-forecast.com/breaks/Portreath-Harbour-Wall"
+  },
+  {
+    "name": "Priests Cove",
+    "latitude": 50.1317,
+    "longitude": -5.7189,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Priests Cove surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots",
+    "source_url": "https://www.surf-forecast.com/breaks/Priests-Cove"
+  },
+  {
+    "name": "Sandy Mouth",
+    "latitude": 50.8505,
+    "longitude": -4.5595,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Sandy Mouth surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots ",
+    "source_url": "https://www.surf-forecast.com/breaks/Sandy-Mouth"
+  },
+  {
+    "name": "Sennen Cove",
+    "latitude": 50.0667,
+    "longitude": -5.6833,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      330
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "low_to_mid",
+    "breakType": "beach",
+    "reliability": "Very Consistent",
+    "hazards": "rocks, rips",
+    "bestConditions": "Best conditions occur when northwest swell combines with offshore wind from southeast",
+    "description": "England's most westerly surf spot picks up every available Atlantic swell. Can be powerful and challenging due to its exposed location. Dramatic granite cliffs provide shelter."
+  },
+  {
+    "name": "St Agnes",
+    "latitude": 50.3184,
+    "longitude": -5.2321,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive St Agnes surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots in ",
+    "source_url": "https://www.surf-forecast.com/breaks/St-Agnes"
+  },
+  {
+    "name": "St Ives Harbour Wall",
+    "latitude": 50.211,
+    "longitude": -5.476,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive St Ives Harbour Wall surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to oth",
+    "source_url": "https://www.surf-forecast.com/breaks/St-Ives-Harbour-Wall"
+  },
+  {
+    "name": "The Breakwater-St Ives",
+    "latitude": 50.2173,
+    "longitude": -5.4758,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive The Breakwater-St Ives surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to o",
+    "source_url": "https://www.surf-forecast.com/breaks/The-Breakwater-St-Ives"
+  },
+  {
+    "name": "The Cribber",
+    "latitude": 50.4219,
+    "longitude": -5.1031,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive The Cribber surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots ",
+    "source_url": "https://www.surf-forecast.com/breaks/The-Cribber"
+  },
+  {
+    "name": "Tolcarne",
+    "latitude": 50.4224,
+    "longitude": -5.0793,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Tolcarne surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots in ",
+    "source_url": "https://www.surf-forecast.com/breaks/Tolcarne"
+  },
+  {
+    "name": "Towan",
+    "latitude": 50.4213,
+    "longitude": -5.0918,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Towan surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots in the",
+    "source_url": "https://www.surf-forecast.com/breaks/Towan"
+  },
+  {
+    "name": "Town Beach",
+    "latitude": 50.42613736022519,
+    "longitude": -5.373567693397822,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "beach break in North Cornwall",
+    "source_url": "https://www.surf-forecast.com/breaks/Town_Beach"
+  },
+  {
+    "name": "Trebarwith Strand",
+    "latitude": 50.6477,
+    "longitude": -4.7626,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Trebarwith Strand surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other ",
+    "source_url": "https://www.surf-forecast.com/breaks/Trebarwith-Strand"
+  },
+  {
+    "name": "Tregardock",
+    "latitude": 50.597,
+    "longitude": -4.7913,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Tregardock surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots i",
+    "source_url": "https://www.surf-forecast.com/breaks/Tregardock"
+  },
+  {
+    "name": "Trevone Bay",
+    "latitude": 50.5405,
+    "longitude": -4.9923,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Trevone Bay surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots ",
+    "source_url": "https://www.surf-forecast.com/breaks/Trevone-Bay"
+  },
+  {
+    "name": "Treyarnon",
+    "latitude": 50.5327,
+    "longitude": -5.0373,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Treyarnon surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots in",
+    "source_url": "https://www.surf-forecast.com/breaks/Treyarnon"
+  },
+  {
+    "name": "Watergate Bay",
+    "latitude": 50.4425,
+    "longitude": -5.0394,
+    "region": "Cornwall",
+    "skillLevel": "Beginner",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "low_to_mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when northwest swell combines with offshore wind from southeast",
+    "description": "Two mile long sandy beach offering excellent surf for all levels. The wide beach provides plenty of space even when busy. Multiple peaks spread across the bay offer variety."
+  },
+  {
+    "name": "Whipsiderry",
+    "latitude": 50.436,
+    "longitude": -5.0592,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Interactive Whipsiderry surf break location map. View information about nearby surf breaks, their wave consistency and rating compared to other spots ",
+    "source_url": "https://www.surf-forecast.com/breaks/Whipsiderry"
+  },
+  {
+    "name": "Widemouth Bay",
+    "latitude": 50.6110946155856,
+    "longitude": -5.024146961679376,
+    "region": "Cornwall",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      315
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "beach break in North Cornwall",
+    "source_url": "https://www.surf-forecast.com/breaks/Widemouth-Bay/photos/3728"
+  },
+  {
+    "name": "Bantham",
+    "latitude": 50.2833,
+    "longitude": -3.8833,
+    "region": "Devon",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      225,
+      270
+    ],
+    "optimalWindDir": [
+      45,
+      135
+    ],
+    "faces": "SW",
+    "bestTide": "low_to_mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rocks, rips",
+    "bestConditions": "Best conditions occur when southwest swell combines with offshore wind from northeast",
+    "description": "River mouth break with shifting sandbanks that create excellent waves when conditions align. The Avon river mouth creates unique wave shapes but requires local knowledge due to changing banks."
+  },
+  {
+    "name": "Croyde Bay",
+    "latitude": 51.1261,
+    "longitude": -4.2394,
+    "region": "Devon",
+    "skillLevel": "Beginner",
+    "optimalSwellDir": [
+      270,
+      330
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Very Consistent",
+    "hazards": "crowded, rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Picturesque bay with consistent surf year-round. The beach break works on most tides and offers waves suitable for beginners through to advanced surfers. Multiple peaks spread across the bay."
+  },
+  {
+    "name": "Saunton Sands",
+    "latitude": 51.1167,
+    "longitude": -4.2167,
+    "region": "Devon",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      270,
+      330
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "low_to_mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips, shallow",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Expansive beach break that can produce powerful waves. Works best at low tide when the sandbanks are more defined. Can be quite shallow so care needed at low tide."
+  },
+  {
+    "name": "Woolacombe",
+    "latitude": 51.1833,
+    "longitude": -4.2167,
+    "region": "Devon",
+    "skillLevel": "Beginner",
+    "optimalSwellDir": [
+      270,
+      330
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "NW",
+    "bestTide": "all",
+    "breakType": "beach",
+    "reliability": "Very Consistent",
+    "hazards": "rips",
+    "bestConditions": "Best conditions occur when west-northwest swell combines with offshore wind from southeast",
+    "description": "Three mile stretch of golden sand that works on all tides. One of the most consistent spots in Devon, offering waves suitable for all abilities from complete beginners to advanced surfers."
+  },
+  {
+    "name": "Saltburn",
+    "latitude": 54.5833,
+    "longitude": -0.9833,
+    "region": "Northern England",
+    "skillLevel": "Beginner",
+    "optimalSwellDir": [
+      315,
+      45
+    ],
+    "optimalWindDir": [
+      180,
+      270
+    ],
+    "faces": "NE",
+    "bestTide": "all",
+    "breakType": "beach",
+    "reliability": "Seasonal",
+    "hazards": "crowds",
+    "bestConditions": "Best conditions occur when northeast swell combines with offshore wind from southwest",
+    "description": "Gentle beach break good for beginners when North Sea produces surf. The Victorian seaside town provides a charming backdrop. Works on most tides."
+  },
+  {
+    "name": "Scarborough South Bay",
+    "latitude": 54.2833,
+    "longitude": -0.4,
+    "region": "Northern England",
+    "skillLevel": "Beginner",
+    "optimalSwellDir": [
+      315,
+      90
+    ],
+    "optimalWindDir": [
+      180,
+      270
+    ],
+    "faces": "E",
+    "bestTide": "mid_to_high",
+    "breakType": "beach",
+    "reliability": "Seasonal",
+    "hazards": "groyne",
+    "bestConditions": "Best conditions occur when east swell combines with offshore wind from west",
+    "description": "Sheltered bay break protected by the castle headland. Good for learning when North Sea storms provide surf. The harbour wall can affect wave quality."
+  },
+  {
+    "name": "Tynemouth Longsands",
+    "latitude": 55.0167,
+    "longitude": -1.4167,
+    "region": "Northern England",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      315,
+      45
+    ],
+    "optimalWindDir": [
+      180,
+      270
+    ],
+    "faces": "NE",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Seasonal",
+    "hazards": "crowded, pollution",
+    "bestConditions": "Best conditions occur when northeast swell combines with offshore wind from southwest",
+    "description": "Popular North Sea beach break near Newcastle. Best during autumn and winter storms when North Sea swells are generated. Can get very crowded when working."
+  },
+  {
+    "name": "Machrihanish",
+    "latitude": 55.4333,
+    "longitude": -5.7167,
+    "region": "Scotland",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      225,
+      315
+    ],
+    "optimalWindDir": [
+      45,
+      135
+    ],
+    "faces": "W",
+    "bestTide": "all",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "powerful, rips",
+    "bestConditions": "Best conditions occur when west swell combines with offshore wind from east",
+    "description": "Exposed beach break on the Mull of Kintyre that picks up Atlantic swells consistently. Can produce long rides and powerful waves in a remote, beautiful setting."
+  },
+  {
+    "name": "Thurso East",
+    "latitude": 58.6,
+    "longitude": -3.5167,
+    "region": "Scotland",
+    "skillLevel": "Advanced",
+    "optimalSwellDir": [
+      315,
+      45
+    ],
+    "optimalWindDir": [
+      135,
+      225
+    ],
+    "faces": "N",
+    "bestTide": "mid_to_high",
+    "breakType": "reef",
+    "reliability": "Seasonal",
+    "hazards": "shallow, rocks, heavy",
+    "bestConditions": "Best conditions occur when north-northwest swell combines with offshore wind from south",
+    "description": "World-class right-hand reef break that produces some of Europe's best waves. Cold water, powerful waves and shallow reef make this suitable only for advanced surfers."
+  },
+  {
+    "name": "Freshwater West",
+    "latitude": 51.6167,
+    "longitude": -5.0333,
+    "region": "Wales",
+    "skillLevel": "Advanced",
+    "optimalSwellDir": [
+      225,
+      315
+    ],
+    "optimalWindDir": [
+      45,
+      135
+    ],
+    "faces": "SW",
+    "bestTide": "mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "powerful, rips",
+    "bestConditions": "Best conditions occur when southwest swell combines with offshore wind from northeast",
+    "description": "Raw, exposed beach break in Pembrokeshire that handles big Atlantic swells. Powerful waves that can be dangerous - only for experienced surfers. Beautiful but wild setting."
+  },
+  {
+    "name": "Llangennith",
+    "latitude": 51.5833,
+    "longitude": -4.3,
+    "region": "Wales",
+    "skillLevel": "Beginner",
+    "optimalSwellDir": [
+      225,
+      315
+    ],
+    "optimalWindDir": [
+      45,
+      135
+    ],
+    "faces": "SW",
+    "bestTide": "all",
+    "breakType": "beach",
+    "reliability": "Very Consistent",
+    "hazards": "crowded",
+    "bestConditions": "Best conditions occur when southwest swell combines with offshore wind from northeast",
+    "description": "Popular beach break at the northern end of Rhossili Bay. More sheltered than Rhossili itself, making it ideal for beginners and intermediates. Works on all tides."
+  },
+  {
+    "name": "Manorbier",
+    "latitude": 51.6333,
+    "longitude": -4.8,
+    "region": "Wales",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      225,
+      270
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "S",
+    "bestTide": "mid_to_high",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rocks",
+    "bestConditions": "Best conditions occur when south-southwest swell combines with offshore wind from north",
+    "description": "Protected bay with consistent surf and spectacular scenery. Rocky reefs help create good wave shape. The medieval castle provides a dramatic backdrop to surf sessions."
+  },
+  {
+    "name": "Rest Bay",
+    "latitude": 51.4833,
+    "longitude": -3.7167,
+    "region": "Wales",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      225,
+      270
+    ],
+    "optimalWindDir": [
+      90,
+      180
+    ],
+    "faces": "SW",
+    "bestTide": "mid_to_high",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rocks, rips",
+    "bestConditions": "Best conditions occur when southwest swell combines with offshore wind from east",
+    "description": "Reliable beach break near Porthcawl that picks up swells well. Rocky reef at low tide creates good wave shape, making it better on mid to high tides."
+  },
+  {
+    "name": "Rhossili Bay",
+    "latitude": 51.5611,
+    "longitude": -4.3181,
+    "region": "Wales",
+    "skillLevel": "Intermediate",
+    "optimalSwellDir": [
+      225,
+      315
+    ],
+    "optimalWindDir": [
+      45,
+      135
+    ],
+    "faces": "SW",
+    "bestTide": "low_to_mid",
+    "breakType": "beach",
+    "reliability": "Consistent",
+    "hazards": "rips, rocks",
+    "bestConditions": "Best conditions occur when southwest swell combines with offshore wind from northeast",
+    "description": "Stunning three mile beach break on the Gower Peninsula. This powerful beach break works best on lower tides and can produce excellent waves in a spectacular setting."
+  }
+]

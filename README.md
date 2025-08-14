@@ -1,87 +1,113 @@
-# Welcome to React Router!
+# UK Surf Finder 🏄‍♂️
 
-A modern, production-ready template for building full-stack React applications using React Router.
-
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
+A comprehensive surf forecast application that finds the best surf spots near your location and provides real-time conditions.
 
 ## Features
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+- 📍 **Location-based search** - Uses your GPS location to find nearby surf spots
+- 🌊 **Real-time conditions** - Fetches current wave height, wind speed, swell direction, and more
+- ⭐ **Intelligent scoring** - Rates each spot based on current conditions
+- 🗺️ **Interactive maps** - Direct links to Google Maps for directions
+- 📊 **Detailed forecasts** - Links to detailed surf forecasts
 
-## Getting Started
+## Tech Stack
 
-### Installation
+- **Frontend**: React Router 7 with TypeScript
+- **Styling**: Tailwind CSS 4
+- **Backend**: Netlify Functions
+- **APIs**: Open-Meteo for weather and marine data
+- **Deployment**: Netlify
 
-Install the dependencies:
+## Development Setup
 
-```bash
-npm install
-```
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
 
-### Development
+2. **Start development server**:
+   ```bash
+   npm run dev
+   ```
 
-Start the development server with HMR:
+3. **View the app**:
+   Open [http://localhost:5173](http://localhost:5173)
 
-```bash
-npm run dev
-```
+## Data Scraping (Optional)
 
-Your application will be available at `http://localhost:5173`.
+The app includes a Python scraper to gather comprehensive UK surf spot data:
 
-## Building for Production
+1. **Install Python dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-Create a production build:
+2. **Run the scraper**:
+   ```bash
+   python app/comprehensive_surf_scraper.py
+   ```
 
-```bash
-npm run build
-```
+3. **Update surf data**:
+   The scraper generates `uk_surf_spots_comprehensive.json` which can replace the existing surf spots data.
 
 ## Deployment
 
-### Docker Deployment
+The app is configured for Netlify deployment:
 
-To build and run using Docker:
+1. **Build the app**:
+   ```bash
+   npm run build
+   ```
 
-```bash
-docker build -t my-app .
+2. **Deploy to Netlify**:
+   - Connect your repository to Netlify
+   - Set build command: `npm run build`
+   - Set publish directory: `build/client`
+   - The Netlify function will be deployed automatically
 
-# Run the container
-docker run -p 3000:3000 my-app
-```
-
-The containerized application can be deployed to any platform that supports Docker, including:
-
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
+## Project Structure
 
 ```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
+surf-finder/
+├── app/
+│   ├── data/
+│   │   └── surfSpots.json          # Surf spots database
+│   ├── routes/
+│   │   └── home.tsx                # Main surf finder app
+│   ├── comprehensive_surf_scraper.py  # Python scraper
+│   └── ...
+├── netlify/
+│   └── functions/
+│       └── find-surf-spots.js      # API for finding surf spots
+├── netlify.toml                    # Netlify configuration
+└── package.json
 ```
 
-## Styling
+## API Endpoints
 
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
+- `POST /.netlify/functions/find-surf-spots`
+  - Body: `{ latitude: number, longitude: number, maxDistance?: number }`
+  - Returns: Top 5 surf spots near the location with current conditions
 
----
+## Environment Variables
 
-Built with ❤️ using React Router.
+No environment variables required - the app uses public APIs.
+
+## Browser Support
+
+- Chrome/Edge 88+
+- Firefox 85+
+- Safari 14+
+- Requires geolocation support for location-based features
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## License
+
+MIT License - feel free to use this project for your own surf adventures! 🏄‍♀️

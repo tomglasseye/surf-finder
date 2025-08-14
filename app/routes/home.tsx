@@ -88,12 +88,26 @@ export default function Home() {
             return x - Math.floor(x);
           };
           
+          const mockWaveHeight = 0.3 + seededRandom(spotSeed * 1.3) * 2.2;
+          const mockPeriod = 6 + seededRandom(spotSeed * 1.9) * 8; // 6-14s
+          const mockWindSpeed = seededRandom(spotSeed * 1.7) * 25;
+          
           return {
             ...spot,
             distance: calculateDistance(latitude, longitude, spot.latitude, spot.longitude),
             surfScore: 3 + seededRandom(spotSeed * 1.1) * 6, // Consistent score 3-9
-            waveHeight: 0.3 + seededRandom(spotSeed * 1.3) * 2.2, // Consistent 0.3-2.5m
-            windSpeed: seededRandom(spotSeed * 1.7) * 25, // Consistent 0-25 km/h
+            waveHeight: mockWaveHeight,
+            windSpeed: mockWindSpeed,
+            conditions: {
+              waveHeight: mockWaveHeight,
+              swellWaveHeight: mockWaveHeight * 0.8,
+              swellWavePeriod: mockPeriod,
+              wavePeriod: mockPeriod,
+              windSpeed: mockWindSpeed,
+              windDirection: 90 + seededRandom(spotSeed * 2.1) * 180, // 90-270 degrees
+              swellWaveDirection: 270 + seededRandom(spotSeed * 2.3) * 90, // 270-360 degrees
+              timestamp: new Date().toISOString()
+            },
             surfDescription: `🔄 Mock data: ${spot.reliability} conditions at ${spot.name}. Live weather data loading...`
           };
         })

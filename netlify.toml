@@ -5,8 +5,10 @@
   
 [build.environment]
   NODE_VERSION = "20"
-  PYTHON_VERSION = ""
-  REACT_ROUTER_PRERENDER = "true"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
 
 # Function redirects first (higher priority)
 [[redirects]]

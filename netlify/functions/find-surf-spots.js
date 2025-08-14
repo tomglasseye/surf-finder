@@ -1,13 +1,9 @@
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const fs = require('fs');
+const path = require('path');
 
 // Load surf spots data
-const surfSpotsPath = join(__dirname, '..', '..', 'app', 'data', 'surfSpots.json');
-const surfSpotsData = JSON.parse(readFileSync(surfSpotsPath, 'utf8'));
+const surfSpotsPath = path.join(__dirname, '..', '..', 'app', 'data', 'surfSpots.json');
+const surfSpotsData = JSON.parse(fs.readFileSync(surfSpotsPath, 'utf8'));
 
 // Helper functions
 function calculateDistance(lat1, lng1, lat2, lng2) {

@@ -86,16 +86,23 @@ export default function ForecastSpot() {
 
   const generateMockForecast = () => {
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+    const mockSeed = parseFloat(lat || '0') + parseFloat(lng || '0'); // Use location as seed
+    const seededRandom = (seed: number) => {
+      const x = Math.sin(seed) * 10000;
+      return x - Math.floor(x);
+    };
+    
     const forecast = days.map((day, index) => {
-      const score = 3 + Math.random() * 6; // Random score 3-9
-      const waveHeight = 0.5 + Math.random() * 2; // 0.5-2.5m
-      const period = 6 + Math.random() * 8; // 6-14s
-      const windSpeed = Math.random() * 25; // 0-25 km/h
+      const daySeed = mockSeed + index * 41; // Consistent seed per day
+      const score = 3 + seededRandom(daySeed * 1.1) * 6; // Consistent score 3-9
+      const waveHeight = 0.5 + seededRandom(daySeed * 1.3) * 2; // 0.5-2.5m
+      const period = 6 + seededRandom(daySeed * 1.5) * 8; // 6-14s
+      const windSpeed = seededRandom(daySeed * 1.7) * 25; // 0-25 km/h
       
       const factors = [
+        '🔄 Mock data for development',
         score > 7 ? 'Great wave size' : score > 5 ? 'Good conditions' : 'Average conditions',
-        period > 10 ? 'Clean groundswell' : 'Moderate period',
-        windSpeed < 10 ? 'Light winds' : 'Moderate winds'
+        period > 10 ? 'Clean groundswell' : 'Moderate period'
       ];
       
       const date = new Date();

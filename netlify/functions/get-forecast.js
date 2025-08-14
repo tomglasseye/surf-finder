@@ -1,13 +1,9 @@
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+const fs = require('fs');
+const path = require('path');
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// Load surf spots data
-const surfSpotsPath = join(__dirname, '..', '..', 'app', 'data', 'surfSpots.json');
-const surfSpotsData = JSON.parse(readFileSync(surfSpotsPath, 'utf8'));
+// Load surf spots data  
+const surfSpotsPath = path.join(__dirname, '..', '..', 'app', 'data', 'surfSpots.json');
+const surfSpotsData = JSON.parse(fs.readFileSync(surfSpotsPath, 'utf8'));
 
 function directionScore(actualDir, optimalRange) {
   if (!actualDir || !optimalRange) return 0.5;

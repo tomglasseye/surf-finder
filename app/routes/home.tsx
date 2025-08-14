@@ -77,16 +77,26 @@ export default function Home() {
         console.log('Netlify function not available, using local data');
       }
 
-      // Fallback to local data processing
+      // Fallback to local data processing with consistent mock data
+      const mockSeed = latitude + longitude; // Use location as seed for consistent results
       const nearbySpots = surfSpotsData
-        .map(spot => ({
-          ...spot,
-          distance: calculateDistance(latitude, longitude, spot.latitude, spot.longitude),
-          surfScore: Math.random() * 10, // Mock score for demo
-          waveHeight: Math.random() * 3,
-          windSpeed: Math.random() * 20,
-          surfDescription: `${spot.reliability} conditions at ${spot.name}. ${spot.bestConditions}`
-        }))
+        .map((spot, index) => {
+          // Generate consistent mock data based on spot and location
+          const spotSeed = mockSeed + index * 37; // Simple pseudo-random based on position
+          const seededRandom = (seed: number) => {
+            const x = Math.sin(seed) * 10000;
+            return x - Math.floor(x);
+          };
+          
+          return {
+            ...spot,
+            distance: calculateDistance(latitude, longitude, spot.latitude, spot.longitude),
+            surfScore: 3 + seededRandom(spotSeed * 1.1) * 6, // Consistent score 3-9
+            waveHeight: 0.3 + seededRandom(spotSeed * 1.3) * 2.2, // Consistent 0.3-2.5m
+            windSpeed: seededRandom(spotSeed * 1.7) * 25, // Consistent 0-25 km/h
+            surfDescription: `🔄 Mock data: ${spot.reliability} conditions at ${spot.name}. Live weather data loading...`
+          };
+        })
         .filter(spot => spot.distance <= 100) // 100km
         .sort((a, b) => b.surfScore - a.surfScore) // Sort by score, not distance
         .slice(0, 10);

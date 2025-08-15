@@ -304,7 +304,7 @@ export default function Home() {
                           <div className="bg-gray-50 rounded-lg p-3">
                             <TideGraph 
                               tideData={spot.tideData} 
-                              showHours={12} 
+                              showHours={24} 
                               height="120px" 
                               className="border-0 bg-transparent"
                               latitude={spot.latitude}

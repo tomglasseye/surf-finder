@@ -232,7 +232,24 @@ export default function ProfessionalTideChart({
           </div>
         )}
         
-        <div style={{ height: `${height}px` }}>
+        <div style={{ height: `${height}px`, position: 'relative' }}>
+          {/* Custom dark overlay for sunrise on daily variant */}
+          {variant === 'daily' && (
+            <div 
+              style={{
+                position: 'absolute',
+                left: '20px', // Account for chart margin
+                top: '20px',
+                width: 'calc(20.8% - 20px)', // Approximately 0-5 hours out of 24 = ~20.8%
+                height: `${height - 40}px`, // Account for top/bottom margins
+                backgroundColor: '#1e293b',
+                opacity: 0.15,
+                pointerEvents: 'none',
+                zIndex: 1
+              }}
+            />
+          )}
+          
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
               data={tidePoints}

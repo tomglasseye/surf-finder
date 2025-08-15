@@ -243,26 +243,6 @@ export default function ProfessionalTideChart({
                 </linearGradient>
               </defs>
               
-              {/* Night/Day reference areas - always show both */}
-              {sunTimes.sunrise && sunTimes.sunset && (
-                <>
-                  {/* Before sunrise - avoid x1=0 issue */}
-                  <ReferenceArea 
-                    x1={0.1} 
-                    x2={5}
-                    fill="#1e293b"
-                    fillOpacity={0.15}
-                  />
-                  {/* After sunset */}
-                  <ReferenceArea 
-                    x1={19} 
-                    x2={23} 
-                    fill="#1e293b"
-                    fillOpacity={0.15}
-                  />
-                </>
-              )}
-              
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.3} />
               
               <XAxis 
@@ -321,6 +301,26 @@ export default function ProfessionalTideChart({
                 name="Tide Level"
                 dot={<CustomDot />}
               />
+              
+              {/* Night/Day reference areas - placed after main chart elements */}
+              {sunTimes.sunrise && sunTimes.sunset && (
+                <>
+                  {/* Before sunrise */}
+                  <ReferenceArea 
+                    x1={0} 
+                    x2={5}
+                    fill="#1e293b"
+                    fillOpacity={0.15}
+                  />
+                  {/* After sunset */}
+                  <ReferenceArea 
+                    x1={19} 
+                    x2={23} 
+                    fill="#1e293b"
+                    fillOpacity={0.15}
+                  />
+                </>
+              )}
               
               <Tooltip content={<CustomTooltip />} />
             </ComposedChart>

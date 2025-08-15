@@ -305,17 +305,40 @@ export default function ProfessionalTideChart({
                 dot={<CustomDot />}
               />
               
-              {/* Debug: Always render both areas */}
+              {/* Two-part sunrise area for daily variant */}
               <>
-                {/* Before sunrise - use x1=1 and extend with negative margin */}
+                {/* Part 1: 0-1 hour gap (only works on some variants) */}
+                {variant !== 'daily' && (
+                  <ReferenceArea 
+                    x1={0} 
+                    x2={1}
+                    fill="#1e293b"
+                    fillOpacity={0.15}
+                    key="sunrise-gap"
+                  />
+                )}
+                
+                {/* Part 2: 1 hour to sunrise (works on all variants) */}
                 <ReferenceArea 
                   x1={1} 
                   x2={Math.floor(sunTimes.sunrise?.getHours() || 5)}
                   fill="#1e293b"
                   fillOpacity={0.15}
                   key="sunrise-area"
-                  style={{ marginLeft: '-4.17%' }} // Extend to cover 0-1 hour gap (~4.17% of 24h)
                 />
+                
+                {/* CSS overlay for 0-1 gap on daily variant only */}
+                {variant === 'daily' && (
+                  <rect
+                    x="0"
+                    y="0"
+                    width="4.17%"
+                    height="100%"
+                    fill="#1e293b"
+                    fillOpacity={0.15}
+                  />
+                )}
+                
                 {/* After sunset */}
                 <ReferenceArea 
                   x1={Math.floor(sunTimes.sunset?.getHours() || 19)} 

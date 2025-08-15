@@ -262,7 +262,7 @@ export default function ForecastSpot() {
             <div className="mb-8">
               <ProfessionalTideChart 
                 tideData={forecast.forecast[0]?.tideData} 
-                height={250} 
+                height={375} 
                 className="shadow-lg"
                 latitude={forecast.spot.latitude}
                 longitude={forecast.spot.longitude}
@@ -324,7 +324,7 @@ export default function ForecastSpot() {
                     <ProfessionalTideChart 
                       tideData={day.tideData}
                       variant="daily"
-                      height={100}
+                      height={150}
                       showHours={24}
                       className="border-0"
                       latitude={forecast.spot.latitude}
@@ -337,7 +337,7 @@ export default function ForecastSpot() {
                   <div className="mb-4">
                     <ProfessionalHourlyChart 
                       data={day.hourlyData}
-                      height={120}
+                      height={180}
                       className="border-0"
                       variant="compact"
                       date={new Date(day.date)}

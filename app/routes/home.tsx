@@ -329,7 +329,7 @@ export default function Home() {
                           <ProfessionalTideChart 
                             tideData={spot.tideData} 
                             showHours={24} 
-                            height={120} 
+                            height={180} 
                             className="border-0"
                             latitude={spot.latitude}
                             longitude={spot.longitude}
@@ -339,7 +339,7 @@ export default function Home() {
                           {/* Professional Hourly Chart */}
                           <ProfessionalHourlyChart 
                             data={spot.hourlyData}
-                            height={100}
+                            height={150}
                             className="border-0"
                             variant="compact"
                           />

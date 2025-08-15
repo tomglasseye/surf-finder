@@ -234,13 +234,13 @@ export default function ProfessionalTideChart({
         
         <div style={{ height: `${height}px`, position: 'relative' }}>
           {/* Custom dark overlay for sunrise on daily variant */}
-          {variant === 'daily' && (
+          {variant === 'daily' && sunTimes.sunrise && (
             <div 
               style={{
                 position: 'absolute',
-                left: '68px', // Align with chart start marker
+                left: '70px', // Start after Y-axis
                 top: '20px',
-                width: '19%', // Slightly shorter for 0-5 hours
+                width: `${(Math.floor(sunTimes.sunrise.getHours()) / 24) * 100}%`, // Dynamic width to sunrise hour
                 height: `${height - 40}px`, // Account for top/bottom margins
                 backgroundColor: '#1e293b',
                 opacity: 0.15,

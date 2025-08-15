@@ -119,8 +119,8 @@ export default function ProfessionalTideChart({
 
   const tidePoints = generateTidePoints();
   const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const sunTimes = calculateSunTimes(today);
+  const targetDate = variant === 'daily' && date ? date : new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const sunTimes = calculateSunTimes(targetDate);
   const currentHour = now.getHours();
   
   // Debug log for development

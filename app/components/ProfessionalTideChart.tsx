@@ -245,22 +245,24 @@ export default function ProfessionalTideChart({
               
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.3} />
               
-              {/* Night/Day reference areas */}
+              {/* Night/Day reference areas - using simpler approach */}
               {sunTimes.sunrise && sunTimes.sunset && (
                 <>
-                  {/* Before sunrise - always show if sunrise is after hour 0 */}
+                  {/* Before sunrise */}
                   <ReferenceArea 
                     x1={0} 
-                    x2={Math.max(1, Math.floor(sunTimes.sunrise.getHours()))} 
-                    fill="#1e293b" 
-                    fillOpacity={0.2} 
+                    x2={5}
+                    fill="#334155" 
+                    fillOpacity={0.15}
+                    stroke="none"
                   />
-                  {/* After sunset - always show if sunset is before hour 23 */}
+                  {/* After sunset */}
                   <ReferenceArea 
-                    x1={Math.min(22, Math.floor(sunTimes.sunset.getHours()))} 
+                    x1={19} 
                     x2={23} 
-                    fill="#1e293b" 
-                    fillOpacity={0.2} 
+                    fill="#334155" 
+                    fillOpacity={0.15}
+                    stroke="none"
                   />
                 </>
               )}

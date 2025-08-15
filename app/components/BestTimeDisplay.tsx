@@ -234,19 +234,6 @@ export default function BestTimeDisplay({
               <div className="text-xs text-gray-600">Skip this session</div>
             </div>
           </div>
-          
-          {/* Lighting Safety Notice */}
-          <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xl">☀️</span>
-              <div className="font-semibold text-amber-800">Safe Lighting Considered</div>
-            </div>
-            <div className="text-sm text-amber-700 space-y-1">
-              <div>• <strong>Optimal:</strong> Full daylight hours (sunrise to sunset)</div>
-              <div>• <strong>Good:</strong> Dawn/dusk with 1-hour buffer each side</div>
-              <div>• <strong>Avoid:</strong> Dark hours heavily penalized for safety</div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

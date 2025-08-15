@@ -145,7 +145,7 @@ export default function TideGraph({
   };
 
   return (
-    <div className={`bg-white rounded-lg border ${className}`}>
+    <div className={`bg-white rounded-xl shadow-lg border-0 overflow-hidden ${className}`}>
       <div className="p-4">
         {variant !== 'daily' && (
           <div className="flex items-center justify-between mb-4">
@@ -153,8 +153,10 @@ export default function TideGraph({
               🌊 {showHours}-Hour Tide Chart
             </h4>
             {tideData && (
-              <div className="text-sm text-gray-600">
-                Current: {getTideHeight(tideData.currentLevel)} {tideData.isRising ? '↗️' : '↘️'}
+              <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-full px-3 py-1 border border-blue-200">
+                <div className="text-sm font-semibold text-blue-700">
+                  Current: {getTideHeight(tideData.currentLevel)} {tideData.isRising ? '↗️' : '↘️'}
+                </div>
               </div>
             )}
           </div>
@@ -168,29 +170,70 @@ export default function TideGraph({
           </div>
         )}
         
-        <div className="relative" style={{ height }}>
+        <div className="relative bg-gradient-to-b from-cyan-50 via-blue-50 to-blue-100 rounded-lg p-3 shadow-inner" style={{ height }}>
           <svg
             viewBox={`0 0 ${graphWidth} ${graphHeight}`}
             className="w-full h-full"
             preserveAspectRatio="none"
           >
-            {/* Grid lines */}
+            {/* Enhanced gradients and filters */}
             <defs>
-              <pattern id="grid" width="10" height="25" patternUnits="userSpaceOnUse">
-                <path d="M 10 0 L 0 0 0 25" fill="none" stroke="#e5e7eb" strokeWidth="0.5"/>
+              {/* Subtle grid pattern */}
+              <pattern id="tideGrid" width="8.33" height="20" patternUnits="userSpaceOnUse">
+                <path d="M 8.33 0 L 0 0 0 20" fill="none" stroke="#cbd5e1" strokeWidth="0.3" opacity="0.4"/>
+                <path d="M 0 20 L 8.33 20" fill="none" stroke="#cbd5e1" strokeWidth="0.3" opacity="0.2"/>
               </pattern>
-              {/* Daylight gradient */}
+              
+              {/* Enhanced daylight gradient */}
               <linearGradient id="daylightGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#fef3c7" stopOpacity="0.3"/>
-                <stop offset="100%" stopColor="#fef3c7" stopOpacity="0.1"/>
+                <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.25"/>
+                <stop offset="50%" stopColor="#fef3c7" stopOpacity="0.15"/>
+                <stop offset="100%" stopColor="#fef3c7" stopOpacity="0.05"/>
               </linearGradient>
-              {/* Nighttime gradient */}
+              
+              {/* Enhanced nighttime gradient */}
               <linearGradient id="nightGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#1e293b" stopOpacity="0.2"/>
-                <stop offset="100%" stopColor="#1e293b" stopOpacity="0.05"/>
+                <stop offset="0%" stopColor="#1e293b" stopOpacity="0.3"/>
+                <stop offset="50%" stopColor="#334155" stopOpacity="0.15"/>
+                <stop offset="100%" stopColor="#475569" stopOpacity="0.05"/>
               </linearGradient>
+              
+              {/* Enhanced tide gradient */}
+              <linearGradient id="tideGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#0284c7" stopOpacity="0.6"/>
+                <stop offset="30%" stopColor="#0ea5e9" stopOpacity="0.4"/>
+                <stop offset="70%" stopColor="#38bdf8" stopOpacity="0.2"/>
+                <stop offset="100%" stopColor="#7dd3fc" stopOpacity="0.1"/>
+              </linearGradient>
+              
+              {/* High tide gradient */}
+              <radialGradient id="highTideGradient" cx="50%" cy="50%">
+                <stop offset="0%" stopColor="#10b981" stopOpacity="0.8"/>
+                <stop offset="100%" stopColor="#059669" stopOpacity="0.6"/>
+              </radialGradient>
+              
+              {/* Low tide gradient */}
+              <radialGradient id="lowTideGradient" cx="50%" cy="50%">
+                <stop offset="0%" stopColor="#ef4444" stopOpacity="0.8"/>
+                <stop offset="100%" stopColor="#dc2626" stopOpacity="0.6"/>
+              </radialGradient>
+              
+              {/* Drop shadow filter */}
+              <filter id="tideDropShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="2" stdDeviation="2" floodColor="#000" floodOpacity="0.15"/>
+              </filter>
+              
+              {/* Glow filter */}
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="1" result="coloredBlur"/>
+                <feMerge> 
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
             </defs>
-            <rect width="100%" height="100%" fill="url(#grid)" />
+            
+            <rect width="100%" height="100%" fill="url(#tideGrid)" />
             
             {/* Daylight/Nighttime background */}
             {(() => {
@@ -234,36 +277,46 @@ export default function TideGraph({
               return backgrounds;
             })()}
             
-            {/* High and Low tide reference lines */}
-            <line x1="0" y1="20" x2={graphWidth} y2="20" stroke="#3b82f6" strokeWidth="0.5" strokeDasharray="2,2" />
-            <line x1="0" y1="50" x2={graphWidth} y2="50" stroke="#6b7280" strokeWidth="0.5" strokeDasharray="2,2" />
-            <line x1="0" y1="80" x2={graphWidth} y2="80" stroke="#3b82f6" strokeWidth="0.5" strokeDasharray="2,2" />
+            {/* Enhanced reference lines */}
+            <line x1="0" y1="20" x2={graphWidth} y2="20" stroke="#0ea5e9" strokeWidth="0.8" strokeDasharray="4,3" opacity="0.4" />
+            <text x="2" y="18" className="text-xs fill-blue-600 font-medium" opacity="0.7">High</text>
             
-            {/* Tide curve */}
+            <line x1="0" y1="50" x2={graphWidth} y2="50" stroke="#64748b" strokeWidth="0.6" strokeDasharray="3,3" opacity="0.3" />
+            <text x="2" y="48" className="text-xs fill-gray-600 font-medium" opacity="0.6">Mid</text>
+            
+            <line x1="0" y1="80" x2={graphWidth} y2="80" stroke="#0ea5e9" strokeWidth="0.8" strokeDasharray="4,3" opacity="0.4" />
+            <text x="2" y="78" className="text-xs fill-blue-600 font-medium" opacity="0.7">Low</text>
+            
+            {/* Enhanced fill area under curve */}
+            <path
+              d={`${createTidePath()} L ${graphWidth} ${graphHeight} L 0 ${graphHeight} Z`}
+              fill="url(#tideGradient)"
+              filter="url(#tideDropShadow)"
+            />
+            
+            {/* Enhanced tide curve with glow */}
+            <path
+              d={createTidePath()}
+              fill="none"
+              stroke="#0284c7"
+              strokeWidth="4"
+              filter="url(#glow)"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            
+            {/* Main tide curve */}
             <path
               d={createTidePath()}
               fill="none"
               stroke="#0ea5e9"
-              strokeWidth="2"
-              className="drop-shadow-sm"
+              strokeWidth="3"
+              filter="url(#tideDropShadow)"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             />
             
-            {/* Fill area under curve */}
-            <path
-              d={`${createTidePath()} L ${graphWidth} ${graphHeight} L 0 ${graphHeight} Z`}
-              fill="url(#tideGradient)"
-              opacity="0.3"
-            />
-            
-            {/* Gradient definition */}
-            <defs>
-              <linearGradient id="tideGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#0ea5e9" stopOpacity="0.8"/>
-                <stop offset="100%" stopColor="#0ea5e9" stopOpacity="0.1"/>
-              </linearGradient>
-            </defs>
-            
-            {/* High/Low tide markers */}
+            {/* Enhanced High/Low tide markers */}
             {tidePoints.map((point, index) => {
               const x = (index / (showHours - 1)) * graphWidth;
               const y = graphHeight - (point.level * graphHeight);
@@ -271,8 +324,14 @@ export default function TideGraph({
               if (point.isHighTide) {
                 return (
                   <g key={`high-${index}`}>
-                    <circle cx={x} cy={y} r="3" fill="#10b981" stroke="white" strokeWidth="1"/>
-                    <text x={x} y={y - 8} textAnchor="middle" className="text-xs fill-green-600 font-semibold">
+                    {/* Glow effect */}
+                    <circle cx={x} cy={y} r="8" fill="url(#highTideGradient)" opacity="0.3" filter="url(#glow)"/>
+                    <circle cx={x} cy={y} r="5" fill="white" stroke="#10b981" strokeWidth="2" filter="url(#tideDropShadow)"/>
+                    <circle cx={x} cy={y} r="3" fill="#10b981"/>
+                    <text x={x} y={y - 12} textAnchor="middle" className="text-xs fill-green-700 font-bold drop-shadow-sm">
+                      HIGH
+                    </text>
+                    <text x={x} y={y - 2} textAnchor="middle" className="text-xs fill-white font-bold">
                       H
                     </text>
                   </g>
@@ -282,8 +341,14 @@ export default function TideGraph({
               if (point.isLowTide) {
                 return (
                   <g key={`low-${index}`}>
-                    <circle cx={x} cy={y} r="3" fill="#ef4444" stroke="white" strokeWidth="1"/>
-                    <text x={x} y={y + 15} textAnchor="middle" className="text-xs fill-red-600 font-semibold">
+                    {/* Glow effect */}
+                    <circle cx={x} cy={y} r="8" fill="url(#lowTideGradient)" opacity="0.3" filter="url(#glow)"/>
+                    <circle cx={x} cy={y} r="5" fill="white" stroke="#ef4444" strokeWidth="2" filter="url(#tideDropShadow)"/>
+                    <circle cx={x} cy={y} r="3" fill="#ef4444"/>
+                    <text x={x} y={y + 18} textAnchor="middle" className="text-xs fill-red-700 font-bold drop-shadow-sm">
+                      LOW
+                    </text>
+                    <text x={x} y={y + 2} textAnchor="middle" className="text-xs fill-white font-bold">
                       L
                     </text>
                   </g>
@@ -293,9 +358,12 @@ export default function TideGraph({
               if (point.isNow) {
                 return (
                   <g key={`now-${index}`}>
-                    <line x1={x} y1="0" x2={x} y2={graphHeight} stroke="#f59e0b" strokeWidth="2" strokeDasharray="3,3"/>
-                    <circle cx={x} cy={y} r="4" fill="#f59e0b" stroke="white" strokeWidth="2"/>
-                    <text x={x} y={y - 12} textAnchor="middle" className="text-xs fill-amber-600 font-bold">
+                    {/* Current time line with gradient */}
+                    <line x1={x} y1="0" x2={x} y2={graphHeight} stroke="#f59e0b" strokeWidth="3" strokeDasharray="5,3" opacity="0.8" filter="url(#glow)"/>
+                    <circle cx={x} cy={y} r="8" fill="#fbbf24" opacity="0.3" filter="url(#glow)"/>
+                    <circle cx={x} cy={y} r="6" fill="white" stroke="#f59e0b" strokeWidth="3" filter="url(#tideDropShadow)"/>
+                    <circle cx={x} cy={y} r="3" fill="#f59e0b"/>
+                    <text x={x} y={y - 15} textAnchor="middle" className="text-xs fill-amber-700 font-bold drop-shadow-sm bg-white bg-opacity-80 px-2 py-1 rounded">
                       NOW
                     </text>
                   </g>
@@ -305,7 +373,7 @@ export default function TideGraph({
               return null;
             })}
             
-            {/* Sunrise/Sunset markers */}
+            {/* Enhanced Sunrise/Sunset markers */}
             {(() => {
               const markers = [];
               const startTime = new Date(now.getTime() - (now.getHours() * 3600000)); // Start of today
@@ -316,9 +384,14 @@ export default function TideGraph({
                   const x = (sunriseHour / (showHours - 1)) * graphWidth;
                   markers.push(
                     <g key="sunrise">
-                      <line x1={x} y1="5" x2={x} y2={graphHeight - 5} stroke="#f59e0b" strokeWidth="2" strokeDasharray="4,2"/>
-                      <circle cx={x} cy="10" r="6" fill="#f59e0b" stroke="white" strokeWidth="1"/>
-                      <text x={x} y="15" textAnchor="middle" className="text-xs fill-amber-600 font-bold">
+                      <line x1={x} y1="8" x2={x} y2={graphHeight - 8} stroke="#fbbf24" strokeWidth="2" strokeDasharray="6,3" opacity="0.7" filter="url(#glow)"/>
+                      <circle cx={x} cy="12" r="10" fill="#fbbf24" opacity="0.2" filter="url(#glow)"/>
+                      <circle cx={x} cy="12" r="8" fill="white" stroke="#f59e0b" strokeWidth="2" filter="url(#tideDropShadow)"/>
+                      <circle cx={x} cy="12" r="5" fill="#fbbf24"/>
+                      <text x={x} y="7" textAnchor="middle" className="text-xs fill-amber-700 font-bold">
+                        SUNRISE
+                      </text>
+                      <text x={x} y="16" textAnchor="middle" className="text-sm">
                         ☀️
                       </text>
                     </g>
@@ -332,9 +405,14 @@ export default function TideGraph({
                   const x = (sunsetHour / (showHours - 1)) * graphWidth;
                   markers.push(
                     <g key="sunset">
-                      <line x1={x} y1="5" x2={x} y2={graphHeight - 5} stroke="#f97316" strokeWidth="2" strokeDasharray="4,2"/>
-                      <circle cx={x} cy="10" r="6" fill="#f97316" stroke="white" strokeWidth="1"/>
-                      <text x={x} y="15" textAnchor="middle" className="text-xs fill-orange-600 font-bold">
+                      <line x1={x} y1="8" x2={x} y2={graphHeight - 8} stroke="#f97316" strokeWidth="2" strokeDasharray="6,3" opacity="0.7" filter="url(#glow)"/>
+                      <circle cx={x} cy="12" r="10" fill="#f97316" opacity="0.2" filter="url(#glow)"/>
+                      <circle cx={x} cy="12" r="8" fill="white" stroke="#f97316" strokeWidth="2" filter="url(#tideDropShadow)"/>
+                      <circle cx={x} cy="12" r="5" fill="#f97316"/>
+                      <text x={x} y="7" textAnchor="middle" className="text-xs fill-orange-700 font-bold">
+                        SUNSET
+                      </text>
+                      <text x={x} y="16" textAnchor="middle" className="text-sm">
                         🌅
                       </text>
                     </g>
@@ -347,8 +425,8 @@ export default function TideGraph({
           </svg>
         </div>
         
-        {/* Time labels */}
-        <div className="flex justify-between mt-2 text-xs text-gray-500">
+        {/* Enhanced time labels */}
+        <div className="flex justify-between mt-4 px-2">
           {(() => {
             let labelIndices;
             if (variant === 'daily') {
@@ -363,52 +441,92 @@ export default function TideGraph({
             return labelIndices.map(hour => {
               const point = tidePoints[hour];
               if (!point) return null; // Safety check
+              const isNow = hour === new Date().getHours();
               return (
-                <div key={hour} className="text-center">
-                  <div>{formatHour(point.time)}</div>
-                  <div className="text-blue-600 font-medium">
+                <div key={hour} className={`text-center ${isNow ? 'bg-amber-50 rounded-lg px-2 py-1 border border-amber-200' : ''}`}>
+                  <div className={`text-xs font-semibold ${isNow ? 'text-amber-700' : 'text-gray-600'}`}>
+                    {formatHour(point.time)}
+                  </div>
+                  <div className={`text-xs font-bold ${isNow ? 'text-amber-600' : 'text-blue-600'}`}>
                     {getTideHeight(point.level)}
                   </div>
+                  {isNow && (
+                    <div className="text-xs text-amber-600 font-bold">NOW</div>
+                  )}
                 </div>
               );
             });
           })()}
         </div>
         
-        {/* Legend */}
+        {/* Enhanced Legend */}
         {variant === 'daily' ? (
-          <div className="mt-2 flex flex-wrap gap-2 justify-center text-xs text-gray-600">
-            <span>🟢H</span>
-            <span>🔴L</span>
-            <span>☀️</span>
-            <span>🌅</span>
-            {!tideData && <span className="text-orange-600">🔄</span>}
-          </div>
-        ) : (
-          <div className="mt-4 flex flex-wrap gap-4 text-xs text-gray-600">
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <span>High Tide (H)</span>
+          <div className="mt-3 flex flex-wrap gap-2 justify-center">
+            <div className="flex items-center gap-1 bg-green-50 rounded-full px-2 py-1 border border-green-200">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span className="text-xs text-green-700 font-medium">High</span>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-              <span>Low Tide (L)</span>
+            <div className="flex items-center gap-1 bg-red-50 rounded-full px-2 py-1 border border-red-200">
+              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+              <span className="text-xs text-red-700 font-medium">Low</span>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
-              <span>Current Time</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span>☀️</span>
-              <span>Sunrise</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span>🌅</span>
-              <span>Sunset</span>
+            <div className="flex items-center gap-1 bg-amber-50 rounded-full px-2 py-1 border border-amber-200">
+              <span className="text-xs">☀️</span>
+              <span className="text-xs text-amber-700 font-medium">Sun</span>
             </div>
             {!tideData && (
-              <div className="text-orange-600">
-                🔄 Approximate tide data for development
+              <div className="bg-orange-50 rounded-full px-2 py-1 border border-orange-200">
+                <span className="text-xs text-orange-700 font-medium">🔄 Demo</span>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="mt-4 grid grid-cols-2 md:grid-cols-5 gap-3">
+            <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-2 border border-green-200 shadow-sm">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-3 h-3 bg-green-500 rounded-full shadow-sm"></div>
+                <span className="text-xs font-semibold text-green-800">High Tide</span>
+              </div>
+              <div className="text-xs text-green-600">Peak water levels</div>
+            </div>
+            
+            <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-lg p-2 border border-red-200 shadow-sm">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-3 h-3 bg-red-500 rounded-full shadow-sm"></div>
+                <span className="text-xs font-semibold text-red-800">Low Tide</span>
+              </div>
+              <div className="text-xs text-red-600">Lowest water levels</div>
+            </div>
+            
+            <div className="bg-gradient-to-r from-amber-50 to-amber-100 rounded-lg p-2 border border-amber-200 shadow-sm">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-3 h-3 bg-amber-500 rounded-full shadow-sm"></div>
+                <span className="text-xs font-semibold text-amber-800">Current Time</span>
+              </div>
+              <div className="text-xs text-amber-600">Right now</div>
+            </div>
+            
+            <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-lg p-2 border border-yellow-200 shadow-sm">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-sm">☀️</span>
+                <span className="text-xs font-semibold text-yellow-800">Sunrise</span>
+              </div>
+              <div className="text-xs text-yellow-600">Dawn light</div>
+            </div>
+            
+            <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg p-2 border border-orange-200 shadow-sm">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-sm">🌅</span>
+                <span className="text-xs font-semibold text-orange-800">Sunset</span>
+              </div>
+              <div className="text-xs text-orange-600">Evening light</div>
+            </div>
+            
+            {!tideData && (
+              <div className="col-span-full bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <div className="text-center text-xs text-blue-700 font-medium">
+                  🔄 Live tide data loading... showing approximate values
+                </div>
               </div>
             )}
           </div>

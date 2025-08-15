@@ -232,7 +232,24 @@ export default function ProfessionalTideChart({
           </div>
         )}
         
-        <div style={{ height: `${height}px` }}>
+        <div style={{ height: `${height}px`, position: 'relative' }}>
+          {/* CSS overlay to fill 0-1 gap on daily variant */}
+          {variant === 'daily' && (
+            <div 
+              style={{
+                position: 'absolute',
+                left: '50px', // Start at actual chart beginning
+                top: '20px',
+                width: `${(1 / 24) * 100}%`, // Exactly 1 hour out of 24 = ~4.17%
+                height: `${height - 40}px`, // Account for margins
+                backgroundColor: '#1e293b',
+                opacity: 0.15,
+                pointerEvents: 'none',
+                zIndex: 1
+              }}
+            />
+          )}
+          
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
               data={tidePoints}
@@ -327,17 +344,6 @@ export default function ProfessionalTideChart({
                   key="sunrise-area"
                 />
                 
-                {/* CSS overlay for 0-1 gap on daily variant only */}
-                {variant === 'daily' && (
-                  <rect
-                    x="0"
-                    y="0"
-                    width="4.17%"
-                    height="100%"
-                    fill="#1e293b"
-                    fillOpacity={0.15}
-                  />
-                )}
                 
                 {/* After sunset */}
                 <ReferenceArea 

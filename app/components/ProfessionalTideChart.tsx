@@ -243,28 +243,22 @@ export default function ProfessionalTideChart({
                 </linearGradient>
               </defs>
               
-              {/* Night/Day reference areas - fix sunrise area with proper bounds */}
+              {/* Night/Day reference areas - always show both */}
               {sunTimes.sunrise && sunTimes.sunset && (
                 <>
-                  {/* Before sunrise - ensure x1 and x2 are different */}
-                  {Math.floor(sunTimes.sunrise.getHours()) > 0 && (
-                    <ReferenceArea 
-                      x1={-0.5} 
-                      x2={Math.floor(sunTimes.sunrise.getHours())}
-                      fill="#1e293b"
-                      fillOpacity={0.2}
-                      stroke="#1e293b"
-                      strokeWidth={0}
-                    />
-                  )}
+                  {/* Before sunrise */}
+                  <ReferenceArea 
+                    x1={0} 
+                    x2={5}
+                    fill="#1e293b"
+                    fillOpacity={0.15}
+                  />
                   {/* After sunset */}
                   <ReferenceArea 
-                    x1={Math.floor(sunTimes.sunset.getHours())} 
-                    x2={23.5} 
+                    x1={19} 
+                    x2={23} 
                     fill="#1e293b"
-                    fillOpacity={0.2}
-                    stroke="#1e293b"
-                    strokeWidth={0}
+                    fillOpacity={0.15}
                   />
                 </>
               )}

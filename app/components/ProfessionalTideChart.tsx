@@ -243,30 +243,27 @@ export default function ProfessionalTideChart({
                 </linearGradient>
               </defs>
               
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.3} />
-              
-              {/* Try using defs pattern for dark areas */}
-              <defs>
-                <pattern id="darkArea" patternUnits="userSpaceOnUse" width="100%" height="100%">
-                  <rect width="100%" height="100%" fill="#1e293b" opacity="0.15"/>
-                </pattern>
-              </defs>
-              
-              {/* Night/Day reference areas */}
+              {/* Night/Day reference areas - put BEFORE CartesianGrid */}
               {sunTimes.sunrise && sunTimes.sunset && (
                 <>
                   <ReferenceArea 
                     x1={0} 
                     x2={Math.floor(sunTimes.sunrise.getHours())}
-                    fill="url(#darkArea)"
+                    fill="#1e293b"
+                    fillOpacity={0.1}
+                    stroke="none"
                   />
                   <ReferenceArea 
                     x1={Math.floor(sunTimes.sunset.getHours())} 
                     x2={23} 
-                    fill="url(#darkArea)"
+                    fill="#1e293b"
+                    fillOpacity={0.1}
+                    stroke="none"
                   />
                 </>
               )}
+              
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.3} />
               
               <XAxis 
                 dataKey="hour"

@@ -232,24 +232,7 @@ export default function ProfessionalTideChart({
           </div>
         )}
         
-        <div style={{ height: `${height}px`, position: 'relative' }}>
-          {/* Custom dark overlay for sunrise on daily variant */}
-          {variant === 'daily' && sunTimes.sunrise && (
-            <div 
-              style={{
-                position: 'absolute',
-                left: '70px', // Start after Y-axis
-                top: '20px',
-                width: `${(Math.floor(sunTimes.sunrise.getHours()) / 24) * 100}%`, // Dynamic width to sunrise hour
-                height: `${height - 40}px`, // Account for top/bottom margins
-                backgroundColor: '#1e293b',
-                opacity: 0.15,
-                pointerEvents: 'none',
-                zIndex: 1
-              }}
-            />
-          )}
-          
+        <div style={{ height: `${height}px` }}>
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
               data={tidePoints}
@@ -322,27 +305,25 @@ export default function ProfessionalTideChart({
                 dot={<CustomDot />}
               />
               
-              {/* Night/Day reference areas - with variant-specific rendering */}
-              {(sunTimes.sunrise && sunTimes.sunset) || forceRender ? (
-                <>
-                  {/* Before sunrise */}
-                  <ReferenceArea 
-                    x1={0} 
-                    x2={5}
-                    fill="#1e293b"
-                    fillOpacity={0.15}
-                    key="sunrise-area"
-                  />
-                  {/* After sunset */}
-                  <ReferenceArea 
-                    x1={19} 
-                    x2={23} 
-                    fill="#1e293b"
-                    fillOpacity={0.15}
-                    key="sunset-area"
-                  />
-                </>
-              ) : null}
+              {/* Debug: Always render both areas */}
+              <>
+                {/* Before sunrise - debug version */}
+                <ReferenceArea 
+                  x1={1} 
+                  x2={Math.floor(sunTimes.sunrise?.getHours() || 5)}
+                  fill="#1e293b"
+                  fillOpacity={0.15}
+                  key="sunrise-area"
+                />
+                {/* After sunset */}
+                <ReferenceArea 
+                  x1={Math.floor(sunTimes.sunset?.getHours() || 19)} 
+                  x2={23} 
+                  fill="#1e293b"
+                  fillOpacity={0.15}
+                  key="sunset-area"
+                />
+              </>
               
               <Tooltip content={<CustomTooltip />} />
             </ComposedChart>

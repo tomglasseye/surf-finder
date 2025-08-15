@@ -307,13 +307,14 @@ export default function ProfessionalTideChart({
               
               {/* Debug: Always render both areas */}
               <>
-                {/* Before sunrise - use tiny offset to avoid x1=0 issue on daily variant */}
+                {/* Before sunrise - use x1=1 and extend with negative margin */}
                 <ReferenceArea 
-                  x1={0.01} 
+                  x1={1} 
                   x2={Math.floor(sunTimes.sunrise?.getHours() || 5)}
                   fill="#1e293b"
                   fillOpacity={0.15}
                   key="sunrise-area"
+                  style={{ marginLeft: '-4.17%' }} // Extend to cover 0-1 hour gap (~4.17% of 24h)
                 />
                 {/* After sunset */}
                 <ReferenceArea 

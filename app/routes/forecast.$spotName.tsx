@@ -22,6 +22,28 @@ interface TideData {
   nextLow: Date;
 }
 
+interface BestTimeData {
+  bestTime: {
+    hour: number;
+    score: number;
+    factors: string[];
+    time: string;
+  };
+  bestWindow?: {
+    start: number;
+    end: number;
+    startTime: string;
+    endTime: string;
+    hasGoodLight?: boolean;
+  } | null;
+  allHours: Array<{
+    hour: number;
+    score: number;
+    factors: string[];
+    time: string;
+  }>;
+}
+
 interface ForecastDay {
   date: string;
   dayName: string;
@@ -33,6 +55,7 @@ interface ForecastDay {
   factors: string[];
   rating: string;
   tideData?: TideData;
+  bestTime?: BestTimeData;
 }
 
 interface ForecastData {
@@ -343,6 +366,17 @@ export default function ForecastSpot() {
                       date={new Date(day.date)}
                     />
                   </div>
+
+                  {/* Best Time Display for this day */}
+                  {day.bestTime && (
+                    <div className="mb-4">
+                      <BestTimeDisplay 
+                        bestTimeData={day.bestTime}
+                        variant="compact"
+                        className="border-0"
+                      />
+                    </div>
+                  )}
 
                   {day.factors.length > 0 && (
                     <div className="border-t pt-3">

@@ -245,24 +245,25 @@ export default function ProfessionalTideChart({
               
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.3} />
               
-              {/* Night/Day reference areas - using simpler approach */}
+              {/* Try using defs pattern for dark areas */}
+              <defs>
+                <pattern id="darkArea" patternUnits="userSpaceOnUse" width="100%" height="100%">
+                  <rect width="100%" height="100%" fill="#1e293b" opacity="0.15"/>
+                </pattern>
+              </defs>
+              
+              {/* Night/Day reference areas */}
               {sunTimes.sunrise && sunTimes.sunset && (
                 <>
-                  {/* Before sunrise */}
                   <ReferenceArea 
                     x1={0} 
-                    x2={5}
-                    fill="#334155" 
-                    fillOpacity={0.15}
-                    stroke="none"
+                    x2={Math.floor(sunTimes.sunrise.getHours())}
+                    fill="url(#darkArea)"
                   />
-                  {/* After sunset */}
                   <ReferenceArea 
-                    x1={19} 
+                    x1={Math.floor(sunTimes.sunset.getHours())} 
                     x2={23} 
-                    fill="#334155" 
-                    fillOpacity={0.15}
-                    stroke="none"
+                    fill="url(#darkArea)"
                   />
                 </>
               )}

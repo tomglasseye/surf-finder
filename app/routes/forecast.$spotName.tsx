@@ -333,7 +333,7 @@ export default function ForecastSpot() {
                   {/* Hourly Surf Conditions Chart */}
                   <div className="mb-4">
                     <HourlySurfChart 
-                      data={null} // Will use mock data for now
+                      data={day.hourlyData}
                       height="120px"
                       className="border-0 bg-blue-50"
                       variant="compact"

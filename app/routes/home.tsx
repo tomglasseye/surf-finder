@@ -316,7 +316,7 @@ export default function Home() {
                           {/* Hourly Surf Conditions */}
                           <div className="bg-blue-50 rounded-lg p-3">
                             <HourlySurfChart 
-                              data={null} // Will use mock data for now
+                              data={spot.hourlyData}
                               height="100px"
                               className="border-0 bg-transparent"
                               variant="compact"

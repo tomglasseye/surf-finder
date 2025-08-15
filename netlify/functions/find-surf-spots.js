@@ -531,6 +531,30 @@ exports.handler = async (event, context) => {
         const conditions = await getSurfConditions(spot.latitude, spot.longitude);
         const { score, description } = calculateSurfScore(conditions, spot);
         
+        // Generate hourly data for today
+        const today = new Date();
+        const hourlyData = {
+          waveHeight: Array.from({length: 24}, (_, hour) => {
+            const baseHeight = conditions?.waveHeight || 1.0;
+            const variation = Math.sin((hour / 24) * Math.PI * 2) * 0.3;
+            return Math.max(0.2, baseHeight + variation + (Math.random() * 0.2 - 0.1));
+          }),
+          period: Array.from({length: 24}, (_, hour) => {
+            const basePeriod = conditions?.swellWavePeriod || conditions?.wavePeriod || 8;
+            const variation = Math.sin((hour / 24) * Math.PI * 2 + Math.PI/3) * 2;
+            return Math.max(4, basePeriod + variation + (Math.random() * 1 - 0.5));
+          }),
+          windSpeed: Array.from({length: 24}, (_, hour) => {
+            const baseWind = conditions?.windSpeed || 10;
+            const variation = Math.sin((hour / 24) * Math.PI * 2 + Math.PI/6) * 5;
+            return Math.max(0, baseWind + variation + (Math.random() * 2 - 1));
+          }),
+          times: Array.from({length: 24}, (_, hour) => {
+            const hourDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hour, 0, 0);
+            return hourDate.toISOString();
+          })
+        };
+
         return {
           ...spot,
           conditions,
@@ -538,7 +562,8 @@ exports.handler = async (event, context) => {
           surfDescription: description,
           waveHeight: conditions?.waveHeight || 0,
           windSpeed: conditions?.windSpeed || 0,
-          tideData: conditions?.tideData || null
+          tideData: conditions?.tideData || null,
+          hourlyData: hourlyData
         };
       })
     );

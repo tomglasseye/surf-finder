@@ -384,6 +384,18 @@ exports.handler = async (event, context) => {
         day: 'numeric' 
       });
       
+      // Create hourly data for this day
+      const hourlyData = {
+        waveHeight: dayData.waveHeight,
+        period: dayData.period,
+        windSpeed: dayData.windSpeed,
+        times: Array.from({length: 24}, (_, hour) => {
+          const hourDate = new Date(date);
+          hourDate.setHours(hour, 0, 0, 0);
+          return hourDate.toISOString();
+        })
+      };
+      
       return {
         date: dayData.date,
         dayName,
@@ -394,6 +406,7 @@ exports.handler = async (event, context) => {
         windSpeed: dayScore.windSpeed,
         factors: dayScore.factors,
         tideData: dayScore.tideData,
+        hourlyData: hourlyData,
         rating: dayScore.score >= 7 ? 'Excellent' : 
                 dayScore.score >= 5.5 ? 'Good' : 
                 dayScore.score >= 4 ? 'Average' : 

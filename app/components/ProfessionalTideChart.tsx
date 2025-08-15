@@ -232,24 +232,7 @@ export default function ProfessionalTideChart({
           </div>
         )}
         
-        <div style={{ height: `${height}px`, position: 'relative' }}>
-          {/* CSS overlay to fill 0-1 gap on daily variant */}
-          {variant === 'daily' && (
-            <div 
-              style={{
-                position: 'absolute',
-                left: '50px', // Start at actual chart beginning
-                top: '20px',
-                width: `${(1 / 24) * 100}%`, // Exactly 1 hour out of 24 = ~4.17%
-                height: `${height - 40}px`, // Account for margins
-                backgroundColor: '#1e293b',
-                opacity: 0.15,
-                pointerEvents: 'none',
-                zIndex: 1
-              }}
-            />
-          )}
-          
+        <div style={{ height: `${height}px` }}>
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
               data={tidePoints}
@@ -322,28 +305,18 @@ export default function ProfessionalTideChart({
                 dot={<CustomDot />}
               />
               
-              {/* Two-part sunrise area for daily variant */}
+              {/* Simple approach - debug why x1=0 fails on daily */}
               <>
-                {/* Part 1: 0-1 hour gap (only works on some variants) */}
-                {variant !== 'daily' && (
-                  <ReferenceArea 
-                    x1={0} 
-                    x2={1}
-                    fill="#1e293b"
-                    fillOpacity={0.15}
-                    key="sunrise-gap"
-                  />
-                )}
-                
-                {/* Part 2: 1 hour to sunrise (works on all variants) */}
+                {/* Before sunrise - force render with explicit props */}
                 <ReferenceArea 
-                  x1={1} 
+                  x1={0} 
                   x2={Math.floor(sunTimes.sunrise?.getHours() || 5)}
                   fill="#1e293b"
                   fillOpacity={0.15}
-                  key="sunrise-area"
+                  stroke="none"
+                  ifOverflow="visible"
+                  key={`sunrise-${variant}-${Math.floor(sunTimes.sunrise?.getHours() || 5)}`}
                 />
-                
                 
                 {/* After sunset */}
                 <ReferenceArea 
@@ -351,7 +324,9 @@ export default function ProfessionalTideChart({
                   x2={23} 
                   fill="#1e293b"
                   fillOpacity={0.15}
-                  key="sunset-area"
+                  stroke="none"
+                  ifOverflow="visible"
+                  key={`sunset-${variant}-${Math.floor(sunTimes.sunset?.getHours() || 19)}`}
                 />
               </>
               

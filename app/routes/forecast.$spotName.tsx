@@ -281,17 +281,6 @@ export default function ForecastSpot() {
 
         {forecast && (
           <div className="max-w-6xl mx-auto">
-            {/* Professional Tide Chart */}
-            <div className="mb-8">
-              <ProfessionalTideChart 
-                tideData={forecast.forecast[0]?.tideData} 
-                height={375} 
-                className="shadow-lg"
-                latitude={forecast.spot.latitude}
-                longitude={forecast.spot.longitude}
-              />
-            </div>
-
             <div className="space-y-6">
               {forecast.forecast.map((day, index) => (
                 <div 

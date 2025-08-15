@@ -307,9 +307,9 @@ export default function ProfessionalTideChart({
               
               {/* Debug: Always render both areas */}
               <>
-                {/* Before sunrise - debug version */}
+                {/* Before sunrise - start at chart beginning */}
                 <ReferenceArea 
-                  x1={1} 
+                  x1={0} 
                   x2={Math.floor(sunTimes.sunrise?.getHours() || 5)}
                   fill="#1e293b"
                   fillOpacity={0.15}

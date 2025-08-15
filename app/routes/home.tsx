@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import type { Route } from "./+types/home";
 import surfSpotsData from "../data/surfSpots.json";
+import TideGraph from '../components/TideGraph';
+import HourlySurfChart from '../components/HourlySurfChart';
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -91,6 +93,8 @@ export default function Home() {
           const mockWaveHeight = 0.3 + seededRandom(spotSeed * 1.3) * 2.2;
           const mockPeriod = 6 + seededRandom(spotSeed * 1.9) * 8; // 6-14s
           const mockWindSpeed = seededRandom(spotSeed * 1.7) * 25;
+          const mockTideLevel = seededRandom(spotSeed * 2.7); // 0-1 scale
+          const mockTideRising = seededRandom(spotSeed * 3.1) > 0.5;
           
           return {
             ...spot,
@@ -98,6 +102,12 @@ export default function Home() {
             surfScore: 3 + seededRandom(spotSeed * 1.1) * 6, // Consistent score 3-9
             waveHeight: mockWaveHeight,
             windSpeed: mockWindSpeed,
+            tideData: {
+              currentLevel: mockTideLevel,
+              isRising: mockTideRising,
+              nextHigh: new Date(Date.now() + (mockTideRising ? 3 : 9) * 3600000), // 3-9 hours from now
+              nextLow: new Date(Date.now() + (mockTideRising ? 9 : 3) * 3600000)
+            },
             conditions: {
               waveHeight: mockWaveHeight,
               swellWaveHeight: mockWaveHeight * 0.8,
@@ -106,7 +116,13 @@ export default function Home() {
               windSpeed: mockWindSpeed,
               windDirection: 90 + seededRandom(spotSeed * 2.1) * 180, // 90-270 degrees
               swellWaveDirection: 270 + seededRandom(spotSeed * 2.3) * 90, // 270-360 degrees
-              timestamp: new Date().toISOString()
+              timestamp: new Date().toISOString(),
+              tideData: {
+                currentLevel: mockTideLevel,
+                isRising: mockTideRising,
+                nextHigh: new Date(Date.now() + (mockTideRising ? 3 : 9) * 3600000),
+                nextLow: new Date(Date.now() + (mockTideRising ? 9 : 3) * 3600000)
+              }
             },
             surfDescription: `🔄 Mock data: ${spot.reliability} conditions at ${spot.name}. Live weather data loading...`
           };
@@ -244,7 +260,7 @@ export default function Home() {
                           </div>
                         </div>
                         
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4 text-sm">
                           <div className="bg-white rounded-lg p-3">
                             <div className="text-gray-500">Wave Height</div>
                             <div className="font-semibold text-blue-600">
@@ -270,9 +286,43 @@ export default function Home() {
                               {spot.bestTide?.replace('_', '-') || 'Any'}
                             </div>
                           </div>
+                          <div className="bg-white rounded-lg p-3">
+                            <div className="text-gray-500">Current Tide</div>
+                            <div className="font-semibold text-cyan-600">
+                              {spot.tideData ? (
+                                <>
+                                  {(spot.tideData.currentLevel * 100).toFixed(0)}%
+                                  {spot.tideData.isRising ? ' ↗️' : ' ↘️'}
+                                </>
+                              ) : '🔄 Mock'}
+                            </div>
+                          </div>
                         </div>
                         
                         <div className="space-y-3">
+                          {/* Compact Tide Graph */}
+                          <div className="bg-gray-50 rounded-lg p-3">
+                            <TideGraph 
+                              tideData={spot.tideData} 
+                              showHours={12} 
+                              height="120px" 
+                              className="border-0 bg-transparent"
+                              latitude={spot.latitude}
+                              longitude={spot.longitude}
+                              variant="compact"
+                            />
+                          </div>
+
+                          {/* Hourly Surf Conditions */}
+                          <div className="bg-blue-50 rounded-lg p-3">
+                            <HourlySurfChart 
+                              data={null} // Will use mock data for now
+                              height="100px"
+                              className="border-0 bg-transparent"
+                              variant="compact"
+                            />
+                          </div>
+
                           <p className="text-gray-700 bg-white rounded-lg p-3">
                             <strong>Description:</strong> {spot.description}
                           </p>

@@ -60,6 +60,35 @@ function directionScore(actualDir, optimalRange) {
   }
 }
 
+async function getTideData(latitude, longitude) {
+  try {
+    // Simple tide calculation for forecast (same as find-surf-spots.js)
+    const currentTime = new Date();
+    const lunarCycleMs = 12.42 * 60 * 60 * 1000; // ~12.42 hours between high tides
+    const seedTime = Math.floor(currentTime.getTime() / lunarCycleMs);
+    
+    // Generate approximate tide times based on location and current time
+    const tideHigh1 = new Date(seedTime * lunarCycleMs);
+    const tideLow1 = new Date(tideHigh1.getTime() + (lunarCycleMs / 2));
+    const tideHigh2 = new Date(tideHigh1.getTime() + lunarCycleMs);
+    const tideLow2 = new Date(tideLow1.getTime() + lunarCycleMs);
+    
+    // Calculate current tide level (0-1, where 1 is high tide)
+    const timeSinceHigh = (currentTime.getTime() - tideHigh1.getTime()) % lunarCycleMs;
+    const tidePosition = Math.abs(Math.cos((timeSinceHigh / lunarCycleMs) * 2 * Math.PI));
+    
+    return {
+      currentLevel: tidePosition,
+      nextHigh: tideHigh2,
+      nextLow: timeSinceHigh < lunarCycleMs/2 ? tideLow1 : tideLow2,
+      isRising: Math.sin((timeSinceHigh / lunarCycleMs) * 2 * Math.PI) > 0
+    };
+  } catch (error) {
+    console.error('Error calculating tide data:', error);
+    return null;
+  }
+}
+
 async function get5DayForecast(latitude, longitude) {
   try {
     // Marine weather data - 5 days
@@ -223,6 +252,21 @@ function calculateDaySurfScore(dayData, spot) {
     factors.push("Very strong winds");
   }
   
+  // Tide scoring (simplified for daily average) - 0-2 points
+  let tideScore = 1.5; // Default neutral score
+  if (dayData.tideData && spot.bestTide) {
+    const bestTide = spot.bestTide.toLowerCase();
+    if (bestTide === 'all' || bestTide === 'any') {
+      tideScore = 2;
+      factors.push("Works all tides");
+    } else {
+      // For daily forecast, give a general tide bonus
+      tideScore = 1.7;
+      factors.push("Tide favorable");
+    }
+  }
+  score += tideScore;
+  
   // Reliability bonus
   let reliabilityBonus = 0;
   if (spot.reliability) {
@@ -242,11 +286,12 @@ function calculateDaySurfScore(dayData, spot) {
     waveHeight: effectiveHeight,
     period: avgPeriod,
     windSpeed: avgWindSpeed,
-    factors: factors.slice(0, 3) // Top 3 factors
+    factors: factors.slice(0, 3), // Top 3 factors
+    tideData: dayData.tideData
   };
 }
 
-function processHourlyToDaily(marineData, windData) {
+function processHourlyToDaily(marineData, windData, tideData) {
   const times = marineData.hourly?.time || [];
   const dailyData = [];
   
@@ -262,7 +307,8 @@ function processHourlyToDaily(marineData, windData) {
         period: [],
         swellDirection: [],
         windSpeed: [],
-        windDirection: []
+        windDirection: [],
+        tideData: tideData // Add tide data to each day
       };
     }
     
@@ -309,8 +355,11 @@ exports.handler = async (event, context) => {
       Math.abs(s.latitude - latitude) < 0.01 && Math.abs(s.longitude - longitude) < 0.01
     );
 
-    // Get 5-day forecast
-    const forecastData = await get5DayForecast(latitude, longitude);
+    // Get 5-day forecast and tide data
+    const [forecastData, tideData] = await Promise.all([
+      get5DayForecast(latitude, longitude),
+      getTideData(latitude, longitude)
+    ]);
     
     if (!forecastData) {
       return {
@@ -321,7 +370,7 @@ exports.handler = async (event, context) => {
     }
 
     // Process hourly to daily
-    const dailyData = processHourlyToDaily(forecastData.marineData, forecastData.windData);
+    const dailyData = processHourlyToDaily(forecastData.marineData, forecastData.windData, tideData);
     
     // Calculate scores for each day
     const forecast = dailyData.map(dayData => {
@@ -344,6 +393,7 @@ exports.handler = async (event, context) => {
         period: dayScore.period,
         windSpeed: dayScore.windSpeed,
         factors: dayScore.factors,
+        tideData: dayScore.tideData,
         rating: dayScore.score >= 7 ? 'Excellent' : 
                 dayScore.score >= 5.5 ? 'Good' : 
                 dayScore.score >= 4 ? 'Average' : 

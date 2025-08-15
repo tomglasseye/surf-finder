@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'react-router';
 import type { Route } from "./+types/forecast.$spotName";
+import TideGraph from '../components/TideGraph';
+import HourlySurfChart from '../components/HourlySurfChart';
 
 export function meta({ params }: Route.MetaArgs) {
   const spotName = params.spotName?.replace(/-/g, ' ') || 'Surf Spot';
@@ -8,6 +10,13 @@ export function meta({ params }: Route.MetaArgs) {
     { title: `${spotName} 5-Day Surf Forecast - UK Surf Finder` },
     { name: 'description', content: `5-day surf forecast for ${spotName} with detailed wave conditions and scores` },
   ];
+}
+
+interface TideData {
+  currentLevel: number;
+  isRising: boolean;
+  nextHigh: Date;
+  nextLow: Date;
 }
 
 interface ForecastDay {
@@ -20,6 +29,7 @@ interface ForecastDay {
   windSpeed: number;
   factors: string[];
   rating: string;
+  tideData?: TideData;
 }
 
 interface ForecastData {
@@ -99,6 +109,10 @@ export default function ForecastSpot() {
       const period = 6 + seededRandom(daySeed * 1.5) * 8; // 6-14s
       const windSpeed = seededRandom(daySeed * 1.7) * 25; // 0-25 km/h
       
+      // Mock tide data for consistency
+      const tideLevel = seededRandom(daySeed * 2.7); // 0-1 scale
+      const tideRising = seededRandom(daySeed * 3.1) > 0.5;
+      
       const factors = [
         '🔄 Mock data for development',
         score > 7 ? 'Great wave size' : score > 5 ? 'Good conditions' : 'Average conditions',
@@ -117,7 +131,13 @@ export default function ForecastSpot() {
         period: Math.round(period * 10) / 10,
         windSpeed: Math.round(windSpeed * 10) / 10,
         factors: factors,
-        rating: score >= 7 ? 'Excellent' : score >= 5.5 ? 'Good' : score >= 4 ? 'Average' : 'Poor'
+        rating: score >= 7 ? 'Excellent' : score >= 5.5 ? 'Good' : score >= 4 ? 'Average' : 'Poor',
+        tideData: {
+          currentLevel: tideLevel,
+          isRising: tideRising,
+          nextHigh: new Date(Date.now() + (tideRising ? 3 : 9) * 3600000), // 3-9 hours from now
+          nextLow: new Date(Date.now() + (tideRising ? 9 : 3) * 3600000)
+        }
       };
     });
     
@@ -235,7 +255,18 @@ export default function ForecastSpot() {
 
         {forecast && (
           <div className="max-w-6xl mx-auto">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+            {/* Tide Graph */}
+            <div className="mb-8">
+              <TideGraph 
+                tideData={forecast.forecast[0]?.tideData} 
+                height="250px" 
+                className="shadow-lg"
+                latitude={forecast.spot.latitude}
+                longitude={forecast.spot.longitude}
+              />
+            </div>
+
+            <div className="space-y-6">
               {forecast.forecast.map((day, index) => (
                 <div 
                   key={day.date}
@@ -283,6 +314,31 @@ export default function ForecastSpot() {
                         {day.windSpeed.toFixed(1)} km/h
                       </div>
                     </div>
+                  </div>
+
+                  {/* Daily Tide Chart */}
+                  <div className="mb-4">
+                    <TideGraph 
+                      tideData={day.tideData}
+                      variant="daily"
+                      height="100px"
+                      showHours={24}
+                      className="border-0 bg-gray-50"
+                      latitude={forecast.spot.latitude}
+                      longitude={forecast.spot.longitude}
+                      date={new Date(day.date)}
+                    />
+                  </div>
+
+                  {/* Hourly Surf Conditions Chart */}
+                  <div className="mb-4">
+                    <HourlySurfChart 
+                      data={null} // Will use mock data for now
+                      height="120px"
+                      className="border-0 bg-blue-50"
+                      variant="compact"
+                      date={new Date(day.date)}
+                    />
                   </div>
 
                   {day.factors.length > 0 && (

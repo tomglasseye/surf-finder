@@ -125,10 +125,16 @@ export default function ProfessionalTideChart({
   
   // Debug log for development
   if (process.env.NODE_ENV === 'development' && sunTimes.sunrise && sunTimes.sunset) {
-    console.log('Sun times:', {
+    console.log('Sun times debug:', {
+      variant,
+      date: targetDate.toISOString().split('T')[0],
       sunrise: `${sunTimes.sunrise.getHours()}:${sunTimes.sunrise.getMinutes().toString().padStart(2, '0')}`,
       sunset: `${sunTimes.sunset.getHours()}:${sunTimes.sunset.getMinutes().toString().padStart(2, '0')}`,
-      showHours
+      sunriseFloor: Math.floor(sunTimes.sunrise.getHours()),
+      sunsetFloor: Math.floor(sunTimes.sunset.getHours()),
+      showHours,
+      beforeSunriseArea: Math.floor(sunTimes.sunrise.getHours()) > 0,
+      afterSunsetArea: Math.floor(sunTimes.sunset.getHours()) < (showHours - 1)
     });
   }
 
@@ -240,18 +246,24 @@ export default function ProfessionalTideChart({
               {/* Night/Day reference areas */}
               {sunTimes.sunrise && sunTimes.sunset && (
                 <>
-                  <ReferenceArea 
-                    x1={0} 
-                    x2={Math.floor(sunTimes.sunrise.getHours())} 
-                    fill="#1e293b" 
-                    fillOpacity={0.1} 
-                  />
-                  <ReferenceArea 
-                    x1={Math.floor(sunTimes.sunset.getHours())} 
-                    x2={showHours - 1} 
-                    fill="#1e293b" 
-                    fillOpacity={0.1} 
-                  />
+                  {/* Before sunrise - ensure there's always an area if sunrise > 0 */}
+                  {Math.floor(sunTimes.sunrise.getHours()) > 0 && (
+                    <ReferenceArea 
+                      x1={0} 
+                      x2={Math.floor(sunTimes.sunrise.getHours())} 
+                      fill="#1e293b" 
+                      fillOpacity={0.1} 
+                    />
+                  )}
+                  {/* After sunset - ensure there's always an area if sunset < max hours */}
+                  {Math.floor(sunTimes.sunset.getHours()) < (showHours - 1) && (
+                    <ReferenceArea 
+                      x1={Math.floor(sunTimes.sunset.getHours())} 
+                      x2={showHours - 1} 
+                      fill="#1e293b" 
+                      fillOpacity={0.1} 
+                    />
+                  )}
                 </>
               )}
               

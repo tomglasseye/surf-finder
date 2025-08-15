@@ -243,22 +243,34 @@ export default function ProfessionalTideChart({
                 </linearGradient>
               </defs>
               
-              {/* Night/Day reference areas - put BEFORE CartesianGrid */}
+              {/* Test ReferenceArea - bright red to see if it renders at all */}
+              <ReferenceArea 
+                x1={10} 
+                x2={12} 
+                fill="#ff0000"
+                fillOpacity={0.8}
+                stroke="#ff0000"
+                strokeWidth={2}
+              />
+              
+              {/* Night/Day reference areas */}
               {sunTimes.sunrise && sunTimes.sunset && (
                 <>
                   <ReferenceArea 
                     x1={0} 
                     x2={Math.floor(sunTimes.sunrise.getHours())}
                     fill="#1e293b"
-                    fillOpacity={0.1}
-                    stroke="none"
+                    fillOpacity={0.3}
+                    stroke="#1e293b"
+                    strokeWidth={1}
                   />
                   <ReferenceArea 
                     x1={Math.floor(sunTimes.sunset.getHours())} 
                     x2={23} 
                     fill="#1e293b"
-                    fillOpacity={0.1}
-                    stroke="none"
+                    fillOpacity={0.3}
+                    stroke="#1e293b"
+                    strokeWidth={1}
                   />
                 </>
               )}

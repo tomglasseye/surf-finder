@@ -238,9 +238,9 @@ export default function ProfessionalTideChart({
             <div 
               style={{
                 position: 'absolute',
-                left: '20px', // Account for chart margin
+                left: '55px', // Start at chart area, not margin
                 top: '20px',
-                width: 'calc(20.8% - 20px)', // Approximately 0-5 hours out of 24 = ~20.8%
+                width: '20.8%', // Approximately 0-5 hours out of 24 = ~20.8%
                 height: `${height - 40}px`, // Account for top/bottom margins
                 backgroundColor: '#1e293b',
                 opacity: 0.15,
@@ -330,7 +330,7 @@ export default function ProfessionalTideChart({
                     x1={0} 
                     x2={5}
                     fill="#1e293b"
-                    fillOpacity={forceRender ? 0.25 : 0.15}
+                    fillOpacity={0.15}
                     key="sunrise-area"
                   />
                   {/* After sunset */}
@@ -338,7 +338,7 @@ export default function ProfessionalTideChart({
                     x1={19} 
                     x2={23} 
                     fill="#1e293b"
-                    fillOpacity={forceRender ? 0.25 : 0.15}
+                    fillOpacity={0.15}
                     key="sunset-area"
                   />
                 </>

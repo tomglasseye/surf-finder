@@ -123,6 +123,9 @@ export default function ProfessionalTideChart({
   const sunTimes = calculateSunTimes(targetDate);
   const currentHour = now.getHours();
   
+  // Force both areas to always render on daily variant
+  const forceRender = variant === 'daily';
+  
   // Debug log for development
   if (process.env.NODE_ENV === 'development' && sunTimes.sunrise && sunTimes.sunset) {
     console.log('Sun times debug:', {
@@ -302,25 +305,27 @@ export default function ProfessionalTideChart({
                 dot={<CustomDot />}
               />
               
-              {/* Night/Day reference areas - placed after main chart elements */}
-              {sunTimes.sunrise && sunTimes.sunset && (
+              {/* Night/Day reference areas - with variant-specific rendering */}
+              {(sunTimes.sunrise && sunTimes.sunset) || forceRender ? (
                 <>
                   {/* Before sunrise */}
                   <ReferenceArea 
                     x1={0} 
                     x2={5}
                     fill="#1e293b"
-                    fillOpacity={0.15}
+                    fillOpacity={forceRender ? 0.25 : 0.15}
+                    key="sunrise-area"
                   />
                   {/* After sunset */}
                   <ReferenceArea 
                     x1={19} 
                     x2={23} 
                     fill="#1e293b"
-                    fillOpacity={0.15}
+                    fillOpacity={forceRender ? 0.25 : 0.15}
+                    key="sunset-area"
                   />
                 </>
-              )}
+              ) : null}
               
               <Tooltip content={<CustomTooltip />} />
             </ComposedChart>

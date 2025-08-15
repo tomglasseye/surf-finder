@@ -248,24 +248,20 @@ export default function ProfessionalTideChart({
               {/* Night/Day reference areas */}
               {sunTimes.sunrise && sunTimes.sunset && (
                 <>
-                  {/* Before sunrise - ensure there's always an area if sunrise > 0 */}
-                  {Math.floor(sunTimes.sunrise.getHours()) > 0 && (
-                    <ReferenceArea 
-                      x1={0} 
-                      x2={Math.floor(sunTimes.sunrise.getHours())} 
-                      fill="#1e293b" 
-                      fillOpacity={0.1} 
-                    />
-                  )}
-                  {/* After sunset - ensure there's always an area if sunset < max hours */}
-                  {Math.floor(sunTimes.sunset.getHours()) < 23 && (
-                    <ReferenceArea 
-                      x1={Math.floor(sunTimes.sunset.getHours())} 
-                      x2={23} 
-                      fill="#1e293b" 
-                      fillOpacity={0.1} 
-                    />
-                  )}
+                  {/* Before sunrise - always show if sunrise is after hour 0 */}
+                  <ReferenceArea 
+                    x1={0} 
+                    x2={Math.max(1, Math.floor(sunTimes.sunrise.getHours()))} 
+                    fill="#1e293b" 
+                    fillOpacity={0.2} 
+                  />
+                  {/* After sunset - always show if sunset is before hour 23 */}
+                  <ReferenceArea 
+                    x1={Math.min(22, Math.floor(sunTimes.sunset.getHours()))} 
+                    x2={23} 
+                    fill="#1e293b" 
+                    fillOpacity={0.2} 
+                  />
                 </>
               )}
               

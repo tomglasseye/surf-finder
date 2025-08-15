@@ -235,8 +235,27 @@ async function getSurfConditions(latitude, longitude) {
   }
 }
 
-function calculateBestTimeOfDay(hourlyData, spot, tideData) {
+function calculateBestTimeOfDay(hourlyData, spot, tideData, latitude = 50.4, longitude = -5.0) {
   const scores = [];
+  
+  // Calculate sunrise and sunset times
+  const today = new Date();
+  const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
+  const p = Math.asin(0.39795 * Math.cos(0.98563 * (dayOfYear - 173) * Math.PI / 180));
+  const a = (Math.sin(-0.83 * Math.PI / 180) - Math.sin(latitude * Math.PI / 180) * Math.sin(p)) / (Math.cos(latitude * Math.PI / 180) * Math.cos(p));
+  
+  let sunriseHour, sunsetHour;
+  
+  if (Math.abs(a) > 1) {
+    // Polar day/night scenario
+    sunriseHour = Math.abs(a) > 1 && a > 0 ? null : 0;
+    sunsetHour = Math.abs(a) > 1 && a > 0 ? null : 24;
+  } else {
+    const hourAngle = Math.acos(a) * 180 / Math.PI / 15;
+    const solarNoon = 12 - longitude / 15;
+    sunriseHour = solarNoon - hourAngle;
+    sunsetHour = solarNoon + hourAngle;
+  }
   
   // Calculate score for each hour
   for (let hour = 0; hour < 24; hour++) {
@@ -329,10 +348,38 @@ function calculateBestTimeOfDay(hourlyData, spot, tideData) {
       hourScore += 1; // Neutral
     }
     
-    // Daylight bonus (6am-6pm gets bonus)
-    if (hour >= 6 && hour <= 18) {
-      hourScore += 0.5;
-      factors.push("Daylight hours");
+    // Enhanced daylight bonus with sunrise/sunset + 1 hour buffer
+    let isGoodLight = false;
+    
+    if (sunriseHour !== null && sunsetHour !== null) {
+      const safeStartHour = Math.max(0, sunriseHour - 1); // 1 hour before sunrise
+      const safeEndHour = Math.min(24, sunsetHour + 1);   // 1 hour after sunset
+      
+      if (hour >= safeStartHour && hour <= safeEndHour) {
+        if (hour >= sunriseHour - 0.5 && hour <= sunsetHour + 0.5) {
+          hourScore += 1.0; // Full daylight
+          factors.push("Perfect daylight");
+          isGoodLight = true;
+        } else {
+          hourScore += 0.5; // Twilight buffer (dawn/dusk)
+          factors.push("Good light (dawn/dusk)");
+          isGoodLight = true;
+        }
+      } else {
+        // Dark hours - significant penalty for safety
+        hourScore *= 0.3; // Reduce total score by 70%
+        factors.push("Dark - unsafe conditions");
+      }
+    } else {
+      // Fallback to simple time if sunrise/sunset calculation fails
+      if (hour >= 6 && hour <= 18) {
+        hourScore += 0.5;
+        factors.push("Daylight hours");
+        isGoodLight = true;
+      } else {
+        hourScore *= 0.3;
+        factors.push("Dark hours");
+      }
     }
     
     scores.push({
@@ -347,12 +394,12 @@ function calculateBestTimeOfDay(hourlyData, spot, tideData) {
   const sortedTimes = scores.sort((a, b) => b.score - a.score);
   const bestTime = sortedTimes[0];
   
-  // Find consecutive good hours (score > 6)
-  const goodHours = scores.filter(s => s.score >= 6.0);
+  // Find consecutive good hours (score > 6) with good lighting conditions
+  const goodHours = scores.filter(s => s.score >= 6.0 && !s.factors.includes("Dark - unsafe conditions"));
   let bestWindow = null;
   
   if (goodHours.length >= 2) {
-    // Look for consecutive hours
+    // Look for consecutive hours with good surf and lighting
     for (let i = 0; i < goodHours.length - 1; i++) {
       const current = goodHours[i];
       const next = goodHours[i + 1];
@@ -361,7 +408,8 @@ function calculateBestTimeOfDay(hourlyData, spot, tideData) {
           start: Math.min(current.hour, next.hour),
           end: Math.max(current.hour, next.hour),
           startTime: `${Math.min(current.hour, next.hour).toString().padStart(2, '0')}:00`,
-          endTime: `${(Math.max(current.hour, next.hour) + 1).toString().padStart(2, '0')}:00`
+          endTime: `${(Math.max(current.hour, next.hour) + 1).toString().padStart(2, '0')}:00`,
+          hasGoodLight: true
         };
         break;
       }
@@ -696,7 +744,7 @@ exports.handler = async (event, context) => {
         };
 
         // Calculate best time of day
-        const bestTimeAnalysis = calculateBestTimeOfDay(hourlyData, spot, conditions?.tideData);
+        const bestTimeAnalysis = calculateBestTimeOfDay(hourlyData, spot, conditions?.tideData, spot.latitude, spot.longitude);
 
         return {
           ...spot,

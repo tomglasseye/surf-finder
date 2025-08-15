@@ -246,9 +246,9 @@ export default function ProfessionalTideChart({
               {/* Night/Day reference areas - always show both */}
               {sunTimes.sunrise && sunTimes.sunset && (
                 <>
-                  {/* Before sunrise */}
+                  {/* Before sunrise - avoid x1=0 issue */}
                   <ReferenceArea 
-                    x1={0} 
+                    x1={0.1} 
                     x2={5}
                     fill="#1e293b"
                     fillOpacity={0.15}

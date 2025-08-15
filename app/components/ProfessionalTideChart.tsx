@@ -238,7 +238,7 @@ export default function ProfessionalTideChart({
             <div 
               style={{
                 position: 'absolute',
-                left: '55px', // Start at chart area, not margin
+                left: '65px', // Align with chart start marker
                 top: '20px',
                 width: '20.8%', // Approximately 0-5 hours out of 24 = ~20.8%
                 height: `${height - 40}px`, // Account for top/bottom margins

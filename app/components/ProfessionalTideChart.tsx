@@ -238,9 +238,9 @@ export default function ProfessionalTideChart({
             <div 
               style={{
                 position: 'absolute',
-                left: '65px', // Align with chart start marker
+                left: '68px', // Align with chart start marker
                 top: '20px',
-                width: '20.8%', // Approximately 0-5 hours out of 24 = ~20.8%
+                width: '19%', // Slightly shorter for 0-5 hours
                 height: `${height - 40}px`, // Account for top/bottom margins
                 backgroundColor: '#1e293b',
                 opacity: 0.15,

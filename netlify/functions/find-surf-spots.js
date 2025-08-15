@@ -235,6 +235,146 @@ async function getSurfConditions(latitude, longitude) {
   }
 }
 
+function calculateBestTimeOfDay(hourlyData, spot, tideData) {
+  const scores = [];
+  
+  // Calculate score for each hour
+  for (let hour = 0; hour < 24; hour++) {
+    let hourScore = 0;
+    const factors = [];
+    
+    // Wave height factor (0-3 points)
+    const waveHeight = hourlyData.waveHeight[hour] || 0;
+    const isBeginnerSpot = spot.skillLevel?.toLowerCase().includes('beginner');
+    const isAdvancedSpot = spot.skillLevel?.toLowerCase().includes('advanced');
+    
+    if (isBeginnerSpot) {
+      if (waveHeight >= 0.4 && waveHeight <= 1.5) {
+        hourScore += 3;
+        factors.push("Perfect beginner waves");
+      } else if (waveHeight > 1.5 && waveHeight <= 2.0) {
+        hourScore += 2;
+        factors.push("Good size waves");
+      } else if (waveHeight >= 0.2 && waveHeight < 0.4) {
+        hourScore += 1;
+        factors.push("Small but rideable");
+      }
+    } else if (isAdvancedSpot) {
+      if (waveHeight >= 1.5 && waveHeight <= 4.0) {
+        hourScore += 3;
+        factors.push("Excellent wave size");
+      } else if (waveHeight >= 0.8 && waveHeight < 1.5) {
+        hourScore += 2;
+        factors.push("Decent size");
+      }
+    } else {
+      if (waveHeight >= 0.6 && waveHeight <= 2.5) {
+        hourScore += 3;
+        factors.push("Great wave size");
+      } else if (waveHeight >= 0.3 && waveHeight < 0.6) {
+        hourScore += 1;
+        factors.push("Small but rideable");
+      }
+    }
+    
+    // Period factor (0-2 points)
+    const period = hourlyData.period[hour] || 0;
+    if (period >= 10) {
+      hourScore += 2;
+      factors.push("Premium groundswell");
+    } else if (period >= 8) {
+      hourScore += 1.5;
+      factors.push("Good groundswell");
+    } else if (period >= 6) {
+      hourScore += 1;
+      factors.push("Decent period");
+    }
+    
+    // Wind factor (0-2 points)
+    const windSpeed = hourlyData.windSpeed[hour] || 0;
+    if (windSpeed <= 8) {
+      hourScore += 2;
+      factors.push("Light winds");
+    } else if (windSpeed <= 15) {
+      hourScore += 1.5;
+      factors.push("Moderate winds");
+    } else if (windSpeed <= 25) {
+      hourScore += 0.5;
+      factors.push("Strong winds");
+    }
+    
+    // Tide factor (0-2 points) - simplified
+    if (tideData && spot.bestTide) {
+      const bestTide = spot.bestTide.toLowerCase();
+      // Simulate tide level for this hour (0-1 scale)
+      const tideLevel = 0.5 + 0.5 * Math.cos((hour / 12.42) * 2 * Math.PI);
+      
+      if (bestTide === 'all' || bestTide === 'any') {
+        hourScore += 2;
+        factors.push("Good for all tides");
+      } else if (bestTide === 'low' && tideLevel <= 0.4) {
+        hourScore += 2;
+        factors.push("Perfect low tide");
+      } else if (bestTide === 'mid' && tideLevel >= 0.3 && tideLevel <= 0.7) {
+        hourScore += 2;
+        factors.push("Perfect mid tide");
+      } else if (bestTide === 'high' && tideLevel >= 0.6) {
+        hourScore += 2;
+        factors.push("Perfect high tide");
+      } else {
+        hourScore += 0.5;
+        factors.push("Suboptimal tide");
+      }
+    } else {
+      hourScore += 1; // Neutral
+    }
+    
+    // Daylight bonus (6am-6pm gets bonus)
+    if (hour >= 6 && hour <= 18) {
+      hourScore += 0.5;
+      factors.push("Daylight hours");
+    }
+    
+    scores.push({
+      hour,
+      score: Math.min(hourScore, 10.0),
+      factors: factors.slice(0, 3),
+      time: `${hour.toString().padStart(2, '0')}:00`
+    });
+  }
+  
+  // Find the best time slots
+  const sortedTimes = scores.sort((a, b) => b.score - a.score);
+  const bestTime = sortedTimes[0];
+  
+  // Find consecutive good hours (score > 6)
+  const goodHours = scores.filter(s => s.score >= 6.0);
+  let bestWindow = null;
+  
+  if (goodHours.length >= 2) {
+    // Look for consecutive hours
+    for (let i = 0; i < goodHours.length - 1; i++) {
+      const current = goodHours[i];
+      const next = goodHours[i + 1];
+      if (Math.abs(current.hour - next.hour) === 1) {
+        bestWindow = {
+          start: Math.min(current.hour, next.hour),
+          end: Math.max(current.hour, next.hour),
+          startTime: `${Math.min(current.hour, next.hour).toString().padStart(2, '0')}:00`,
+          endTime: `${(Math.max(current.hour, next.hour) + 1).toString().padStart(2, '0')}:00`
+        };
+        break;
+      }
+    }
+  }
+  
+  return {
+    bestTime: bestTime,
+    bestWindow: bestWindow,
+    allHours: scores
+  };
+}
+
 function calculateSurfScore(conditions, spot) {
   if (!conditions) return { score: 0, description: "No data available" };
   
@@ -555,6 +695,9 @@ exports.handler = async (event, context) => {
           })
         };
 
+        // Calculate best time of day
+        const bestTimeAnalysis = calculateBestTimeOfDay(hourlyData, spot, conditions?.tideData);
+
         return {
           ...spot,
           conditions,
@@ -563,7 +706,8 @@ exports.handler = async (event, context) => {
           waveHeight: conditions?.waveHeight || 0,
           windSpeed: conditions?.windSpeed || 0,
           tideData: conditions?.tideData || null,
-          hourlyData: hourlyData
+          hourlyData: hourlyData,
+          bestTime: bestTimeAnalysis
         };
       })
     );

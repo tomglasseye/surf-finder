@@ -4,6 +4,9 @@ import type { Route } from "./+types/home";
 import surfSpotsData from "../data/surfSpots.json";
 import TideGraph from '../components/TideGraph';
 import HourlySurfChart from '../components/HourlySurfChart';
+import ProfessionalTideChart from '../components/ProfessionalTideChart';
+import ProfessionalHourlyChart from '../components/ProfessionalHourlyChart';
+import BestTimeDisplay from '../components/BestTimeDisplay';
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -299,29 +302,47 @@ export default function Home() {
                           </div>
                         </div>
                         
-                        <div className="space-y-3">
-                          {/* Compact Tide Graph */}
-                          <div className="bg-gray-50 rounded-lg p-3">
-                            <TideGraph 
-                              tideData={spot.tideData} 
-                              showHours={24} 
-                              height="120px" 
-                              className="border-0 bg-transparent"
-                              latitude={spot.latitude}
-                              longitude={spot.longitude}
-                              variant="compact"
-                            />
-                          </div>
+                        <div className="space-y-4">
+                          {/* Best Time Display */}
+                          {spot.bestTime && (
+                            <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg p-4 border border-amber-200">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <div className="text-sm font-semibold text-amber-800">🏄‍♂️ Best Time Today</div>
+                                  <div className="text-lg font-bold text-amber-700">
+                                    {spot.bestTime.bestTime.time} ({spot.bestTime.bestTime.score}/10)
+                                  </div>
+                                  <div className="text-xs text-amber-600">
+                                    {spot.bestTime.bestTime.factors.slice(0, 2).join(', ')}
+                                  </div>
+                                </div>
+                                <div className="text-2xl">
+                                  {spot.bestTime.bestTime.score >= 8 ? '🔥' : 
+                                   spot.bestTime.bestTime.score >= 6.5 ? '🌊' : 
+                                   spot.bestTime.bestTime.score >= 5 ? '👍' : '⚠️'}
+                                </div>
+                              </div>
+                            </div>
+                          )}
 
-                          {/* Hourly Surf Conditions */}
-                          <div className="bg-blue-50 rounded-lg p-3">
-                            <HourlySurfChart 
-                              data={spot.hourlyData}
-                              height="100px"
-                              className="border-0 bg-transparent"
-                              variant="compact"
-                            />
-                          </div>
+                          {/* Professional Tide Chart */}
+                          <ProfessionalTideChart 
+                            tideData={spot.tideData} 
+                            showHours={24} 
+                            height={120} 
+                            className="border-0"
+                            latitude={spot.latitude}
+                            longitude={spot.longitude}
+                            variant="compact"
+                          />
+
+                          {/* Professional Hourly Chart */}
+                          <ProfessionalHourlyChart 
+                            data={spot.hourlyData}
+                            height={100}
+                            className="border-0"
+                            variant="compact"
+                          />
 
                           <p className="text-gray-700 bg-white rounded-lg p-3">
                             <strong>Description:</strong> {spot.description}

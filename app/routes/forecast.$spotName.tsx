@@ -3,6 +3,9 @@ import { useParams, useSearchParams } from 'react-router';
 import type { Route } from "./+types/forecast.$spotName";
 import TideGraph from '../components/TideGraph';
 import HourlySurfChart from '../components/HourlySurfChart';
+import ProfessionalTideChart from '../components/ProfessionalTideChart';
+import ProfessionalHourlyChart from '../components/ProfessionalHourlyChart';
+import BestTimeDisplay from '../components/BestTimeDisplay';
 
 export function meta({ params }: Route.MetaArgs) {
   const spotName = params.spotName?.replace(/-/g, ' ') || 'Surf Spot';
@@ -255,11 +258,11 @@ export default function ForecastSpot() {
 
         {forecast && (
           <div className="max-w-6xl mx-auto">
-            {/* Tide Graph */}
+            {/* Professional Tide Chart */}
             <div className="mb-8">
-              <TideGraph 
+              <ProfessionalTideChart 
                 tideData={forecast.forecast[0]?.tideData} 
-                height="250px" 
+                height={250} 
                 className="shadow-lg"
                 latitude={forecast.spot.latitude}
                 longitude={forecast.spot.longitude}
@@ -318,12 +321,12 @@ export default function ForecastSpot() {
 
                   {/* Daily Tide Chart */}
                   <div className="mb-4">
-                    <TideGraph 
+                    <ProfessionalTideChart 
                       tideData={day.tideData}
                       variant="daily"
-                      height="100px"
+                      height={100}
                       showHours={24}
-                      className="border-0 bg-gray-50"
+                      className="border-0"
                       latitude={forecast.spot.latitude}
                       longitude={forecast.spot.longitude}
                       date={new Date(day.date)}
@@ -332,10 +335,10 @@ export default function ForecastSpot() {
 
                   {/* Hourly Surf Conditions Chart */}
                   <div className="mb-4">
-                    <HourlySurfChart 
+                    <ProfessionalHourlyChart 
                       data={day.hourlyData}
-                      height="120px"
-                      className="border-0 bg-blue-50"
+                      height={120}
+                      className="border-0"
                       variant="compact"
                       date={new Date(day.date)}
                     />

@@ -122,6 +122,15 @@ export default function ProfessionalTideChart({
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const sunTimes = calculateSunTimes(today);
   const currentHour = now.getHours();
+  
+  // Debug log for development
+  if (process.env.NODE_ENV === 'development' && sunTimes.sunrise && sunTimes.sunset) {
+    console.log('Sun times:', {
+      sunrise: `${sunTimes.sunrise.getHours()}:${sunTimes.sunrise.getMinutes().toString().padStart(2, '0')}`,
+      sunset: `${sunTimes.sunset.getHours()}:${sunTimes.sunset.getMinutes().toString().padStart(2, '0')}`,
+      showHours
+    });
+  }
 
   // Custom tooltip
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -233,13 +242,13 @@ export default function ProfessionalTideChart({
                 <>
                   <ReferenceArea 
                     x1={0} 
-                    x2={sunTimes.sunrise.getHours()} 
+                    x2={Math.floor(sunTimes.sunrise.getHours())} 
                     fill="#1e293b" 
                     fillOpacity={0.1} 
                   />
                   <ReferenceArea 
-                    x1={sunTimes.sunset.getHours()} 
-                    x2={24} 
+                    x1={Math.floor(sunTimes.sunset.getHours())} 
+                    x2={showHours - 1} 
                     fill="#1e293b" 
                     fillOpacity={0.1} 
                   />
@@ -269,6 +278,28 @@ export default function ProfessionalTideChart({
               
               {/* Current time reference line */}
               <ReferenceLine x={currentHour} stroke="#ef4444" strokeDasharray="4 4" opacity={0.8} />
+              
+              {/* Sunrise reference line */}
+              {sunTimes.sunrise && sunTimes.sunrise.getHours() < showHours && (
+                <ReferenceLine 
+                  x={Math.floor(sunTimes.sunrise.getHours())} 
+                  stroke="#fbbf24" 
+                  strokeDasharray="6 3" 
+                  opacity={0.8}
+                  label={{ value: "☀️ SUNRISE", position: "top", fill: "#f59e0b", fontSize: 10, offset: 10 }}
+                />
+              )}
+              
+              {/* Sunset reference line */}
+              {sunTimes.sunset && sunTimes.sunset.getHours() < showHours && (
+                <ReferenceLine 
+                  x={Math.floor(sunTimes.sunset.getHours())} 
+                  stroke="#f97316" 
+                  strokeDasharray="6 3" 
+                  opacity={0.8}
+                  label={{ value: "🌅 SUNSET", position: "top", fill: "#ea580c", fontSize: 10, offset: 10 }}
+                />
+              )}
               
               {/* Tide area */}
               <Area

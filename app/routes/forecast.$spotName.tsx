@@ -104,7 +104,7 @@ export default function ForecastSpot() {
     
     const forecast = days.map((day, index) => {
       const daySeed = mockSeed + index * 41; // Consistent seed per day
-      const score = 3 + seededRandom(daySeed * 1.1) * 6; // Consistent score 3-9
+      const score = 3 + seededRandom(daySeed * 1.1) * 7; // Consistent score 3-10
       const waveHeight = 0.5 + seededRandom(daySeed * 1.3) * 2; // 0.5-2.5m
       const period = 6 + seededRandom(daySeed * 1.5) * 8; // 6-14s
       const windSpeed = seededRandom(daySeed * 1.7) * 25; // 0-25 km/h
@@ -126,7 +126,7 @@ export default function ForecastSpot() {
         date: date.toISOString().split('T')[0],
         dayName: day,
         dateStr: date.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }),
-        score: Math.round(score * 10) / 10,
+        score: Math.min(Math.round(score * 10) / 10, 10.0),
         waveHeight: Math.round(waveHeight * 10) / 10,
         period: Math.round(period * 10) / 10,
         windSpeed: Math.round(windSpeed * 10) / 10,

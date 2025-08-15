@@ -480,7 +480,7 @@ function calculateSurfScore(conditions, spot) {
   }
   score += reliabilityBonus;
   
-  return { score: Math.round(score * 10) / 10, description };
+  return { score: Math.min(Math.round(score * 10) / 10, 10.0), description };
 }
 
 exports.handler = async (event, context) => {

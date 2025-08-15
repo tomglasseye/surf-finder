@@ -99,7 +99,7 @@ export default function Home() {
           return {
             ...spot,
             distance: calculateDistance(latitude, longitude, spot.latitude, spot.longitude),
-            surfScore: 3 + seededRandom(spotSeed * 1.1) * 6, // Consistent score 3-9
+            surfScore: Math.min(Math.round((3 + seededRandom(spotSeed * 1.1) * 7) * 10) / 10, 10.0), // Consistent score 3.0-10.0
             waveHeight: mockWaveHeight,
             windSpeed: mockWindSpeed,
             tideData: {

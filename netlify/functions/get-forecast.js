@@ -282,7 +282,7 @@ function calculateDaySurfScore(dayData, spot) {
   score += reliabilityBonus;
   
   return { 
-    score: Math.round(score * 10) / 10, 
+    score: Math.min(Math.round(score * 10) / 10, 10.0), 
     waveHeight: effectiveHeight,
     period: avgPeriod,
     windSpeed: avgWindSpeed,

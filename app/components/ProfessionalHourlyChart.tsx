@@ -210,11 +210,11 @@ export default function ProfessionalHourlyChart({
             </div>
             <div className="text-lg font-bold text-blue-600">
               {surfData.waveHeight[new Date().getHours()] ? 
-                `${surfData.waveHeight[new Date().getHours()].toFixed(1)}m` : 
-                `${surfData.waveHeight[12].toFixed(1)}m`}
+                `${(surfData.waveHeight[new Date().getHours()] * 3.28084).toFixed(1)}ft` : 
+                `${(surfData.waveHeight[12] * 3.28084).toFixed(1)}ft`}
             </div>
             <div className="text-xs text-blue-600">
-              Peak: {Math.max(...surfData.waveHeight).toFixed(1)}m
+              Peak: {(Math.max(...surfData.waveHeight) * 3.28084).toFixed(1)}ft
             </div>
           </div>
           
@@ -242,11 +242,11 @@ export default function ProfessionalHourlyChart({
             </div>
             <div className="text-lg font-bold text-green-600">
               {surfData.windSpeed[new Date().getHours()] ? 
-                `${surfData.windSpeed[new Date().getHours()].toFixed(1)} km/h` : 
-                `${surfData.windSpeed[12].toFixed(1)} km/h`}
+                `${(surfData.windSpeed[new Date().getHours()] * 0.621371).toFixed(1)} mph` : 
+                `${(surfData.windSpeed[12] * 0.621371).toFixed(1)} mph`}
             </div>
             <div className="text-xs text-green-600">
-              Max: {Math.max(...surfData.windSpeed).toFixed(1)} km/h
+              Max: {(Math.max(...surfData.windSpeed) * 0.621371).toFixed(1)} mph
             </div>
           </div>
         </div>

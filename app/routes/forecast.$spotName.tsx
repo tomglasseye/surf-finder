@@ -6,6 +6,7 @@ import HourlySurfChart from '../components/HourlySurfChart';
 import ProfessionalTideChart from '../components/ProfessionalTideChart';
 import ProfessionalHourlyChart from '../components/ProfessionalHourlyChart';
 import BestTimeDisplay from '../components/BestTimeDisplay';
+import surfSpotsData from "../data/surfSpots.json";
 
 export function meta({ params }: Route.MetaArgs) {
   const spotName = params.spotName?.replace(/-/g, ' ') || 'Surf Spot';
@@ -128,22 +129,100 @@ export default function ForecastSpot() {
       return x - Math.floor(x);
     };
     
+    // Find the actual spot data to use optimal conditions
+    const currentSpotName = spotName?.replace(/-/g, ' ');
+    const spotData = surfSpotsData.find(spot => 
+      spot.name.toLowerCase() === currentSpotName?.toLowerCase()
+    );
+    
     const forecast = days.map((day, index) => {
       const daySeed = mockSeed + index * 41; // Consistent seed per day
-      const score = 3 + seededRandom(daySeed * 1.1) * 7; // Consistent score 3-10
       const waveHeight = 0.5 + seededRandom(daySeed * 1.3) * 2; // 0.5-2.5m
       const period = 6 + seededRandom(daySeed * 1.5) * 8; // 6-14s
       const windSpeed = seededRandom(daySeed * 1.7) * 25; // 0-25 km/h
+      const windDirection = 90 + seededRandom(daySeed * 2.1) * 180; // 90-270 degrees
+      const swellDirection = 270 + seededRandom(daySeed * 2.3) * 90; // 270-360 degrees
       
       // Mock tide data for consistency
       const tideLevel = seededRandom(daySeed * 2.7); // 0-1 scale
       const tideRising = seededRandom(daySeed * 3.1) > 0.5;
       
+      // Calculate intelligent surf score using spot's optimal conditions
+      const calculateForecastScore = () => {
+        let score = 3.0; // Base score
+        
+        // Wave height factor (0.5-2.5m range, optimal around 1-1.8m)
+        const heightScore = waveHeight < 0.8 ? waveHeight * 2.5 : 
+                           waveHeight > 2.2 ? Math.max(0, 3 - (waveHeight - 2.2)) : 
+                           2.5; // Sweet spot
+        score += heightScore;
+        
+        // Period factor (6-14s range, longer periods = cleaner waves)
+        const periodScore = Math.min(2.5, (period - 6) * 0.3);
+        score += periodScore;
+        
+        // Wind direction factor - check against optimal wind directions (if spot data available)
+        let windScore = 0;
+        if (spotData?.optimalWindDir && spotData.optimalWindDir.length > 0) {
+          const windMatches = spotData.optimalWindDir.some(optimalDir => {
+            const diff = Math.abs(windDirection - optimalDir);
+            const angleDiff = Math.min(diff, 360 - diff);
+            return angleDiff <= 45; // Within 45 degrees is good
+          });
+          windScore = windMatches ? 1.5 : -0.5; // Penalty for poor wind direction
+        }
+        score += windScore;
+        
+        // Swell direction factor - check against optimal swell directions (if spot data available)
+        let swellScore = 0;
+        if (spotData?.optimalSwellDir && spotData.optimalSwellDir.length > 0) {
+          const swellMatches = spotData.optimalSwellDir.some(optimalDir => {
+            const diff = Math.abs(swellDirection - optimalDir);
+            const angleDiff = Math.min(diff, 360 - diff);
+            return angleDiff <= 30; // Within 30 degrees is good for swell
+          });
+          swellScore = swellMatches ? 1.5 : -0.5; // Penalty for poor swell direction
+        }
+        score += swellScore;
+        
+        // Tide factor based on best tide preference (if spot data available)
+        let tideScore = 0;
+        if (spotData?.bestTide) {
+          const currentTidePercent = tideLevel * 100;
+          switch (spotData.bestTide.toLowerCase()) {
+            case 'low':
+              tideScore = currentTidePercent < 30 ? 1.0 : currentTidePercent > 70 ? -0.5 : 0;
+              break;
+            case 'mid':
+              tideScore = currentTidePercent >= 30 && currentTidePercent <= 70 ? 1.0 : -0.3;
+              break;
+            case 'high':
+              tideScore = currentTidePercent > 70 ? 1.0 : currentTidePercent < 30 ? -0.5 : 0;
+              break;
+            default: // 'any' or unknown
+              tideScore = 0.2;
+          }
+        }
+        score += tideScore;
+        
+        // Wind speed factor (too windy = choppy conditions)
+        const windSpeedScore = windSpeed > 20 ? -0.5 : windSpeed < 5 ? 0.3 : 0;
+        score += windSpeedScore;
+        
+        // Ensure score is within bounds
+        return Math.min(Math.max(score, 1.0), 10.0);
+      };
+      
+      const score = calculateForecastScore();
+      
+      // Generate more intelligent factors based on conditions
       const factors = [
         '🔄 Mock data for development',
-        score > 7 ? 'Great wave size' : score > 5 ? 'Good conditions' : 'Average conditions',
-        period > 10 ? 'Clean groundswell' : 'Moderate period'
-      ];
+        score > 7 ? 'Excellent wave conditions' : score > 5 ? 'Good surf potential' : score > 3 ? 'Average conditions' : 'Poor conditions',
+        period > 10 ? 'Clean groundswell' : period > 8 ? 'Good wave period' : 'Moderate period',
+        spotData && windScore > 0 ? 'Favorable wind direction' : spotData && windScore < 0 ? 'Challenging wind direction' : 'Variable wind',
+        spotData && swellScore > 0 ? 'Optimal swell angle' : spotData && swellScore < 0 ? 'Suboptimal swell angle' : 'Mixed swell conditions'
+      ].filter(factor => factor.length > 0).slice(0, 3); // Keep top 3 most relevant factors
       
       const date = new Date();
       date.setDate(date.getDate() + index);
@@ -152,7 +231,7 @@ export default function ForecastSpot() {
         date: date.toISOString().split('T')[0],
         dayName: day,
         dateStr: date.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }),
-        score: Math.min(Math.round(score * 10) / 10, 10.0),
+        score: Math.round(score * 10) / 10,
         waveHeight: Math.round(waveHeight * 10) / 10,
         period: Math.round(period * 10) / 10,
         windSpeed: Math.round(windSpeed * 10) / 10,
@@ -172,9 +251,15 @@ export default function ForecastSpot() {
         name: spotName?.replace(/-/g, ' ') || 'Unknown Spot',
         latitude: parseFloat(lat || '0'),
         longitude: parseFloat(lng || '0'),
-        skillLevel: 'Intermediate',
-        breakType: 'beach',
-        reliability: 'Consistent'
+        skillLevel: spotData?.skillLevel || 'Intermediate',
+        breakType: spotData?.breakType || 'beach',
+        reliability: spotData?.reliability || 'Consistent',
+        ...(spotData && {
+          optimalSwellDir: spotData.optimalSwellDir,
+          optimalWindDir: spotData.optimalWindDir,
+          bestTide: spotData.bestTide,
+          bestConditions: spotData.bestConditions
+        })
       },
       forecast,
       timestamp: new Date().toISOString()

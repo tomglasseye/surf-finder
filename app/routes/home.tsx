@@ -96,13 +96,81 @@ export default function Home() {
           const mockWaveHeight = 0.3 + seededRandom(spotSeed * 1.3) * 2.2;
           const mockPeriod = 6 + seededRandom(spotSeed * 1.9) * 8; // 6-14s
           const mockWindSpeed = seededRandom(spotSeed * 1.7) * 25;
+          const mockWindDirection = 90 + seededRandom(spotSeed * 2.1) * 180; // 90-270 degrees
+          const mockSwellDirection = 270 + seededRandom(spotSeed * 2.3) * 90; // 270-360 degrees
           const mockTideLevel = seededRandom(spotSeed * 2.7); // 0-1 scale
           const mockTideRising = seededRandom(spotSeed * 3.1) > 0.5;
+          
+          // Calculate intelligent surf score based on optimal conditions
+          const calculateSurfScore = () => {
+            let score = 3.0; // Base score
+            
+            // Wave height factor (0.5-2.5m range, optimal around 1-1.8m)
+            const heightScore = mockWaveHeight < 0.8 ? mockWaveHeight * 2.5 : 
+                               mockWaveHeight > 2.2 ? Math.max(0, 3 - (mockWaveHeight - 2.2)) : 
+                               2.5; // Sweet spot
+            score += heightScore;
+            
+            // Period factor (6-14s range, longer periods = cleaner waves)
+            const periodScore = Math.min(2.5, (mockPeriod - 6) * 0.3);
+            score += periodScore;
+            
+            // Wind direction factor - check against optimal wind directions
+            let windScore = 0;
+            if (spot.optimalWindDir && spot.optimalWindDir.length > 0) {
+              const windMatches = spot.optimalWindDir.some(optimalDir => {
+                const diff = Math.abs(mockWindDirection - optimalDir);
+                const angleDiff = Math.min(diff, 360 - diff);
+                return angleDiff <= 45; // Within 45 degrees is good
+              });
+              windScore = windMatches ? 1.5 : -0.5; // Penalty for poor wind direction
+            }
+            score += windScore;
+            
+            // Swell direction factor - check against optimal swell directions  
+            let swellScore = 0;
+            if (spot.optimalSwellDir && spot.optimalSwellDir.length > 0) {
+              const swellMatches = spot.optimalSwellDir.some(optimalDir => {
+                const diff = Math.abs(mockSwellDirection - optimalDir);
+                const angleDiff = Math.min(diff, 360 - diff);
+                return angleDiff <= 30; // Within 30 degrees is good for swell
+              });
+              swellScore = swellMatches ? 1.5 : -0.5; // Penalty for poor swell direction
+            }
+            score += swellScore;
+            
+            // Tide factor based on best tide preference
+            let tideScore = 0;
+            if (spot.bestTide) {
+              const currentTidePercent = mockTideLevel * 100;
+              switch (spot.bestTide.toLowerCase()) {
+                case 'low':
+                  tideScore = currentTidePercent < 30 ? 1.0 : currentTidePercent > 70 ? -0.5 : 0;
+                  break;
+                case 'mid':
+                  tideScore = currentTidePercent >= 30 && currentTidePercent <= 70 ? 1.0 : -0.3;
+                  break;
+                case 'high':
+                  tideScore = currentTidePercent > 70 ? 1.0 : currentTidePercent < 30 ? -0.5 : 0;
+                  break;
+                default: // 'any' or unknown
+                  tideScore = 0.2;
+              }
+            }
+            score += tideScore;
+            
+            // Wind speed factor (too windy = choppy conditions)
+            const windSpeedScore = mockWindSpeed > 20 ? -0.5 : mockWindSpeed < 5 ? 0.3 : 0;
+            score += windSpeedScore;
+            
+            // Ensure score is within bounds
+            return Math.min(Math.max(Math.round(score * 10) / 10, 1.0), 10.0);
+          };
           
           return {
             ...spot,
             distance: calculateDistance(latitude, longitude, spot.latitude, spot.longitude),
-            surfScore: Math.min(Math.round((3 + seededRandom(spotSeed * 1.1) * 7) * 10) / 10, 10.0), // Consistent score 3.0-10.0
+            surfScore: calculateSurfScore(),
             waveHeight: mockWaveHeight,
             windSpeed: mockWindSpeed,
             tideData: {
@@ -117,8 +185,8 @@ export default function Home() {
               swellWavePeriod: mockPeriod,
               wavePeriod: mockPeriod,
               windSpeed: mockWindSpeed,
-              windDirection: 90 + seededRandom(spotSeed * 2.1) * 180, // 90-270 degrees
-              swellWaveDirection: 270 + seededRandom(spotSeed * 2.3) * 90, // 270-360 degrees
+              windDirection: mockWindDirection,
+              swellWaveDirection: mockSwellDirection,
               timestamp: new Date().toISOString(),
               tideData: {
                 currentLevel: mockTideLevel,

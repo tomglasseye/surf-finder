@@ -267,13 +267,13 @@ export default function Home() {
                           <div className="bg-white rounded-lg p-3">
                             <div className="text-gray-500">Wave Height</div>
                             <div className="font-semibold text-blue-600">
-                              {spot.waveHeight?.toFixed(1) || '0'}m
+                              {((spot.waveHeight || 0) * 3.28084).toFixed(1)}ft
                             </div>
                           </div>
                           <div className="bg-white rounded-lg p-3">
                             <div className="text-gray-500">Wind Speed</div>
                             <div className="font-semibold text-green-600">
-                              {spot.windSpeed?.toFixed(1) || '0'} km/h
+                              {((spot.windSpeed || 0) * 0.621371).toFixed(1)} mph
                             </div>
                           </div>
                           <div className="bg-white rounded-lg p-3">

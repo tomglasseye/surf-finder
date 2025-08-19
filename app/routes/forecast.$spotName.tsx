@@ -312,7 +312,7 @@ export default function ForecastSpot() {
                     <div className="bg-blue-50 rounded-lg p-3">
                       <div className="text-gray-600 text-sm">Wave Height</div>
                       <div className="font-semibold text-blue-600">
-                        {day.waveHeight.toFixed(1)}m
+                        {(day.waveHeight * 3.28084).toFixed(1)}ft
                       </div>
                     </div>
                     
@@ -326,7 +326,7 @@ export default function ForecastSpot() {
                     <div className="bg-green-50 rounded-lg p-3">
                       <div className="text-gray-600 text-sm">Wind Speed</div>
                       <div className="font-semibold text-green-600">
-                        {day.windSpeed.toFixed(1)} km/h
+                        {(day.windSpeed * 0.621371).toFixed(1)} mph
                       </div>
                     </div>
                   </div>
@@ -398,7 +398,7 @@ export default function ForecastSpot() {
                 
                 <div className="text-center">
                   <div className="text-2xl font-bold text-blue-600">
-                    {Math.max(...forecast.forecast.map(d => d.waveHeight)).toFixed(1)}m
+                    {(Math.max(...forecast.forecast.map(d => d.waveHeight)) * 3.28084).toFixed(1)}ft
                   </div>
                   <div className="text-gray-600 text-sm">Peak Wave Height</div>
                 </div>

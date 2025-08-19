@@ -64,15 +64,15 @@ export default function ProfessionalHourlyChart({
 
   const surfData = data || generateMockData();
   
-  // Transform data for Recharts
+  // Transform data for Recharts with unit conversions
   const chartData = surfData.times.map((time, index) => {
     const timeObj = new Date(time);
     return {
       time: timeObj.getHours(),
       timeLabel: `${timeObj.getHours().toString().padStart(2, '0')}:00`,
-      waveHeight: parseFloat(surfData.waveHeight[index]?.toFixed(1) || '0'),
+      waveHeight: parseFloat(((surfData.waveHeight[index] || 0) * 3.28084).toFixed(1)), // Convert m to ft
       period: parseFloat(surfData.period[index]?.toFixed(1) || '0'),
-      windSpeed: parseFloat(surfData.windSpeed[index]?.toFixed(1) || '0'),
+      windSpeed: parseFloat(((surfData.windSpeed[index] || 0) * 0.621371).toFixed(1)), // Convert km/h to mph
       isNow: timeObj.getHours() === new Date().getHours()
     };
   });
@@ -85,7 +85,7 @@ export default function ProfessionalHourlyChart({
           <p className="font-semibold text-gray-800">{`${label}:00`}</p>
           {payload.map((entry: any, index: number) => (
             <p key={index} style={{ color: entry.color }} className="text-sm">
-              {`${entry.name}: ${entry.value}${entry.name === 'Wave Height' ? 'm' : entry.name === 'Period' ? 's' : ' km/h'}`}
+              {`${entry.name}: ${entry.value}${entry.name === 'Wave Height' ? 'ft' : entry.name === 'Period' ? 's' : ' mph'}`}
             </p>
           ))}
         </div>
@@ -139,7 +139,7 @@ export default function ProfessionalHourlyChart({
                 yAxisId="left"
                 stroke="#3b82f6"
                 fontSize={12}
-                label={{ value: 'Wave Height (m)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } }}
+                label={{ value: 'Wave Height (ft)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } }}
               />
               
               <YAxis 
@@ -147,7 +147,7 @@ export default function ProfessionalHourlyChart({
                 orientation="right"
                 stroke="#8b5cf6"
                 fontSize={12}
-                label={{ value: 'Period (s) / Wind (km/h)', angle: 90, position: 'insideRight', style: { textAnchor: 'middle' } }}
+                label={{ value: 'Period (s) / Wind (mph)', angle: 90, position: 'insideRight', style: { textAnchor: 'middle' } }}
               />
               
               {/* Current time reference line */}

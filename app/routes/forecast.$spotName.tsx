@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 import { useParams, useSearchParams } from "react-router";
 import type { Route } from "./+types/forecast.$spotName";
-import { getScoreColor, getScoreEmoji, getRatingColor } from "../utils/surfScore";
+import {
+	getScoreColor,
+	getScoreEmoji,
+	getRatingColor,
+} from "../utils/surfScore";
 import { generateMockForecast } from "../utils/mockData";
 import { useSpotFavorite } from "../hooks/useFavorites";
 import TideGraph from "../components/TideGraph";
@@ -102,17 +106,16 @@ export default function ForecastSpot() {
 
 	const handleToggleFavorite = () => {
 		if (!forecast?.spot || !lat || !lng) return;
-		
+
 		const spotData = {
 			name: forecast.spot.name,
 			latitude: parseFloat(lat),
 			longitude: parseFloat(lng),
 			region: "UK",
 		};
-		
+
 		toggle(spotData);
 	};
-
 
 	const fetchForecast = async () => {
 		try {
@@ -136,9 +139,15 @@ export default function ForecastSpot() {
 			// Fallback: Generate mock 5-day forecast for development
 			const currentSpotName = spotName?.replace(/-/g, " ");
 			const spotData = surfSpotsData.find(
-				(spot) => spot.name.toLowerCase() === currentSpotName?.toLowerCase()
+				(spot) =>
+					spot.name.toLowerCase() === currentSpotName?.toLowerCase()
 			);
-			const mockForecast = generateMockForecast(spotName || "", lat || "0", lng || "0", spotData);
+			const mockForecast = generateMockForecast(
+				spotName || "",
+				lat || "0",
+				lng || "0",
+				spotData
+			);
 			setForecast(mockForecast);
 		} catch (err) {
 			setError("Error loading forecast data");
@@ -148,15 +157,16 @@ export default function ForecastSpot() {
 		}
 	};
 
-
 	if (loading) {
 		return (
-			<div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100 flex items-center justify-center">
-				<div className="text-center">
-					<div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-					<p className="mt-4 text-gray-600">
-						Loading 5-day surf forecast...
-					</p>
+			<div className="min-h-screen bg-white">
+				<div className="px-2 md:px-4 py-8">
+					<div className="text-center">
+						<div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+						<p className="mt-4 text-gray-600">
+							Loading 5-day surf forecast...
+						</p>
+					</div>
 				</div>
 			</div>
 		);
@@ -164,19 +174,23 @@ export default function ForecastSpot() {
 
 	if (error) {
 		return (
-			<div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100 flex items-center justify-center">
-				<div className="text-center bg-white rounded-lg shadow-lg p-8 max-w-md">
-					<div className="text-red-500 text-6xl mb-4">⚠️</div>
-					<h2 className="text-xl font-semibold text-gray-800 mb-2">
-						Forecast Unavailable
-					</h2>
-					<p className="text-gray-600 mb-6">{error}</p>
-					<a
-						href="/"
-						className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition duration-200"
-					>
-						← Back to Surf Finder
-					</a>
+			<div className="min-h-screen bg-white">
+				<div className="px-2 md:px-4 py-8">
+					<div className="text-center">
+						<div className="bg-white border border-gray-200 p-8 inline-block">
+							<div className="text-red-500 text-6xl mb-4">⚠️</div>
+							<h2 className="text-xl font-semibold text-gray-800 mb-2">
+								Forecast Unavailable
+							</h2>
+							<p className="text-gray-600 mb-6">{error}</p>
+							<a
+								href="/"
+								className="bg-black hover:bg-gray-800 text-white px-6 py-2 border transition duration-200"
+							>
+								← Back to Surf Finder
+							</a>
+						</div>
+					</div>
 				</div>
 			</div>
 		);
@@ -244,7 +258,7 @@ export default function ForecastSpot() {
 				</div>
 
 				{forecast && (
-					<div className="max-w-6xl mx-auto">
+					<div className="mx-auto">
 						<div className="space-y-6">
 							{forecast.forecast.map((day, index) => (
 								<div

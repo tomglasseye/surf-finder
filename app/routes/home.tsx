@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import type { Route } from "./+types/home";
 import surfSpotsData from "../data/surfSpots.json";
+import { getScoreColor, getScoreEmoji } from "../utils/surfScore";
+import { createEnrichedSpot } from "../utils/mockData";
+import { useFavorites } from "../hooks/useFavorites";
 import TideGraph from "../components/TideGraph";
 import HourlySurfChart from "../components/HourlySurfChart";
 import ProfessionalTideChart from "../components/ProfessionalTideChart";
@@ -21,6 +24,7 @@ export function meta({}: Route.MetaArgs) {
 
 export default function Home() {
 	const navigate = useNavigate();
+	const { toggleSpotFavorite, isSpotFavorited } = useFavorites();
 	const [location, setLocation] = useState<{
 		latitude: number;
 		longitude: number;
@@ -55,30 +59,6 @@ export default function Home() {
 		);
 	};
 
-	// Calculate distance between two points
-	const calculateDistance = (
-		lat1: number,
-		lng1: number,
-		lat2: number,
-		lng2: number
-	) => {
-		const R = 6371; // Earth's radius in km
-		const lat1Rad = (lat1 * Math.PI) / 180;
-		const lat2Rad = (lat2 * Math.PI) / 180;
-		const deltaLat = ((lat2 - lat1) * Math.PI) / 180;
-		const deltaLng = ((lng2 - lng1) * Math.PI) / 180;
-
-		const a =
-			Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
-			Math.cos(lat1Rad) *
-				Math.cos(lat2Rad) *
-				Math.sin(deltaLng / 2) *
-				Math.sin(deltaLng / 2);
-
-		const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-		return R * c;
-	};
-
 	const findSurfSpots = async (latitude: number, longitude: number) => {
 		try {
 			// Try Netlify function first
@@ -107,190 +87,14 @@ export default function Home() {
 			}
 
 			// Fallback to local data processing with consistent mock data
-			const mockSeed = latitude + longitude; // Use location as seed for consistent results
+			const mockSeed = latitude + longitude;
 			const nearbySpots = surfSpotsData
 				.map((spot, index) => {
-					// Generate consistent mock data based on spot and location
-					const spotSeed = mockSeed + index * 37; // Simple pseudo-random based on position
-					const seededRandom = (seed: number) => {
-						const x = Math.sin(seed) * 10000;
-						return x - Math.floor(x);
-					};
-
-					const mockWaveHeight =
-						0.3 + seededRandom(spotSeed * 1.3) * 2.2;
-					const mockPeriod = 6 + seededRandom(spotSeed * 1.9) * 8; // 6-14s
-					const mockWindSpeed = seededRandom(spotSeed * 1.7) * 25;
-					const mockWindDirection =
-						90 + seededRandom(spotSeed * 2.1) * 180; // 90-270 degrees
-					const mockSwellDirection =
-						270 + seededRandom(spotSeed * 2.3) * 90; // 270-360 degrees
-					const mockTideLevel = seededRandom(spotSeed * 2.7); // 0-1 scale
-					const mockTideRising = seededRandom(spotSeed * 3.1) > 0.5;
-
-					/**
-					 * Calculates the surf score for a spot using mock data and spot preferences.
-					 *
-					 * The score is based on:
-					 * - Wave height (optimal: 1–1.8m, max 3 points)
-					 * - Wave period (optimal: 10–14s, max 2 points)
-					 * - Wind direction (matches spot's optimal wind directions, max 1.5 points)
-					 * - Swell direction (matches spot's optimal swell directions, max 1.5 points)
-					 * - Tide level (matches spot's best tide, max 1 point)
-					 * - Wind speed (lower is better, max 1 point)
-					 *
-					 * No base score; only near-perfect conditions can reach 10.
-					 *
-					 * @returns {number} The calculated score, clamped between 1.0 and 10.0.
-					 */
-					const calculateSurfScore = () => {
-						// Wave height (max 3)
-						let heightScore = 0;
-						if (mockWaveHeight >= 1 && mockWaveHeight <= 1.8)
-							heightScore = 3;
-						else if (mockWaveHeight >= 0.8 && mockWaveHeight < 1)
-							heightScore = 2;
-						else if (mockWaveHeight > 1.8 && mockWaveHeight <= 2.2)
-							heightScore = 2;
-						else if (mockWaveHeight > 0.5 && mockWaveHeight < 0.8)
-							heightScore = 1;
-						else heightScore = 0;
-
-						// Period (max 2)
-						let periodScore = 0;
-						if (mockPeriod >= 10 && mockPeriod <= 14)
-							periodScore = 2;
-						else if (mockPeriod >= 8 && mockPeriod < 10)
-							periodScore = 1;
-						else periodScore = 0;
-
-						// Wind direction (max 1.5)
-						let windScore = 0;
-						if (
-							spot.optimalWindDir &&
-							spot.optimalWindDir.length > 0
-						) {
-							const windMatches = spot.optimalWindDir.some(
-								(optimalDir) => {
-									const diff = Math.abs(
-										mockWindDirection - optimalDir
-									);
-									const angleDiff = Math.min(
-										diff,
-										360 - diff
-									);
-									return angleDiff <= 45;
-								}
-							);
-							windScore = windMatches ? 1.5 : 0;
-						}
-
-						// Swell direction (max 1.5)
-						let swellScore = 0;
-						if (
-							spot.optimalSwellDir &&
-							spot.optimalSwellDir.length > 0
-						) {
-							const swellMatches = spot.optimalSwellDir.some(
-								(optimalDir) => {
-									const diff = Math.abs(
-										mockSwellDirection - optimalDir
-									);
-									const angleDiff = Math.min(
-										diff,
-										360 - diff
-									);
-									return angleDiff <= 30;
-								}
-							);
-							swellScore = swellMatches ? 1.5 : 0;
-						}
-
-						// Tide (max 1)
-						let tideScore = 0;
-						if (spot.bestTide) {
-							const currentTidePercent = mockTideLevel * 100;
-							switch (spot.bestTide.toLowerCase()) {
-								case "low":
-									tideScore = currentTidePercent < 30 ? 1 : 0;
-									break;
-								case "mid":
-									tideScore =
-										currentTidePercent >= 30 &&
-										currentTidePercent <= 70
-											? 1
-											: 0;
-									break;
-								case "high":
-									tideScore = currentTidePercent > 70 ? 1 : 0;
-									break;
-								default:
-									tideScore = 0.2;
-							}
-						}
-
-						// Wind speed (max 1)
-						let windSpeedScore = 0;
-						if (mockWindSpeed < 5) windSpeedScore = 1;
-						else if (mockWindSpeed < 15) windSpeedScore = 0.5;
-						else windSpeedScore = 0;
-
-						// Total max score: 10
-						const score =
-							heightScore +
-							periodScore +
-							windScore +
-							swellScore +
-							tideScore +
-							windSpeedScore;
-						return Math.min(Math.max(score, 1.0), 10.0);
-					};
-
-					return {
-						...spot,
-						distance: calculateDistance(
-							latitude,
-							longitude,
-							spot.latitude,
-							spot.longitude
-						),
-						surfScore: calculateSurfScore(),
-						waveHeight: mockWaveHeight,
-						windSpeed: mockWindSpeed,
-						tideData: {
-							currentLevel: mockTideLevel,
-							isRising: mockTideRising,
-							nextHigh: new Date(
-								Date.now() + (mockTideRising ? 3 : 9) * 3600000
-							), // 3-9 hours from now
-							nextLow: new Date(
-								Date.now() + (mockTideRising ? 9 : 3) * 3600000
-							),
-						},
-						conditions: {
-							waveHeight: mockWaveHeight,
-							swellWaveHeight: mockWaveHeight * 0.8,
-							swellWavePeriod: mockPeriod,
-							wavePeriod: mockPeriod,
-							windSpeed: mockWindSpeed,
-							windDirection: mockWindDirection,
-							swellWaveDirection: mockSwellDirection,
-							timestamp: new Date().toISOString(),
-							tideData: {
-								currentLevel: mockTideLevel,
-								isRising: mockTideRising,
-								nextHigh: new Date(
-									Date.now() +
-										(mockTideRising ? 3 : 9) * 3600000
-								),
-								nextLow: new Date(
-									Date.now() +
-										(mockTideRising ? 9 : 3) * 3600000
-								),
-							},
-						},
-						surfDescription: `🔄 Mock data: ${spot.reliability} conditions at ${spot.name}. Live weather data loading...`,
-					};
+					const spotSeed = mockSeed + index * 37;
+					return createEnrichedSpot(spot, spotSeed, {
+						latitude,
+						longitude,
+					});
 				})
 				.filter((spot) => spot.distance <= 100) // 100km
 				.sort((a, b) => b.surfScore - a.surfScore) // Sort by score, not distance
@@ -304,44 +108,33 @@ export default function Home() {
 		}
 	};
 
-	const getScoreColor = (score: number) => {
-		if (score >= 8) return "text-green-600 font-bold";
-		if (score >= 6.5) return "text-green-500";
-		if (score >= 5) return "text-yellow-500";
-		if (score >= 3) return "text-orange-500";
-		return "text-red-500";
-	};
-
-	const getScoreEmoji = (score: number) => {
-		if (score >= 8) return "🔥";
-		if (score >= 6.5) return "🌊";
-		if (score >= 5) return "👍";
-		if (score >= 3) return "⚠️";
-		if (score >= 1.5) return "😐";
-		return "💤";
-	};
-
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100">
-			<div className="container mx-auto px-4 py-8">
+		<div className="min-h-screen bg-white">
+			<div className="px-2 md:px-4 py-8">
 				<div className="text-center mb-8">
-					<h1 className="text-4xl font-bold text-gray-800 mb-2">
-						🏄‍♂️ UK Surf Finder
+					<h1 className="text-4xl font-bold text-black mb-2">
+						UK Surf Finder
 					</h1>
-					<p className="text-lg text-gray-600">
+					<p className="text-lg text-gray-700">
 						Find the best surf spots near you right now
 					</p>
-					<div className="mt-4">
+					<div className="mt-4 flex justify-center space-x-3">
 						<a
 							href="/spots"
-							className="inline-block bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
+							className="inline-block bg-black hover:bg-gray-800 text-white font-semibold py-2 px-4 border transition duration-200"
 						>
-							📋 Browse All UK Spots
+							Browse All Spots
+						</a>
+						<a
+							href="/favourites"
+							className="inline-block bg-white hover:bg-gray-50 text-black font-semibold py-2 px-4 border border-black transition duration-200"
+						>
+							Favourites
 						</a>
 					</div>
 				</div>
 
-				<div className="max-w-4xl mx-auto">
+				<div className="max-w-none">
 					{!location && (
 						<div className="bg-white rounded-lg shadow-lg p-8 text-center">
 							<div className="mb-6">
@@ -395,9 +188,9 @@ export default function Home() {
 
 					{location && (
 						<div className="space-y-6">
-							<div className="bg-white rounded-lg shadow-lg p-6">
+							<div className="bg-white border border-gray-200 p-6">
 								<div className="flex items-center justify-between mb-4">
-									<h2 className="text-2xl font-semibold text-gray-800">
+									<h2 className="text-2xl font-semibold text-black">
 										🌊 Top Surf Spots Near You
 									</h2>
 									<button
@@ -408,7 +201,7 @@ export default function Home() {
 											)
 										}
 										disabled={loading}
-										className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200 disabled:opacity-50"
+										className="bg-black hover:bg-gray-800 text-white px-4 py-2 border transition duration-200 disabled:opacity-50"
 									>
 										{loading ? "Updating..." : "Refresh"}
 									</button>
@@ -433,7 +226,7 @@ export default function Home() {
 										{spots.map((spot, index) => (
 											<div
 												key={spot.name}
-												className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg p-6 border border-blue-200"
+												className="border border-gray-300 p-6"
 											>
 												<div className="flex items-start justify-between mb-3">
 													<div>
@@ -691,14 +484,41 @@ export default function Home() {
 												<div className="mt-4 flex space-x-3">
 													<button
 														onClick={() =>
+															toggleSpotFavorite({
+																name: spot.name,
+																latitude:
+																	spot.latitude,
+																longitude:
+																	spot.longitude,
+																region:
+																	spot.region ||
+																	"UK",
+															})
+														}
+														className={`px-3 py-2 border text-xs transition duration-200 ${
+															isSpotFavorited(
+																spot.name
+															)
+																? "bg-black hover:bg-gray-800 text-white border-black"
+																: "bg-white hover:bg-gray-50 text-black border-black"
+														}`}
+													>
+														{isSpotFavorited(
+															spot.name
+														)
+															? "★"
+															: "☆"}
+													</button>
+													<button
+														onClick={() =>
 															window.open(
 																`https://maps.google.com/maps?q=${spot.latitude},${spot.longitude}`,
 																"_blank"
 															)
 														}
-														className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200"
+														className="bg-black hover:bg-gray-800 text-white px-4 py-2 border transition duration-200"
 													>
-														📍 Get Directions
+														Get Directions
 													</button>
 													<button
 														onClick={() =>
@@ -706,9 +526,9 @@ export default function Home() {
 																`/forecast/${spot.name.replace(/\s+/g, "-").toLowerCase()}?lat=${spot.latitude}&lng=${spot.longitude}`
 															)
 														}
-														className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition duration-200"
+														className="bg-white hover:bg-gray-50 text-black px-4 py-2 border border-black transition duration-200"
 													>
-														📊 5-Day Forecast
+														5-Day Forecast
 													</button>
 												</div>
 											</div>

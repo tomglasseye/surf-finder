@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { useParams, useSearchParams } from "react-router";
 import type { Route } from "./+types/forecast.$spotName";
+import { getScoreColor, getScoreEmoji, getRatingColor } from "../utils/surfScore";
+import { generateMockForecast } from "../utils/mockData";
+import { useSpotFavorite } from "../hooks/useFavorites";
 import TideGraph from "../components/TideGraph";
 import HourlySurfChart from "../components/HourlySurfChart";
 import ProfessionalTideChart from "../components/ProfessionalTideChart";
@@ -82,6 +85,7 @@ export default function ForecastSpot() {
 	const [forecast, setForecast] = useState<ForecastData | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState("");
+	const { isFavorited, toggle } = useSpotFavorite(spotName);
 
 	const lat = searchParams.get("lat");
 	const lng = searchParams.get("lng");
@@ -95,6 +99,20 @@ export default function ForecastSpot() {
 
 		fetchForecast();
 	}, [lat, lng, spotName]);
+
+	const handleToggleFavorite = () => {
+		if (!forecast?.spot || !lat || !lng) return;
+		
+		const spotData = {
+			name: forecast.spot.name,
+			latitude: parseFloat(lat),
+			longitude: parseFloat(lng),
+			region: "UK",
+		};
+		
+		toggle(spotData);
+	};
+
 
 	const fetchForecast = async () => {
 		try {
@@ -116,7 +134,11 @@ export default function ForecastSpot() {
 			}
 
 			// Fallback: Generate mock 5-day forecast for development
-			const mockForecast = generateMockForecast();
+			const currentSpotName = spotName?.replace(/-/g, " ");
+			const spotData = surfSpotsData.find(
+				(spot) => spot.name.toLowerCase() === currentSpotName?.toLowerCase()
+			);
+			const mockForecast = generateMockForecast(spotName || "", lat || "0", lng || "0", spotData);
 			setForecast(mockForecast);
 		} catch (err) {
 			setError("Error loading forecast data");
@@ -126,247 +148,6 @@ export default function ForecastSpot() {
 		}
 	};
 
-	const generateMockForecast = () => {
-		const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-		const mockSeed = parseFloat(lat || "0") + parseFloat(lng || "0"); // Use location as seed
-		const seededRandom = (seed: number) => {
-			const x = Math.sin(seed) * 10000;
-			return x - Math.floor(x);
-		};
-
-		// Find the actual spot data to use optimal conditions
-		const currentSpotName = spotName?.replace(/-/g, " ");
-		const spotData = surfSpotsData.find(
-			(spot) => spot.name.toLowerCase() === currentSpotName?.toLowerCase()
-		);
-
-		const forecast = days.map((day, index) => {
-			const daySeed = mockSeed + index * 41; // Consistent seed per day
-			const waveHeight = 0.5 + seededRandom(daySeed * 1.3) * 2; // 0.5-2.5m
-			const period = 6 + seededRandom(daySeed * 1.5) * 8; // 6-14s
-			const windSpeed = seededRandom(daySeed * 1.7) * 25; // 0-25 km/h
-			const windDirection = 90 + seededRandom(daySeed * 2.1) * 180; // 90-270 degrees
-			const swellDirection = 270 + seededRandom(daySeed * 2.3) * 90; // 270-360 degrees
-
-			// Mock tide data for consistency
-			const tideLevel = seededRandom(daySeed * 2.7); // 0-1 scale
-			const tideRising = seededRandom(daySeed * 3.1) > 0.5;
-
-			/**
-			 * Calculates the surf forecast score for a given day using mock data and spot preferences.
-			 *
-			 * The score is based on the following attributes:
-			 * - Wave height (optimal: 1–1.8m, max 3 points)
-			 * - Wave period (optimal: 10–14s, max 2 points)
-			 * - Wind direction (matches spot's optimal wind directions, max 1.5 points)
-			 * - Swell direction (matches spot's optimal swell directions, max 1.5 points)
-			 * - Tide level (matches spot's best tide, max 1 point)
-			 * - Wind speed (lower is better, max 1 point)
-			 *
-			 * There is no base score; only near-perfect conditions can reach a score close to 10.
-			 *
-			 * @returns {number} The calculated score, clamped between 1.0 and 10.0.
-			 */
-			const calculateForecastScore = () => {
-				// Wave height (max 3)
-				let heightScore = 0;
-				if (waveHeight >= 1 && waveHeight <= 1.8) heightScore = 3;
-				else if (waveHeight >= 0.8 && waveHeight < 1) heightScore = 2;
-				else if (waveHeight > 1.8 && waveHeight <= 2.2) heightScore = 2;
-				else if (waveHeight > 0.5 && waveHeight < 0.8) heightScore = 1;
-				else heightScore = 0;
-
-				// Period (max 2)
-				let periodScore = 0;
-				if (period >= 10 && period <= 14) periodScore = 2;
-				else if (period >= 8 && period < 10) periodScore = 1;
-				else periodScore = 0;
-
-				// Wind direction (max 1.5)
-				let windScore = 0;
-				if (spotData?.optimalWindDir?.length) {
-					const windMatches = spotData.optimalWindDir.some(
-						(optimalDir) => {
-							const diff = Math.abs(windDirection - optimalDir);
-							const angleDiff = Math.min(diff, 360 - diff);
-							return angleDiff <= 45;
-						}
-					);
-					windScore = windMatches ? 1.5 : 0;
-				}
-
-				// Swell direction (max 1.5)
-				let swellScore = 0;
-				if (spotData?.optimalSwellDir?.length) {
-					const swellMatches = spotData.optimalSwellDir.some(
-						(optimalDir) => {
-							const diff = Math.abs(swellDirection - optimalDir);
-							const angleDiff = Math.min(diff, 360 - diff);
-							return angleDiff <= 30;
-						}
-					);
-					swellScore = swellMatches ? 1.5 : 0;
-				}
-
-				// Tide (max 1)
-				let tideScore = 0;
-				if (spotData?.bestTide) {
-					const currentTidePercent = tideLevel * 100;
-					switch (spotData.bestTide.toLowerCase()) {
-						case "low":
-							tideScore = currentTidePercent < 30 ? 1 : 0;
-							break;
-						case "mid":
-							tideScore =
-								currentTidePercent >= 30 &&
-								currentTidePercent <= 70
-									? 1
-									: 0;
-							break;
-						case "high":
-							tideScore = currentTidePercent > 70 ? 1 : 0;
-							break;
-						default:
-							tideScore = 0.2;
-					}
-				}
-
-				// Wind speed (max 1)
-				let windSpeedScore = 0;
-				if (windSpeed < 5) windSpeedScore = 1;
-				else if (windSpeed < 15) windSpeedScore = 0.5;
-				else windSpeedScore = 0;
-
-				// Total max score: 10
-				const score =
-					heightScore +
-					periodScore +
-					windScore +
-					swellScore +
-					tideScore +
-					windSpeedScore;
-				return Math.min(Math.max(score, 1.0), 10.0);
-			};
-
-			const score = calculateForecastScore();
-
-			// Generate more intelligent factors based on conditions
-			const factors = [
-				"🔄 Mock data for development",
-				score > 7
-					? "Excellent wave conditions"
-					: score > 5
-						? "Good surf potential"
-						: score > 3
-							? "Average conditions"
-							: "Poor conditions",
-				period > 10
-					? "Clean groundswell"
-					: period > 8
-						? "Good wave period"
-						: "Moderate period",
-				spotData && windScore > 0
-					? "Favorable wind direction"
-					: spotData && windScore < 0
-						? "Challenging wind direction"
-						: "Variable wind",
-				spotData && swellScore > 0
-					? "Optimal swell angle"
-					: spotData && swellScore < 0
-						? "Suboptimal swell angle"
-						: "Mixed swell conditions",
-			]
-				.filter((factor) => factor.length > 0)
-				.slice(0, 3); // Keep top 3 most relevant factors
-
-			const date = new Date();
-			date.setDate(date.getDate() + index);
-
-			return {
-				date: date.toISOString().split("T")[0],
-				dayName: day,
-				dateStr: date.toLocaleDateString("en-GB", {
-					month: "short",
-					day: "numeric",
-				}),
-				score: Math.round(score * 10) / 10,
-				waveHeight: Math.round(waveHeight * 10) / 10,
-				period: Math.round(period * 10) / 10,
-				windSpeed: Math.round(windSpeed * 10) / 10,
-				factors: factors,
-				rating:
-					score >= 7
-						? "Excellent"
-						: score >= 5.5
-							? "Good"
-							: score >= 4
-								? "Average"
-								: "Poor",
-				tideData: {
-					currentLevel: tideLevel,
-					isRising: tideRising,
-					nextHigh: new Date(
-						Date.now() + (tideRising ? 3 : 9) * 3600000
-					), // 3-9 hours from now
-					nextLow: new Date(
-						Date.now() + (tideRising ? 9 : 3) * 3600000
-					),
-				},
-			};
-		});
-
-		return {
-			spot: {
-				name: spotName?.replace(/-/g, " ") || "Unknown Spot",
-				latitude: parseFloat(lat || "0"),
-				longitude: parseFloat(lng || "0"),
-				skillLevel: spotData?.skillLevel || "Intermediate",
-				breakType: spotData?.breakType || "beach",
-				reliability: spotData?.reliability || "Consistent",
-				...(spotData && {
-					optimalSwellDir: spotData.optimalSwellDir,
-					optimalWindDir: spotData.optimalWindDir,
-					bestTide: spotData.bestTide,
-					bestConditions: spotData.bestConditions,
-				}),
-			},
-			forecast,
-			timestamp: new Date().toISOString(),
-		};
-	};
-
-	const getScoreColor = (score: number) => {
-		if (score >= 7) return "text-green-600 font-bold";
-		if (score >= 5.5) return "text-green-500";
-		if (score >= 4) return "text-yellow-500";
-		if (score >= 2) return "text-orange-500";
-		return "text-red-500";
-	};
-
-	const getScoreEmoji = (score: number) => {
-		if (score >= 7) return "🔥";
-		if (score >= 5.5) return "🌊";
-		if (score >= 4) return "👍";
-		if (score >= 2) return "⚠️";
-		return "💤";
-	};
-
-	const getRatingColor = (rating: string) => {
-		switch (rating) {
-			case "Excellent":
-				return "bg-green-100 text-green-800 border-green-200";
-			case "Good":
-				return "bg-blue-100 text-blue-800 border-blue-200";
-			case "Average":
-				return "bg-yellow-100 text-yellow-800 border-yellow-200";
-			case "Poor":
-				return "bg-orange-100 text-orange-800 border-orange-200";
-			case "Very Poor":
-				return "bg-red-100 text-red-800 border-red-200";
-			default:
-				return "bg-gray-100 text-gray-800 border-gray-200";
-		}
-	};
 
 	if (loading) {
 		return (
@@ -402,45 +183,62 @@ export default function ForecastSpot() {
 	}
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100">
-			<div className="container mx-auto px-4 py-8">
+		<div className="min-h-screen bg-white">
+			<div className="px-2 md:px-4 py-8">
 				<div className="text-center mb-8">
-					<h1 className="text-4xl font-bold text-gray-800 mb-2">
-						🌊 5-Day Surf Forecast
+					<h1 className="text-4xl font-bold text-black mb-2">
+						5-Day Surf Forecast
 					</h1>
-					<h2 className="text-2xl text-gray-600 mb-4">
+					<h2 className="text-2xl text-gray-800 mb-4">
 						{forecast?.spot.name || spotName?.replace(/-/g, " ")}
 					</h2>
-					<div className="flex justify-center space-x-4 text-sm text-gray-600">
+					<div className="flex justify-center space-x-4 text-sm text-gray-700">
 						<span>
-							📍 {lat}, {lng}
+							{lat}, {lng}
 						</span>
 						{forecast?.spot.skillLevel && (
-							<span>🏄‍♂️ {forecast.spot.skillLevel}</span>
+							<span>{forecast.spot.skillLevel}</span>
 						)}
 						{forecast?.spot.breakType && (
-							<span>🌊 {forecast.spot.breakType} break</span>
+							<span>{forecast.spot.breakType} break</span>
 						)}
 					</div>
-					<div className="mt-6 flex justify-center space-x-3">
+					<div className="mt-6 flex justify-center space-x-3 flex-wrap">
+						<button
+							onClick={handleToggleFavorite}
+							disabled={!forecast?.spot}
+							className={`px-4 py-2 border transition duration-200 disabled:opacity-50 ${
+								isFavorited
+									? "bg-black hover:bg-gray-800 text-white border-black"
+									: "bg-white hover:bg-gray-50 text-black border-black"
+							}`}
+						>
+							{isFavorited ? "Favourited" : "Favourite"}
+						</button>
 						<a
 							href="/"
-							className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200"
+							className="bg-black hover:bg-gray-800 text-white px-4 py-2 border transition duration-200"
 						>
 							← Surf Finder
 						</a>
 						<a
 							href="/spots"
-							className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition duration-200"
+							className="bg-white hover:bg-gray-50 text-black px-4 py-2 border border-black transition duration-200"
 						>
-							📋 All Spots
+							All Spots
+						</a>
+						<a
+							href="/favourites"
+							className="bg-white hover:bg-gray-50 text-black px-4 py-2 border border-black transition duration-200"
+						>
+							Favourites
 						</a>
 						<button
 							onClick={fetchForecast}
 							disabled={loading}
-							className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition duration-200 disabled:opacity-50"
+							className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 border transition duration-200 disabled:opacity-50"
 						>
-							🔄 Refresh
+							Refresh
 						</button>
 					</div>
 				</div>

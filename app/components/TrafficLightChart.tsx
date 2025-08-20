@@ -51,9 +51,9 @@ const TrafficLightChart: React.FC<TrafficLightChartProps> = ({
 	const hourlyData = generateHourlyData();
 
 	const getTrafficLightColor = (score: number): string => {
-		if (score >= 7) return "#10b981"; // Green (excellent)
-		if (score >= 5) return "#f59e0b"; // Amber/Yellow (good)
-		return "#ef4444"; // Red (poor)
+		if (score >= 7) return "#000000"; // Black (excellent)
+		if (score >= 5) return "#6b7280"; // Gray (good)
+		return "#d1d5db"; // Light gray (poor)
 	};
 
 	const getScoreLabel = (score: number): string => {
@@ -68,23 +68,23 @@ const TrafficLightChart: React.FC<TrafficLightChartProps> = ({
 	const gap = isCompact ? 2 : 4;
 
 	return (
-		<div className={`bg-white rounded-lg p-4 ${className}`}>
+		<div className={`bg-white border border-gray-200 p-2 md:p-4 ${className}`}>
 			<div className="flex items-center justify-between mb-3">
-				<h3 className={`font-semibold text-gray-800 ${isCompact ? "text-sm" : "text-base"}`}>
-					🚦 24-Hour Surf Score
+				<h3 className={`font-semibold text-black ${isCompact ? "text-sm" : "text-base"}`}>
+					24-Hour Surf Score
 				</h3>
 				<div className="flex items-center space-x-3 text-xs">
 					<div className="flex items-center space-x-1">
-						<div className="w-3 h-3 bg-red-500 rounded-full"></div>
-						<span className="text-gray-600">Poor</span>
+						<div className="w-3 h-3 bg-gray-300"></div>
+						<span className="text-gray-700">Poor</span>
 					</div>
 					<div className="flex items-center space-x-1">
-						<div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-						<span className="text-gray-600">Good</span>
+						<div className="w-3 h-3 bg-gray-500"></div>
+						<span className="text-gray-700">Good</span>
 					</div>
 					<div className="flex items-center space-x-1">
-						<div className="w-3 h-3 bg-green-500 rounded-full"></div>
-						<span className="text-gray-600">Excellent</span>
+						<div className="w-3 h-3 bg-black"></div>
+						<span className="text-gray-700">Excellent</span>
 					</div>
 				</div>
 			</div>
@@ -137,7 +137,7 @@ const TrafficLightChart: React.FC<TrafficLightChartProps> = ({
 			</div>
 
 			<div className="mt-6 text-center">
-				<div className="text-xs text-gray-500">
+				<div className="text-xs text-gray-700">
 					Hover over circles to see detailed scores • Times shown in local time
 				</div>
 			</div>

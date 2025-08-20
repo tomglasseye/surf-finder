@@ -14,7 +14,7 @@ import TrafficLightChart from "../components/TrafficLightChart";
 
 export function meta({}: Route.MetaArgs) {
 	return [
-		{ title: "UK Surf Finder" },
+		{ title: "Surf Finder" },
 		{
 			name: "description",
 			content: "Find the best surf spots near you right now!",
@@ -113,7 +113,7 @@ export default function Home() {
 			<div className="px-2 md:px-4 py-8">
 				<div className="text-center mb-8">
 					<h1 className="text-4xl font-bold text-black mb-2">
-						UK Surf Finder
+						Surf Finder
 					</h1>
 					<p className="text-lg text-gray-700">
 						Find the best surf spots near you right now

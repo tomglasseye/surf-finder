@@ -5,7 +5,7 @@ import { useFavorites } from "../hooks/useFavorites";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: 'All UK Surf Spots - UK Surf Finder' },
+    { title: 'All Surf Spots - Surf Finder' },
     { name: 'description', content: 'Browse all UK surf spots with detailed information and conditions' },
   ];
 }
@@ -46,7 +46,7 @@ export default function Spots() {
       <div className="px-2 md:px-4 py-8">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-black mb-2">
-            All UK Surf Spots
+            All Surf Spots
           </h1>
           <p className="text-lg text-gray-700">
             Comprehensive guide to {surfSpotsData.length} premium UK surf locations

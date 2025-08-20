@@ -3,7 +3,7 @@ import { useFavorites } from "../hooks/useFavorites";
 
 export function meta() {
   return [
-    { title: 'Favourite Surf Spots - UK Surf Finder' },
+    { title: 'Favourite Surf Spots - Surf Finder' },
     { name: 'description', content: 'Your favourite UK surf spots with quick access to forecasts' },
   ];
 }

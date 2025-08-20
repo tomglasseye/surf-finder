@@ -15,7 +15,7 @@ import surfSpotsData from "../data/surfSpots.json";
 export function meta({ params }: Route.MetaArgs) {
 	const spotName = params.spotName?.replace(/-/g, " ") || "Surf Spot";
 	return [
-		{ title: `${spotName} 5-Day Surf Forecast - UK Surf Finder` },
+		{ title: `${spotName} 5-Day Surf Forecast - Surf Finder` },
 		{
 			name: "description",
 			content: `5-day surf forecast for ${spotName} with detailed wave conditions and scores`,

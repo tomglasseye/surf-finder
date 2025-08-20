@@ -1,4 +1,4 @@
-# UK Surf Finder 🏄‍♂️
+# Surf Finder 🏄‍♂️
 
 A comprehensive surf forecast application that finds the best surf spots near your location and provides real-time conditions.
 

@@ -516,7 +516,7 @@ export default function Home() {
 																"_blank"
 															)
 														}
-														className="bg-black hover:bg-gray-800 text-white px-4 py-2 border transition duration-200"
+														className="bg-white hover:bg-gray-50 text-black px-4 py-2 border border-black transition duration-200"
 													>
 														Get Directions
 													</button>
@@ -526,7 +526,7 @@ export default function Home() {
 																`/forecast/${spot.name.replace(/\s+/g, "-").toLowerCase()}?lat=${spot.latitude}&lng=${spot.longitude}`
 															)
 														}
-														className="bg-white hover:bg-gray-50 text-black px-4 py-2 border border-black transition duration-200"
+														className="bg-black hover:bg-gray-800 text-white px-4 py-2 border transition duration-200"
 													>
 														5-Day Forecast
 													</button>

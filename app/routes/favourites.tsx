@@ -62,13 +62,14 @@ export default function Favourites() {
                   <div className="mt-4 flex space-x-2">
                     <button
                       onClick={() => window.open(`https://maps.google.com/maps?q=${spot.latitude},${spot.longitude}`, '_blank')}
-                      className="flex-1 bg-black hover:bg-gray-800 text-white px-3 py-2 border text-xs transition duration-200"
+                      className="flex-1 bg-white hover:bg-gray-50 text-black px-3 py-2 border border-black text-xs transition duration-200"
+
                     >
                       Maps
                     </button>
                     <button
                       onClick={() => navigate(`/forecast/${spot.name.replace(/\s+/g, '-').toLowerCase()}?lat=${spot.latitude}&lng=${spot.longitude}`)}
-                      className="flex-1 bg-white hover:bg-gray-50 text-black px-3 py-2 border border-black text-xs transition duration-200"
+                      className="flex-1 bg-black hover:bg-gray-800 text-white px-3 py-2 border text-xs transition duration-200"
                     >
                       Forecast
                     </button>

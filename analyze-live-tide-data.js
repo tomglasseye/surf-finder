@@ -7,16 +7,18 @@ console.log("====================================");
 
 // The response shows tide data for today (2025-08-23):
 const todayTideData = {
-  "currentLevel": 0.5,
-  "isRising": true,      // ❌ This should be FALSE per BBC data
-  "nextHigh": "2025-08-23T05:21:00.000Z",
-  "nextLow": "2025-08-22T23:25:00.000Z",
-  "source": "stormglass"  // ✅ Using StormGlass API correctly
+	currentLevel: 0.5,
+	isRising: true, // ❌ This should be FALSE per BBC data
+	nextHigh: "2025-08-23T05:21:00.000Z",
+	nextLow: "2025-08-22T23:25:00.000Z",
+	source: "stormglass", // ✅ Using StormGlass API correctly
 };
 
 console.log("📊 CURRENT TIDE DATA:");
 console.log(`🌊 Level: ${(todayTideData.currentLevel * 100).toFixed(1)}%`);
-console.log(`📈 Direction: ${todayTideData.isRising ? '🔼 RISING ❌' : '🔽 FALLING ✅'}`);
+console.log(
+	`📈 Direction: ${todayTideData.isRising ? "🔼 RISING ❌" : "🔽 FALLING ✅"}`
+);
 console.log(`📡 Source: ${todayTideData.source} ✅`);
 
 const nextHigh = new Date(todayTideData.nextHigh);
@@ -24,14 +26,22 @@ const nextLow = new Date(todayTideData.nextLow);
 const now = new Date();
 
 console.log(`\n⏰ TIDE TIMES (BST):`);
-console.log(`🔼 Next High: ${nextHigh.toLocaleString('en-GB', { timeZone: 'Europe/London' })} BST`);
-console.log(`🔽 Next Low:  ${nextLow.toLocaleString('en-GB', { timeZone: 'Europe/London' })} BST`);
-console.log(`🕐 Current:   ${now.toLocaleString('en-GB', { timeZone: 'Europe/London' })} BST`);
+console.log(
+	`🔼 Next High: ${nextHigh.toLocaleString("en-GB", { timeZone: "Europe/London" })} BST`
+);
+console.log(
+	`🔽 Next Low:  ${nextLow.toLocaleString("en-GB", { timeZone: "Europe/London" })} BST`
+);
+console.log(
+	`🕐 Current:   ${now.toLocaleString("en-GB", { timeZone: "Europe/London" })} BST`
+);
 
 console.log(`\n🧮 LOGIC CHECK:`);
 console.log(`If low tide was at 00:25 BST today (past)`);
 console.log(`And next high is at 06:21 BST today (future)`);
-console.log(`Then at ${now.toLocaleString('en-GB', { timeZone: 'Europe/London' })} BST, tide should be RISING`);
+console.log(
+	`Then at ${now.toLocaleString("en-GB", { timeZone: "Europe/London" })} BST, tide should be RISING`
+);
 
 console.log(`\n❓ THE ISSUE:`);
 console.log(`The StormGlass API is showing tide as RISING`);

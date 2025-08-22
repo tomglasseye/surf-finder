@@ -123,7 +123,9 @@ async function getTideData(latitude, longitude) {
 				const now = new Date();
 				const twoDaysLater = new Date(now.getTime() + 48 * 3600000);
 
-				const oneDayBefore = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+				const oneDayBefore = new Date(
+					now.getTime() - 24 * 60 * 60 * 1000
+				);
 				const startTime = oneDayBefore.toISOString();
 				const endTime = twoDaysLater.toISOString();
 
@@ -278,12 +280,16 @@ function processStormGlassTideData(tidesData, now) {
 				// If next extreme is low, we're falling towards it
 				// If next extreme is high, we're rising towards it
 				isRising = nextExtreme.type === "high";
-				
+
 				// Estimate current level based on time to next extreme
-				const timeToNext = new Date(nextExtreme.time).getTime() - currentTime;
+				const timeToNext =
+					new Date(nextExtreme.time).getTime() - currentTime;
 				const typicalTideInterval = 6.2 * 60 * 60 * 1000; // ~6.2 hours
-				const progressToNext = Math.min(timeToNext / typicalTideInterval, 1);
-				
+				const progressToNext = Math.min(
+					timeToNext / typicalTideInterval,
+					1
+				);
+
 				if (nextExtreme.type === "high") {
 					// Rising towards high tide
 					currentLevel = 0.2 + (1 - progressToNext) * 0.65;

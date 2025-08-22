@@ -7,10 +7,10 @@ console.log("======================================");
 
 // Simulate the current scenario with the fix
 const mockTideDataWithFix = {
-  data: [
-    { time: "2025-08-22T23:25:00.000Z", type: "low" },  // Next low (37 mins from now)
-    { time: "2025-08-23T05:21:00.000Z", type: "high" }, // Next high (6h from now)
-  ]
+	data: [
+		{ time: "2025-08-22T23:25:00.000Z", type: "low" }, // Next low (37 mins from now)
+		{ time: "2025-08-23T05:21:00.000Z", type: "high" }, // Next high (6h from now)
+	],
 };
 
 const now = new Date("2025-08-22T22:07:00.000Z"); // Current time (23:07 BST)
@@ -47,7 +47,9 @@ function processStormGlassTideDataFixed(tidesData, now) {
 		allExtremes.forEach((extreme, i) => {
 			const time = new Date(extreme.time);
 			const isFuture = time.getTime() > currentTime;
-			console.log(`${i}: ${extreme.type} at ${time.toISOString()} ${isFuture ? '(future)' : '(past)'}`);
+			console.log(
+				`${i}: ${extreme.type} at ${time.toISOString()} ${isFuture ? "(future)" : "(past)"}`
+			);
 		});
 
 		// Find the interval containing current time
@@ -59,9 +61,15 @@ function processStormGlassTideDataFixed(tidesData, now) {
 			const nextExtremeTime = new Date(nextExtreme.time).getTime();
 
 			console.log(`\n📊 Checking interval ${i}:`);
-			console.log(`  Current extreme: ${currentExtreme.type} at ${new Date(currentExtremeTime).toISOString()}`);
-			console.log(`  Next extreme: ${nextExtreme.type} at ${new Date(nextExtremeTime).toISOString()}`);
-			console.log(`  Current time in interval: ${currentExtremeTime <= currentTime && currentTime <= nextExtremeTime}`);
+			console.log(
+				`  Current extreme: ${currentExtreme.type} at ${new Date(currentExtremeTime).toISOString()}`
+			);
+			console.log(
+				`  Next extreme: ${nextExtreme.type} at ${new Date(nextExtremeTime).toISOString()}`
+			);
+			console.log(
+				`  Current time in interval: ${currentExtremeTime <= currentTime && currentTime <= nextExtremeTime}`
+			);
 
 			if (
 				currentExtremeTime <= currentTime &&
@@ -69,12 +77,14 @@ function processStormGlassTideDataFixed(tidesData, now) {
 			) {
 				intervalFound = true;
 				console.log(`✅ FOUND INTERVAL!`);
-				
+
 				const timeDiff = nextExtremeTime - currentExtremeTime;
 				const currentProgress =
 					(currentTime - currentExtremeTime) / timeDiff;
 
-				console.log(`  Progress: ${(currentProgress * 100).toFixed(1)}%`);
+				console.log(
+					`  Progress: ${(currentProgress * 100).toFixed(1)}%`
+				);
 
 				if (
 					currentExtreme.type === "high" &&
@@ -100,28 +110,44 @@ function processStormGlassTideDataFixed(tidesData, now) {
 			console.log(`\n🎯 NO INTERVAL FOUND - using next extreme logic`);
 			const nextExtreme = futureExtremes[0];
 			if (nextExtreme) {
-				console.log(`  Next extreme: ${nextExtreme.type} at ${nextExtreme.time}`);
+				console.log(
+					`  Next extreme: ${nextExtreme.type} at ${nextExtreme.time}`
+				);
 				// If next extreme is low, we're falling towards it
 				// If next extreme is high, we're rising towards it
 				isRising = nextExtreme.type === "high";
-				console.log(`  🔧 FIXED LOGIC: isRising = nextExtreme.type === "high" = ${isRising}`);
-				
+				console.log(
+					`  🔧 FIXED LOGIC: isRising = nextExtreme.type === "high" = ${isRising}`
+				);
+
 				// Estimate current level based on time to next extreme
-				const timeToNext = new Date(nextExtreme.time).getTime() - currentTime;
+				const timeToNext =
+					new Date(nextExtreme.time).getTime() - currentTime;
 				const typicalTideInterval = 6.2 * 60 * 60 * 1000; // ~6.2 hours
-				const progressToNext = Math.min(timeToNext / typicalTideInterval, 1);
-				
-				console.log(`  Time to next: ${(timeToNext / (60 * 1000)).toFixed(0)} minutes`);
-				console.log(`  Progress to next: ${(progressToNext * 100).toFixed(1)}%`);
-				
+				const progressToNext = Math.min(
+					timeToNext / typicalTideInterval,
+					1
+				);
+
+				console.log(
+					`  Time to next: ${(timeToNext / (60 * 1000)).toFixed(0)} minutes`
+				);
+				console.log(
+					`  Progress to next: ${(progressToNext * 100).toFixed(1)}%`
+				);
+
 				if (nextExtreme.type === "high") {
 					// Rising towards high tide
 					currentLevel = 0.2 + (1 - progressToNext) * 0.65;
-					console.log(`  📈 Rising towards high: level = ${(currentLevel * 100).toFixed(1)}%`);
+					console.log(
+						`  📈 Rising towards high: level = ${(currentLevel * 100).toFixed(1)}%`
+					);
 				} else {
 					// Falling towards low tide
 					currentLevel = 0.85 - (1 - progressToNext) * 0.65;
-					console.log(`  📉 Falling towards low: level = ${(currentLevel * 100).toFixed(1)}%`);
+					console.log(
+						`  📉 Falling towards low: level = ${(currentLevel * 100).toFixed(1)}%`
+					);
 				}
 			}
 		}
@@ -129,7 +155,7 @@ function processStormGlassTideDataFixed(tidesData, now) {
 
 	console.log(`\n🎯 FINAL RESULT:`);
 	console.log(`🌊 Level: ${(currentLevel * 100).toFixed(1)}%`);
-	console.log(`📈 Direction: ${isRising ? '🔼 RISING ❌' : '🔽 FALLING ✅'}`);
+	console.log(`📈 Direction: ${isRising ? "🔼 RISING ❌" : "🔽 FALLING ✅"}`);
 
 	return {
 		currentLevel: Math.max(0.05, Math.min(0.95, currentLevel)),
@@ -152,4 +178,4 @@ console.log(`\n💡 THE FIX:`);
 console.log(`✅ Now using next extreme to determine direction`);
 console.log(`✅ If next extreme is LOW → we're FALLING towards it`);
 console.log(`✅ If next extreme is HIGH → we're RISING towards it`);
-console.log(`✅ Result: ${fixedResult.isRising ? 'RISING ❌' : 'FALLING ✅'}`);
+console.log(`✅ Result: ${fixedResult.isRising ? "RISING ❌" : "FALLING ✅"}`);

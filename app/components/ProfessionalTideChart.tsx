@@ -117,7 +117,8 @@ export default function ProfessionalTideChart({
 
 		const baseLevel = tideData?.currentLevel || 0.5;
 		const lunarCycleMs = 12.42 * 60 * 60 * 1000;
-		const currentTime = now.getTime();
+		// Use the target date's start time instead of current time for calculations
+		const referenceTime = startTime.getTime();
 
 		// Generate hours 0-23 to have midday (12) in the middle
 		for (let i = 0; i < showHours; i++) {
@@ -125,8 +126,12 @@ export default function ProfessionalTideChart({
 			const hourTime = startTime.getTime() + i * 3600000;
 			const hourDate = new Date(hourTime);
 
-			const timeDiff = hourTime - currentTime;
-			const cyclePosition = (timeDiff / lunarCycleMs) * 2 * Math.PI;
+			// Calculate tide based on the specific day's timeline, not current time
+			const timeDiff = hourTime - referenceTime;
+			// Add a daily offset based on the date to vary tide patterns between days
+			const dayOffset = (targetDate.getDate() * 0.5) % (2 * Math.PI);
+			const cyclePosition =
+				(timeDiff / lunarCycleMs) * 2 * Math.PI + dayOffset;
 			const tideLevel =
 				0.5 +
 				0.5 * Math.cos(cyclePosition + Math.acos(2 * baseLevel - 1));
@@ -138,7 +143,9 @@ export default function ProfessionalTideChart({
 				level: clampedLevel,
 				levelPercent: Math.round(clampedLevel * 100),
 				timeLabel: `${hour.toString().padStart(2, "0")}:00`,
-				isNow: hour === now.getHours(),
+				isNow:
+					hour === now.getHours() &&
+					targetDate.toDateString() === now.toDateString(),
 				isDaylight: hour >= 6 && hour <= 18,
 				isHighTide: false, // Will be set below
 				isLowTide: false, // Will be set below

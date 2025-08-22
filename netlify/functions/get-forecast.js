@@ -1,642 +1,907 @@
 // Embed surf spots data directly to avoid file path issues in Netlify
 const surfSpotsData = [
-  {
-    "name": "Fistral Beach",
-    "latitude": 50.4161,
-    "longitude": -5.0931,
-    "skillLevel": "Intermediate",
-    "optimalSwellDir": [270, 315],
-    "optimalWindDir": [45, 135],
-    "bestTide": "mid",
-    "reliability": "Very Consistent"
-  },
-  {
-    "name": "Watergate Bay", 
-    "latitude": 50.4425,
-    "longitude": -5.0394,
-    "skillLevel": "Beginner",
-    "optimalSwellDir": [270, 315],
-    "optimalWindDir": [90, 180],
-    "bestTide": "low_to_mid",
-    "reliability": "Consistent"
-  },
-  {
-    "name": "Polzeath",
-    "latitude": 50.5689,
-    "longitude": -4.9156,
-    "skillLevel": "Beginner",
-    "optimalSwellDir": [270, 330],
-    "optimalWindDir": [135, 225],
-    "bestTide": "mid_to_high",
-    "reliability": "Consistent"
-  }
+	{
+		name: "Fistral Beach",
+		latitude: 50.4161,
+		longitude: -5.0931,
+		skillLevel: "Intermediate",
+		optimalSwellDir: [270, 315],
+		optimalWindDir: [45, 135],
+		bestTide: "mid",
+		reliability: "Very Consistent",
+	},
+	{
+		name: "Watergate Bay",
+		latitude: 50.4425,
+		longitude: -5.0394,
+		skillLevel: "Beginner",
+		optimalSwellDir: [270, 315],
+		optimalWindDir: [90, 180],
+		bestTide: "low_to_mid",
+		reliability: "Consistent",
+	},
+	{
+		name: "Polzeath",
+		latitude: 50.5689,
+		longitude: -4.9156,
+		skillLevel: "Beginner",
+		optimalSwellDir: [270, 330],
+		optimalWindDir: [135, 225],
+		bestTide: "mid_to_high",
+		reliability: "Consistent",
+	},
 ];
 
-console.log('Netlify Function: get-forecast loaded');
+console.log("Netlify Function: get-forecast loaded");
 
 function directionScore(actualDir, optimalRange) {
-  if (!actualDir || !optimalRange) return 0.5;
-  
-  const [minOptimal, maxOptimal] = optimalRange;
-  
-  // Handle wraparound (e.g., 315-45 degrees)
-  if (minOptimal > maxOptimal) {
-    if (actualDir >= minOptimal || actualDir <= maxOptimal) {
-      return 1.0;
-    } else {
-      const distToMin = Math.min(Math.abs(actualDir - minOptimal), 360 - Math.abs(actualDir - minOptimal));
-      const distToMax = Math.min(Math.abs(actualDir - maxOptimal), 360 - Math.abs(actualDir - maxOptimal));
-      const closestDist = Math.min(distToMin, distToMax);
-      
-      if (closestDist <= 15) return 0.9;
-      if (closestDist <= 30) return 0.7;
-      if (closestDist <= 45) return 0.5;
-      if (closestDist <= 60) return 0.3;
-      return 0.1;
-    }
-  } else {
-    if (actualDir >= minOptimal && actualDir <= maxOptimal) {
-      return 1.0;
-    } else {
-      const closestDist = Math.min(Math.abs(actualDir - minOptimal), Math.abs(actualDir - maxOptimal));
-      
-      if (closestDist <= 15) return 0.9;
-      if (closestDist <= 30) return 0.7;
-      if (closestDist <= 45) return 0.5;
-      if (closestDist <= 60) return 0.3;
-      return 0.1;
-    }
-  }
+	if (!actualDir || !optimalRange) return 0.5;
+
+	const [minOptimal, maxOptimal] = optimalRange;
+
+	// Handle wraparound (e.g., 315-45 degrees)
+	if (minOptimal > maxOptimal) {
+		if (actualDir >= minOptimal || actualDir <= maxOptimal) {
+			return 1.0;
+		} else {
+			const distToMin = Math.min(
+				Math.abs(actualDir - minOptimal),
+				360 - Math.abs(actualDir - minOptimal)
+			);
+			const distToMax = Math.min(
+				Math.abs(actualDir - maxOptimal),
+				360 - Math.abs(actualDir - maxOptimal)
+			);
+			const closestDist = Math.min(distToMin, distToMax);
+
+			if (closestDist <= 15) return 0.9;
+			if (closestDist <= 30) return 0.7;
+			if (closestDist <= 45) return 0.5;
+			if (closestDist <= 60) return 0.3;
+			return 0.1;
+		}
+	} else {
+		if (actualDir >= minOptimal && actualDir <= maxOptimal) {
+			return 1.0;
+		} else {
+			const closestDist = Math.min(
+				Math.abs(actualDir - minOptimal),
+				Math.abs(actualDir - maxOptimal)
+			);
+
+			if (closestDist <= 15) return 0.9;
+			if (closestDist <= 30) return 0.7;
+			if (closestDist <= 45) return 0.5;
+			if (closestDist <= 60) return 0.3;
+			return 0.1;
+		}
+	}
 }
 
 async function getTideData(latitude, longitude) {
-  try {
-    // Simple tide calculation for forecast (same as find-surf-spots.js)
-    const currentTime = new Date();
-    const lunarCycleMs = 12.42 * 60 * 60 * 1000; // ~12.42 hours between high tides
-    const seedTime = Math.floor(currentTime.getTime() / lunarCycleMs);
-    
-    // Generate approximate tide times based on location and current time
-    const tideHigh1 = new Date(seedTime * lunarCycleMs);
-    const tideLow1 = new Date(tideHigh1.getTime() + (lunarCycleMs / 2));
-    const tideHigh2 = new Date(tideHigh1.getTime() + lunarCycleMs);
-    const tideLow2 = new Date(tideLow1.getTime() + lunarCycleMs);
-    
-    // Calculate current tide level (0-1, where 1 is high tide)
-    const timeSinceHigh = (currentTime.getTime() - tideHigh1.getTime()) % lunarCycleMs;
-    const tidePosition = Math.abs(Math.cos((timeSinceHigh / lunarCycleMs) * 2 * Math.PI));
-    
-    return {
-      currentLevel: tidePosition,
-      nextHigh: tideHigh2,
-      nextLow: timeSinceHigh < lunarCycleMs/2 ? tideLow1 : tideLow2,
-      isRising: Math.sin((timeSinceHigh / lunarCycleMs) * 2 * Math.PI) > 0
-    };
-  } catch (error) {
-    console.error('Error calculating tide data:', error);
-    return null;
-  }
+	try {
+		// UK Admiralty API for real tide predictions
+		// Sign up at https://developer.admiralty.co.uk/ to get your API key
+		const admiraltyApiKey = process.env.ADMIRALTY_API_KEY;
+
+		if (admiraltyApiKey) {
+			try {
+				// UK Admiralty API endpoint for tide predictions
+				const admiraltyUrl = `https://admiraltyapi.portal.azure-api.net/ukho/tides/api/V1/Stations/${latitude}/${longitude}/TidalPredictions`;
+
+				const response = await fetch(admiraltyUrl, {
+					headers: {
+						"Ocp-Apim-Subscription-Key": admiraltyApiKey,
+						"Content-Type": "application/json",
+					},
+				});
+
+				if (response.ok) {
+					const tidesData = await response.json();
+
+					// Process Admiralty API response
+					const now = new Date();
+					let currentLevel = 0.5; // Default fallback
+					let isRising = true;
+					let nextHigh = null;
+					let nextLow = null;
+
+					if (tidesData && tidesData.tidalPredictions) {
+						const predictions = tidesData.tidalPredictions;
+
+						// Find current tide level by interpolating between nearest predictions
+						const currentTime = now.getTime();
+						let closestBefore = null;
+						let closestAfter = null;
+
+						for (const prediction of predictions) {
+							const predictionTime = new Date(
+								prediction.dateTime
+							).getTime();
+
+							if (predictionTime <= currentTime) {
+								closestBefore = prediction;
+							} else if (
+								predictionTime > currentTime &&
+								!closestAfter
+							) {
+								closestAfter = prediction;
+							}
+
+							// Find next high and low tides
+							if (predictionTime > currentTime) {
+								if (
+									prediction.eventType === "HighWater" &&
+									!nextHigh
+								) {
+									nextHigh = new Date(prediction.dateTime);
+								} else if (
+									prediction.eventType === "LowWater" &&
+									!nextLow
+								) {
+									nextLow = new Date(prediction.dateTime);
+								}
+							}
+						}
+
+						// Interpolate current tide level
+						if (closestBefore && closestAfter) {
+							const beforeTime = new Date(
+								closestBefore.dateTime
+							).getTime();
+							const afterTime = new Date(
+								closestAfter.dateTime
+							).getTime();
+							const timeDiff = afterTime - beforeTime;
+							const currentProgress =
+								(currentTime - beforeTime) / timeDiff;
+
+							// Normalize heights to 0-1 scale (assuming typical UK tide range of 0-10m)
+							const beforeHeight = Math.max(
+								0,
+								Math.min(1, closestBefore.height / 10)
+							);
+							const afterHeight = Math.max(
+								0,
+								Math.min(1, closestAfter.height / 10)
+							);
+
+							currentLevel =
+								beforeHeight +
+								(afterHeight - beforeHeight) * currentProgress;
+							isRising = afterHeight > beforeHeight;
+						}
+					}
+
+					return {
+						currentLevel: currentLevel,
+						isRising: isRising,
+						nextHigh:
+							nextHigh || new Date(now.getTime() + 6 * 3600000), // Fallback: 6 hours
+						nextLow:
+							nextLow || new Date(now.getTime() + 3 * 3600000), // Fallback: 3 hours
+						source: "admiralty",
+					};
+				}
+			} catch (admiraltyError) {
+				console.log(
+					"Admiralty API error, falling back to calculation:",
+					admiraltyError.message
+				);
+			}
+		}
+
+		// Fallback: Enhanced tidal calculation based on location and lunar cycles
+		console.log(
+			"Using enhanced tidal calculation for",
+			latitude,
+			longitude
+		);
+
+		const currentTime = new Date();
+		const lunarCycleMs = 12.42 * 60 * 60 * 1000; // ~12.42 hours between high tides
+
+		// Location-specific adjustments for UK coastal areas
+		let locationOffset = 0;
+
+		// Cornwall (SW England) - earlier tides
+		if (
+			latitude >= 50 &&
+			latitude <= 51 &&
+			longitude >= -6 &&
+			longitude <= -4
+		) {
+			locationOffset = -1.5 * 3600000; // 1.5 hours earlier
+		}
+		// Devon/Dorset coast
+		else if (
+			latitude >= 50 &&
+			latitude <= 51 &&
+			longitude >= -4 &&
+			longitude <= -2
+		) {
+			locationOffset = -1 * 3600000; // 1 hour earlier
+		}
+		// East coast (Norfolk, Suffolk)
+		else if (
+			latitude >= 52 &&
+			latitude <= 53 &&
+			longitude >= 0 &&
+			longitude <= 2
+		) {
+			locationOffset = 2 * 3600000; // 2 hours later
+		}
+		// Scotland west coast
+		else if (latitude >= 55 && longitude <= -4) {
+			locationOffset = -2 * 3600000; // 2 hours earlier
+		}
+
+		// Calculate base tide times with location offset
+		const adjustedTime = currentTime.getTime() + locationOffset;
+		const seedTime = Math.floor(adjustedTime / lunarCycleMs);
+
+		const tideHigh1 = new Date(seedTime * lunarCycleMs - locationOffset);
+		const tideLow1 = new Date(tideHigh1.getTime() + lunarCycleMs / 2);
+		const tideHigh2 = new Date(tideHigh1.getTime() + lunarCycleMs);
+		const tideLow2 = new Date(tideLow1.getTime() + lunarCycleMs);
+
+		// Calculate current tide level with location-specific range
+		let tideRange = 1.0; // Default range factor
+
+		// Adjust range based on known UK tidal characteristics
+		if (
+			latitude >= 51 &&
+			latitude <= 52 &&
+			longitude >= -3 &&
+			longitude <= -1
+		) {
+			tideRange = 1.2; // Bristol Channel - large tidal range
+		} else if (
+			latitude >= 50 &&
+			latitude <= 51 &&
+			longitude >= -6 &&
+			longitude <= -4
+		) {
+			tideRange = 0.8; // Cornwall - moderate range
+		}
+
+		const timeSinceHigh =
+			(currentTime.getTime() - tideHigh1.getTime()) % lunarCycleMs;
+		const tidePosition =
+			Math.abs(Math.cos((timeSinceHigh / lunarCycleMs) * 2 * Math.PI)) *
+			tideRange;
+		const normalizedLevel = Math.max(0, Math.min(1, tidePosition));
+
+		return {
+			currentLevel: normalizedLevel,
+			nextHigh: currentTime < tideHigh1 ? tideHigh1 : tideHigh2,
+			nextLow: timeSinceHigh < lunarCycleMs / 2 ? tideLow1 : tideLow2,
+			isRising:
+				Math.sin((timeSinceHigh / lunarCycleMs) * 2 * Math.PI) > 0,
+			source: "calculated",
+		};
+	} catch (error) {
+		console.error("Error calculating tide data:", error);
+		return null;
+	}
 }
 
 async function get5DayForecast(latitude, longitude) {
-  try {
-    // Marine weather data - 5 days
-    const marineUrl = new URL('https://marine-api.open-meteo.com/v1/marine');
-    marineUrl.searchParams.set('latitude', latitude);
-    marineUrl.searchParams.set('longitude', longitude);
-    marineUrl.searchParams.set('hourly', 'wave_height,swell_wave_height,wind_wave_height,wave_direction,swell_wave_direction,wave_period,swell_wave_period');
-    marineUrl.searchParams.set('timezone', 'Europe/London');
-    marineUrl.searchParams.set('forecast_days', '5');
+	try {
+		// Marine weather data - 5 days
+		const marineUrl = new URL(
+			"https://marine-api.open-meteo.com/v1/marine"
+		);
+		marineUrl.searchParams.set("latitude", latitude);
+		marineUrl.searchParams.set("longitude", longitude);
+		marineUrl.searchParams.set(
+			"hourly",
+			"wave_height,swell_wave_height,wind_wave_height,wave_direction,swell_wave_direction,wave_period,swell_wave_period"
+		);
+		marineUrl.searchParams.set("timezone", "Europe/London");
+		marineUrl.searchParams.set("forecast_days", "5");
 
-    // Wind data - 5 days
-    const windUrl = new URL('https://api.open-meteo.com/v1/forecast');
-    windUrl.searchParams.set('latitude', latitude);
-    windUrl.searchParams.set('longitude', longitude);
-    windUrl.searchParams.set('hourly', 'wind_speed_10m,wind_direction_10m');
-    windUrl.searchParams.set('timezone', 'Europe/London');
-    windUrl.searchParams.set('forecast_days', '5');
+		// Wind data - 5 days
+		const windUrl = new URL("https://api.open-meteo.com/v1/forecast");
+		windUrl.searchParams.set("latitude", latitude);
+		windUrl.searchParams.set("longitude", longitude);
+		windUrl.searchParams.set("hourly", "wind_speed_10m,wind_direction_10m");
+		windUrl.searchParams.set("timezone", "Europe/London");
+		windUrl.searchParams.set("forecast_days", "5");
 
-    const [marineResponse, windResponse] = await Promise.all([
-      fetch(marineUrl),
-      fetch(windUrl)
-    ]);
+		const [marineResponse, windResponse] = await Promise.all([
+			fetch(marineUrl),
+			fetch(windUrl),
+		]);
 
-    const marineData = await marineResponse.json();
-    const windData = await windResponse.json();
+		const marineData = await marineResponse.json();
+		const windData = await windResponse.json();
 
-    return { marineData, windData };
-  } catch (error) {
-    console.error('Error fetching forecast:', error);
-    return null;
-  }
+		return { marineData, windData };
+	} catch (error) {
+		console.error("Error fetching forecast:", error);
+		return null;
+	}
 }
 
 function calculateDaySurfScore(dayData, spot) {
-  if (!dayData) return { score: 0, description: "No data available" };
-  
-  let score = 0;
-  const factors = [];
-  
-  // Average the hourly data for the day
-  const avgWaveHeight = dayData.waveHeight.reduce((a, b) => a + (b || 0), 0) / dayData.waveHeight.length;
-  const avgSwellHeight = dayData.swellHeight.reduce((a, b) => a + (b || 0), 0) / dayData.swellHeight.length;
-  const avgPeriod = dayData.period.reduce((a, b) => a + (b || 0), 0) / dayData.period.length;
-  const avgWindSpeed = dayData.windSpeed.reduce((a, b) => a + (b || 0), 0) / dayData.windSpeed.length;
-  
-  const effectiveHeight = Math.max(avgWaveHeight, avgSwellHeight);
-  
-  // Wave height scoring (skill-level adjusted)
-  const isBeginnerSpot = spot.skillLevel?.toLowerCase().includes('beginner');
-  const isAdvancedSpot = spot.skillLevel?.toLowerCase().includes('advanced');
-  
-  let heightScore;
-  if (isBeginnerSpot) {
-    if (effectiveHeight >= 0.4 && effectiveHeight <= 1.5) {
-      heightScore = 4;
-      factors.push("Perfect beginner waves");
-    } else if (effectiveHeight > 1.5 && effectiveHeight <= 2.0) {
-      heightScore = 3;
-      factors.push("Good size waves");
-    } else if (effectiveHeight >= 0.2 && effectiveHeight < 0.4) {
-      heightScore = 2;
-      factors.push("Small but learnable");
-    } else if (effectiveHeight > 2.0) {
-      heightScore = 1;
-      factors.push("Too big for beginners");
-    } else {
-      heightScore = 0;
-      factors.push("Too small");
-    }
-  } else if (isAdvancedSpot) {
-    if (effectiveHeight >= 1.5 && effectiveHeight <= 4.0) {
-      heightScore = 4;
-      factors.push("Excellent wave size");
-    } else if (effectiveHeight > 4.0 && effectiveHeight <= 6.0) {
-      heightScore = 3.5;
-      factors.push("Big waves - advanced only");
-    } else if (effectiveHeight >= 0.8 && effectiveHeight < 1.5) {
-      heightScore = 3;
-      factors.push("Decent size");
-    } else if (effectiveHeight > 6.0) {
-      heightScore = 2;
-      factors.push("Very large - extreme conditions");
-    } else {
-      heightScore = 1;
-      factors.push("Too small for this spot");
-    }
-  } else {
-    if (effectiveHeight >= 0.6 && effectiveHeight <= 2.5) {
-      heightScore = 4;
-      factors.push("Great wave size");
-    } else if (effectiveHeight > 2.5 && effectiveHeight <= 3.5) {
-      heightScore = 3;
-      factors.push("Good sized waves");
-    } else if (effectiveHeight >= 0.3 && effectiveHeight < 0.6) {
-      heightScore = 2;
-      factors.push("Small but rideable");
-    } else if (effectiveHeight > 3.5) {
-      heightScore = 1.5;
-      factors.push("Large waves");
-    } else {
-      heightScore = 0;
-      factors.push("Too small");
-    }
-  }
-  score += heightScore;
-  
-  // Period scoring
-  let periodScore;
-  if (avgPeriod >= 10 && avgPeriod <= 14) {
-    periodScore = 2.5;
-    factors.push("Premium groundswell");
-  } else if (avgPeriod >= 8 && avgPeriod < 10) {
-    periodScore = 2;
-    factors.push("Good groundswell");
-  } else if ((avgPeriod >= 6 && avgPeriod < 8) || (avgPeriod > 14 && avgPeriod <= 18)) {
-    periodScore = 1.5;
-    factors.push("Decent swell period");
-  } else if (avgPeriod >= 4 && avgPeriod < 6) {
-    periodScore = 0.8;
-    factors.push("Short period windswell");
-  } else if (avgPeriod > 0) {
-    periodScore = 0.3;
-    factors.push("Very short period");
-  } else {
-    periodScore = 0;
-  }
-  score += periodScore;
-  
-  // Swell direction (use most common direction)
-  const swellDirs = dayData.swellDirection.filter(d => d !== null);
-  if (swellDirs.length > 0 && spot.optimalSwellDir) {
-    const avgSwellDir = swellDirs.reduce((a, b) => a + b, 0) / swellDirs.length;
-    const swellScoreFactor = directionScore(avgSwellDir, spot.optimalSwellDir);
-    score += 2.5 * swellScoreFactor;
-    
-    if (swellScoreFactor >= 0.9) {
-      factors.push("Perfect swell angle!");
-    } else if (swellScoreFactor >= 0.7) {
-      factors.push("Good swell direction");
-    } else if (swellScoreFactor >= 0.5) {
-      factors.push("Acceptable swell angle");
-    } else {
-      factors.push("Poor swell direction");
-    }
-  } else {
-    score += 1.2;
-  }
-  
-  // Wind scoring
-  if (avgWindSpeed <= 8) {
-    score += 2;
-    factors.push("Light winds");
-  } else if (avgWindSpeed <= 15) {
-    score += 1.5;
-    factors.push("Moderate winds");
-  } else if (avgWindSpeed <= 25) {
-    score += 0.8;
-    factors.push("Strong winds");
-  } else {
-    score += 0.2;
-    factors.push("Very strong winds");
-  }
-  
-  // Tide scoring (simplified for daily average) - 0-2 points
-  let tideScore = 1.5; // Default neutral score
-  if (dayData.tideData && spot.bestTide) {
-    const bestTide = spot.bestTide.toLowerCase();
-    if (bestTide === 'all' || bestTide === 'any') {
-      tideScore = 2;
-      factors.push("Works all tides");
-    } else {
-      // For daily forecast, give a general tide bonus
-      tideScore = 1.7;
-      factors.push("Tide favorable");
-    }
-  }
-  score += tideScore;
-  
-  // Reliability bonus
-  let reliabilityBonus = 0;
-  if (spot.reliability) {
-    const reliability = spot.reliability.toLowerCase();
-    if (reliability.includes('very consistent')) {
-      reliabilityBonus = 1;
-    } else if (reliability.includes('consistent')) {
-      reliabilityBonus = 0.7;
-    } else if (reliability.includes('seasonal')) {
-      reliabilityBonus = 0.3;
-    }
-  }
-  score += reliabilityBonus;
-  
-  return { 
-    score: Math.min(Math.round(score * 10) / 10, 10.0), 
-    waveHeight: effectiveHeight,
-    period: avgPeriod,
-    windSpeed: avgWindSpeed,
-    factors: factors.slice(0, 3), // Top 3 factors
-    tideData: dayData.tideData
-  };
+	if (!dayData) return { score: 0, description: "No data available" };
+
+	let score = 0;
+	const factors = [];
+
+	// Average the hourly data for the day
+	const avgWaveHeight =
+		dayData.waveHeight.reduce((a, b) => a + (b || 0), 0) /
+		dayData.waveHeight.length;
+	const avgSwellHeight =
+		dayData.swellHeight.reduce((a, b) => a + (b || 0), 0) /
+		dayData.swellHeight.length;
+	const avgPeriod =
+		dayData.period.reduce((a, b) => a + (b || 0), 0) /
+		dayData.period.length;
+	const avgWindSpeed =
+		dayData.windSpeed.reduce((a, b) => a + (b || 0), 0) /
+		dayData.windSpeed.length;
+
+	const effectiveHeight = Math.max(avgWaveHeight, avgSwellHeight);
+
+	// Wave height scoring (skill-level adjusted)
+	const isBeginnerSpot = spot.skillLevel?.toLowerCase().includes("beginner");
+	const isAdvancedSpot = spot.skillLevel?.toLowerCase().includes("advanced");
+
+	let heightScore;
+	if (isBeginnerSpot) {
+		if (effectiveHeight >= 0.4 && effectiveHeight <= 1.5) {
+			heightScore = 4;
+			factors.push("Perfect beginner waves");
+		} else if (effectiveHeight > 1.5 && effectiveHeight <= 2.0) {
+			heightScore = 3;
+			factors.push("Good size waves");
+		} else if (effectiveHeight >= 0.2 && effectiveHeight < 0.4) {
+			heightScore = 2;
+			factors.push("Small but learnable");
+		} else if (effectiveHeight > 2.0) {
+			heightScore = 1;
+			factors.push("Too big for beginners");
+		} else {
+			heightScore = 0;
+			factors.push("Too small");
+		}
+	} else if (isAdvancedSpot) {
+		if (effectiveHeight >= 1.5 && effectiveHeight <= 4.0) {
+			heightScore = 4;
+			factors.push("Excellent wave size");
+		} else if (effectiveHeight > 4.0 && effectiveHeight <= 6.0) {
+			heightScore = 3.5;
+			factors.push("Big waves - advanced only");
+		} else if (effectiveHeight >= 0.8 && effectiveHeight < 1.5) {
+			heightScore = 3;
+			factors.push("Decent size");
+		} else if (effectiveHeight > 6.0) {
+			heightScore = 2;
+			factors.push("Very large - extreme conditions");
+		} else {
+			heightScore = 1;
+			factors.push("Too small for this spot");
+		}
+	} else {
+		if (effectiveHeight >= 0.6 && effectiveHeight <= 2.5) {
+			heightScore = 4;
+			factors.push("Great wave size");
+		} else if (effectiveHeight > 2.5 && effectiveHeight <= 3.5) {
+			heightScore = 3;
+			factors.push("Good sized waves");
+		} else if (effectiveHeight >= 0.3 && effectiveHeight < 0.6) {
+			heightScore = 2;
+			factors.push("Small but rideable");
+		} else if (effectiveHeight > 3.5) {
+			heightScore = 1.5;
+			factors.push("Large waves");
+		} else {
+			heightScore = 0;
+			factors.push("Too small");
+		}
+	}
+	score += heightScore;
+
+	// Period scoring
+	let periodScore;
+	if (avgPeriod >= 10 && avgPeriod <= 14) {
+		periodScore = 2.5;
+		factors.push("Premium groundswell");
+	} else if (avgPeriod >= 8 && avgPeriod < 10) {
+		periodScore = 2;
+		factors.push("Good groundswell");
+	} else if (
+		(avgPeriod >= 6 && avgPeriod < 8) ||
+		(avgPeriod > 14 && avgPeriod <= 18)
+	) {
+		periodScore = 1.5;
+		factors.push("Decent swell period");
+	} else if (avgPeriod >= 4 && avgPeriod < 6) {
+		periodScore = 0.8;
+		factors.push("Short period windswell");
+	} else if (avgPeriod > 0) {
+		periodScore = 0.3;
+		factors.push("Very short period");
+	} else {
+		periodScore = 0;
+	}
+	score += periodScore;
+
+	// Swell direction (use most common direction)
+	const swellDirs = dayData.swellDirection.filter((d) => d !== null);
+	if (swellDirs.length > 0 && spot.optimalSwellDir) {
+		const avgSwellDir =
+			swellDirs.reduce((a, b) => a + b, 0) / swellDirs.length;
+		const swellScoreFactor = directionScore(
+			avgSwellDir,
+			spot.optimalSwellDir
+		);
+		score += 2.5 * swellScoreFactor;
+
+		if (swellScoreFactor >= 0.9) {
+			factors.push("Perfect swell angle!");
+		} else if (swellScoreFactor >= 0.7) {
+			factors.push("Good swell direction");
+		} else if (swellScoreFactor >= 0.5) {
+			factors.push("Acceptable swell angle");
+		} else {
+			factors.push("Poor swell direction");
+		}
+	} else {
+		score += 1.2;
+	}
+
+	// Wind scoring
+	if (avgWindSpeed <= 8) {
+		score += 2;
+		factors.push("Light winds");
+	} else if (avgWindSpeed <= 15) {
+		score += 1.5;
+		factors.push("Moderate winds");
+	} else if (avgWindSpeed <= 25) {
+		score += 0.8;
+		factors.push("Strong winds");
+	} else {
+		score += 0.2;
+		factors.push("Very strong winds");
+	}
+
+	// Tide scoring (simplified for daily average) - 0-2 points
+	let tideScore = 1.5; // Default neutral score
+	if (dayData.tideData && spot.bestTide) {
+		const bestTide = spot.bestTide.toLowerCase();
+		if (bestTide === "all" || bestTide === "any") {
+			tideScore = 2;
+			factors.push("Works all tides");
+		} else {
+			// For daily forecast, give a general tide bonus
+			tideScore = 1.7;
+			factors.push("Tide favorable");
+		}
+	}
+	score += tideScore;
+
+	// Reliability bonus
+	let reliabilityBonus = 0;
+	if (spot.reliability) {
+		const reliability = spot.reliability.toLowerCase();
+		if (reliability.includes("very consistent")) {
+			reliabilityBonus = 1;
+		} else if (reliability.includes("consistent")) {
+			reliabilityBonus = 0.7;
+		} else if (reliability.includes("seasonal")) {
+			reliabilityBonus = 0.3;
+		}
+	}
+	score += reliabilityBonus;
+
+	return {
+		score: Math.min(Math.round(score * 10) / 10, 10.0),
+		waveHeight: effectiveHeight,
+		period: avgPeriod,
+		windSpeed: avgWindSpeed,
+		factors: factors.slice(0, 3), // Top 3 factors
+		tideData: dayData.tideData,
+	};
 }
 
-function calculateBestTimeOfDay(hourlyData, spot, tideData, latitude = 50.4, longitude = -5.0, targetDate = new Date()) {
-  const scores = [];
-  
-  // Calculate sunrise and sunset times
-  const dayOfYear = Math.floor((targetDate.getTime() - new Date(targetDate.getFullYear(), 0, 0).getTime()) / 86400000);
-  const p = Math.asin(0.39795 * Math.cos(0.98563 * (dayOfYear - 173) * Math.PI / 180));
-  const a = (Math.sin(-0.83 * Math.PI / 180) - Math.sin(latitude * Math.PI / 180) * Math.sin(p)) / (Math.cos(latitude * Math.PI / 180) * Math.cos(p));
-  
-  let sunriseHour, sunsetHour;
-  
-  if (Math.abs(a) > 1) {
-    // Polar day/night scenario
-    sunriseHour = Math.abs(a) > 1 && a > 0 ? null : 0;
-    sunsetHour = Math.abs(a) > 1 && a > 0 ? null : 24;
-  } else {
-    const hourAngle = Math.acos(a) * 180 / Math.PI / 15;
-    const solarNoon = 12 - longitude / 15;
-    sunriseHour = solarNoon - hourAngle;
-    sunsetHour = solarNoon + hourAngle;
-  }
-  
-  // Calculate score for each hour
-  for (let hour = 0; hour < 24; hour++) {
-    let hourScore = 0;
-    const factors = [];
-    
-    // Wave height factor (0-3 points)
-    const waveHeight = hourlyData.waveHeight[hour] || 0;
-    const isBeginnerSpot = spot.skillLevel?.toLowerCase().includes('beginner');
-    const isAdvancedSpot = spot.skillLevel?.toLowerCase().includes('advanced');
-    
-    if (isBeginnerSpot) {
-      if (waveHeight >= 0.4 && waveHeight <= 1.5) {
-        hourScore += 3;
-        factors.push("Perfect beginner waves");
-      } else if (waveHeight > 1.5 && waveHeight <= 2.0) {
-        hourScore += 2;
-        factors.push("Good size waves");
-      } else if (waveHeight >= 0.2 && waveHeight < 0.4) {
-        hourScore += 1;
-        factors.push("Small but rideable");
-      }
-    } else if (isAdvancedSpot) {
-      if (waveHeight >= 1.5 && waveHeight <= 4.0) {
-        hourScore += 3;
-        factors.push("Excellent wave size");
-      } else if (waveHeight >= 0.8 && waveHeight < 1.5) {
-        hourScore += 2;
-        factors.push("Decent size");
-      }
-    } else {
-      if (waveHeight >= 0.6 && waveHeight <= 2.5) {
-        hourScore += 3;
-        factors.push("Great wave size");
-      } else if (waveHeight >= 0.3 && waveHeight < 0.6) {
-        hourScore += 1;
-        factors.push("Small but rideable");
-      }
-    }
-    
-    // Period factor (0-2 points)
-    const period = hourlyData.period[hour] || 0;
-    if (period >= 10) {
-      hourScore += 2;
-      factors.push("Premium groundswell");
-    } else if (period >= 8) {
-      hourScore += 1.5;
-      factors.push("Good groundswell");
-    } else if (period >= 6) {
-      hourScore += 1;
-      factors.push("Decent period");
-    }
-    
-    // Wind factor (0-2 points)
-    const windSpeed = hourlyData.windSpeed[hour] || 0;
-    if (windSpeed <= 8) {
-      hourScore += 2;
-      factors.push("Light winds");
-    } else if (windSpeed <= 15) {
-      hourScore += 1.5;
-      factors.push("Moderate winds");
-    } else if (windSpeed <= 25) {
-      hourScore += 0.5;
-      factors.push("Strong winds");
-    }
-    
-    // Tide factor (0-2 points) - simplified
-    if (tideData && spot.bestTide) {
-      const bestTide = spot.bestTide.toLowerCase();
-      // Simulate tide level for this hour (0-1 scale)
-      const tideLevel = 0.5 + 0.5 * Math.cos((hour / 12.42) * 2 * Math.PI);
-      
-      if (bestTide === 'all' || bestTide === 'any') {
-        hourScore += 2;
-        factors.push("Good for all tides");
-      } else if (bestTide === 'low' && tideLevel <= 0.4) {
-        hourScore += 2;
-        factors.push("Perfect low tide");
-      } else if (bestTide === 'mid' && tideLevel >= 0.3 && tideLevel <= 0.7) {
-        hourScore += 2;
-        factors.push("Perfect mid tide");
-      } else if (bestTide === 'high' && tideLevel >= 0.6) {
-        hourScore += 2;
-        factors.push("Perfect high tide");
-      } else {
-        hourScore += 0.5;
-        factors.push("Suboptimal tide");
-      }
-    } else {
-      hourScore += 1; // Neutral
-    }
-    
-    // Enhanced daylight bonus with sunrise/sunset + 1 hour buffer
-    let isGoodLight = false;
-    
-    if (sunriseHour !== null && sunsetHour !== null) {
-      const safeStartHour = Math.max(0, sunriseHour - 1); // 1 hour before sunrise
-      const safeEndHour = Math.min(24, sunsetHour + 1);   // 1 hour after sunset
-      
-      if (hour >= safeStartHour && hour <= safeEndHour) {
-        if (hour >= sunriseHour - 0.5 && hour <= sunsetHour + 0.5) {
-          hourScore += 1.0; // Full daylight
-          factors.push("Perfect daylight");
-          isGoodLight = true;
-        } else {
-          hourScore += 0.5; // Twilight buffer (dawn/dusk)
-          factors.push("Good light (dawn/dusk)");
-          isGoodLight = true;
-        }
-      } else {
-        // Dark hours - significant penalty for safety
-        hourScore *= 0.3; // Reduce total score by 70%
-        factors.push("Dark - unsafe conditions");
-      }
-    } else {
-      // Fallback to simple time if sunrise/sunset calculation fails
-      if (hour >= 6 && hour <= 18) {
-        hourScore += 0.5;
-        factors.push("Daylight hours");
-        isGoodLight = true;
-      } else {
-        hourScore *= 0.3;
-        factors.push("Dark hours");
-      }
-    }
-    
-    scores.push({
-      hour,
-      score: Math.min(hourScore, 10.0),
-      factors: factors.slice(0, 3),
-      time: `${hour.toString().padStart(2, '0')}:00`
-    });
-  }
-  
-  // Find the best time slots
-  const sortedTimes = scores.sort((a, b) => b.score - a.score);
-  const bestTime = sortedTimes[0];
-  
-  // Find consecutive good hours (score > 6) with good lighting conditions
-  const goodHours = scores.filter(s => s.score >= 6.0 && !s.factors.includes("Dark - unsafe conditions"));
-  let bestWindow = null;
-  
-  if (goodHours.length >= 2) {
-    // Look for consecutive hours with good surf and lighting
-    for (let i = 0; i < goodHours.length - 1; i++) {
-      const current = goodHours[i];
-      const next = goodHours[i + 1];
-      if (Math.abs(current.hour - next.hour) === 1) {
-        bestWindow = {
-          start: Math.min(current.hour, next.hour),
-          end: Math.max(current.hour, next.hour),
-          startTime: `${Math.min(current.hour, next.hour).toString().padStart(2, '0')}:00`,
-          endTime: `${(Math.max(current.hour, next.hour) + 1).toString().padStart(2, '0')}:00`,
-          hasGoodLight: true
-        };
-        break;
-      }
-    }
-  }
-  
-  return {
-    bestTime: bestTime,
-    bestWindow: bestWindow,
-    allHours: scores
-  };
+function calculateBestTimeOfDay(
+	hourlyData,
+	spot,
+	tideData,
+	latitude = 50.4,
+	longitude = -5.0,
+	targetDate = new Date()
+) {
+	const scores = [];
+
+	// Calculate sunrise and sunset times
+	const dayOfYear = Math.floor(
+		(targetDate.getTime() -
+			new Date(targetDate.getFullYear(), 0, 0).getTime()) /
+			86400000
+	);
+	const p = Math.asin(
+		0.39795 * Math.cos((0.98563 * (dayOfYear - 173) * Math.PI) / 180)
+	);
+	const a =
+		(Math.sin((-0.83 * Math.PI) / 180) -
+			Math.sin((latitude * Math.PI) / 180) * Math.sin(p)) /
+		(Math.cos((latitude * Math.PI) / 180) * Math.cos(p));
+
+	let sunriseHour, sunsetHour;
+
+	if (Math.abs(a) > 1) {
+		// Polar day/night scenario
+		sunriseHour = Math.abs(a) > 1 && a > 0 ? null : 0;
+		sunsetHour = Math.abs(a) > 1 && a > 0 ? null : 24;
+	} else {
+		const hourAngle = (Math.acos(a) * 180) / Math.PI / 15;
+		const solarNoon = 12 - longitude / 15;
+		sunriseHour = solarNoon - hourAngle;
+		sunsetHour = solarNoon + hourAngle;
+	}
+
+	// Calculate score for each hour
+	for (let hour = 0; hour < 24; hour++) {
+		let hourScore = 0;
+		const factors = [];
+
+		// Wave height factor (0-3 points)
+		const waveHeight = hourlyData.waveHeight[hour] || 0;
+		const isBeginnerSpot = spot.skillLevel
+			?.toLowerCase()
+			.includes("beginner");
+		const isAdvancedSpot = spot.skillLevel
+			?.toLowerCase()
+			.includes("advanced");
+
+		if (isBeginnerSpot) {
+			if (waveHeight >= 0.4 && waveHeight <= 1.5) {
+				hourScore += 3;
+				factors.push("Perfect beginner waves");
+			} else if (waveHeight > 1.5 && waveHeight <= 2.0) {
+				hourScore += 2;
+				factors.push("Good size waves");
+			} else if (waveHeight >= 0.2 && waveHeight < 0.4) {
+				hourScore += 1;
+				factors.push("Small but rideable");
+			}
+		} else if (isAdvancedSpot) {
+			if (waveHeight >= 1.5 && waveHeight <= 4.0) {
+				hourScore += 3;
+				factors.push("Excellent wave size");
+			} else if (waveHeight >= 0.8 && waveHeight < 1.5) {
+				hourScore += 2;
+				factors.push("Decent size");
+			}
+		} else {
+			if (waveHeight >= 0.6 && waveHeight <= 2.5) {
+				hourScore += 3;
+				factors.push("Great wave size");
+			} else if (waveHeight >= 0.3 && waveHeight < 0.6) {
+				hourScore += 1;
+				factors.push("Small but rideable");
+			}
+		}
+
+		// Period factor (0-2 points)
+		const period = hourlyData.period[hour] || 0;
+		if (period >= 10) {
+			hourScore += 2;
+			factors.push("Premium groundswell");
+		} else if (period >= 8) {
+			hourScore += 1.5;
+			factors.push("Good groundswell");
+		} else if (period >= 6) {
+			hourScore += 1;
+			factors.push("Decent period");
+		}
+
+		// Wind factor (0-2 points)
+		const windSpeed = hourlyData.windSpeed[hour] || 0;
+		if (windSpeed <= 8) {
+			hourScore += 2;
+			factors.push("Light winds");
+		} else if (windSpeed <= 15) {
+			hourScore += 1.5;
+			factors.push("Moderate winds");
+		} else if (windSpeed <= 25) {
+			hourScore += 0.5;
+			factors.push("Strong winds");
+		}
+
+		// Tide factor (0-2 points) - simplified
+		if (tideData && spot.bestTide) {
+			const bestTide = spot.bestTide.toLowerCase();
+			// Simulate tide level for this hour (0-1 scale)
+			const tideLevel =
+				0.5 + 0.5 * Math.cos((hour / 12.42) * 2 * Math.PI);
+
+			if (bestTide === "all" || bestTide === "any") {
+				hourScore += 2;
+				factors.push("Good for all tides");
+			} else if (bestTide === "low" && tideLevel <= 0.4) {
+				hourScore += 2;
+				factors.push("Perfect low tide");
+			} else if (
+				bestTide === "mid" &&
+				tideLevel >= 0.3 &&
+				tideLevel <= 0.7
+			) {
+				hourScore += 2;
+				factors.push("Perfect mid tide");
+			} else if (bestTide === "high" && tideLevel >= 0.6) {
+				hourScore += 2;
+				factors.push("Perfect high tide");
+			} else {
+				hourScore += 0.5;
+				factors.push("Suboptimal tide");
+			}
+		} else {
+			hourScore += 1; // Neutral
+		}
+
+		// Enhanced daylight bonus with sunrise/sunset + 1 hour buffer
+		let isGoodLight = false;
+
+		if (sunriseHour !== null && sunsetHour !== null) {
+			const safeStartHour = Math.max(0, sunriseHour - 1); // 1 hour before sunrise
+			const safeEndHour = Math.min(24, sunsetHour + 1); // 1 hour after sunset
+
+			if (hour >= safeStartHour && hour <= safeEndHour) {
+				if (hour >= sunriseHour - 0.5 && hour <= sunsetHour + 0.5) {
+					hourScore += 1.0; // Full daylight
+					factors.push("Perfect daylight");
+					isGoodLight = true;
+				} else {
+					hourScore += 0.5; // Twilight buffer (dawn/dusk)
+					factors.push("Good light (dawn/dusk)");
+					isGoodLight = true;
+				}
+			} else {
+				// Dark hours - significant penalty for safety
+				hourScore *= 0.3; // Reduce total score by 70%
+				factors.push("Dark - unsafe conditions");
+			}
+		} else {
+			// Fallback to simple time if sunrise/sunset calculation fails
+			if (hour >= 6 && hour <= 18) {
+				hourScore += 0.5;
+				factors.push("Daylight hours");
+				isGoodLight = true;
+			} else {
+				hourScore *= 0.3;
+				factors.push("Dark hours");
+			}
+		}
+
+		scores.push({
+			hour,
+			score: Math.min(hourScore, 10.0),
+			factors: factors.slice(0, 3),
+			time: `${hour.toString().padStart(2, "0")}:00`,
+		});
+	}
+
+	// Find the best time slots
+	const sortedTimes = scores.sort((a, b) => b.score - a.score);
+	const bestTime = sortedTimes[0];
+
+	// Find consecutive good hours (score > 6) with good lighting conditions
+	const goodHours = scores.filter(
+		(s) => s.score >= 6.0 && !s.factors.includes("Dark - unsafe conditions")
+	);
+	let bestWindow = null;
+
+	if (goodHours.length >= 2) {
+		// Look for consecutive hours with good surf and lighting
+		for (let i = 0; i < goodHours.length - 1; i++) {
+			const current = goodHours[i];
+			const next = goodHours[i + 1];
+			if (Math.abs(current.hour - next.hour) === 1) {
+				bestWindow = {
+					start: Math.min(current.hour, next.hour),
+					end: Math.max(current.hour, next.hour),
+					startTime: `${Math.min(current.hour, next.hour).toString().padStart(2, "0")}:00`,
+					endTime: `${(Math.max(current.hour, next.hour) + 1).toString().padStart(2, "0")}:00`,
+					hasGoodLight: true,
+				};
+				break;
+			}
+		}
+	}
+
+	return {
+		bestTime: bestTime,
+		bestWindow: bestWindow,
+		allHours: scores,
+	};
 }
 
 function processHourlyToDaily(marineData, windData, tideData) {
-  const times = marineData.hourly?.time || [];
-  const dailyData = [];
-  
-  // Group by day
-  const days = {};
-  times.forEach((time, index) => {
-    const date = time.split('T')[0];
-    if (!days[date]) {
-      days[date] = {
-        date,
-        waveHeight: [],
-        swellHeight: [],
-        period: [],
-        swellDirection: [],
-        windSpeed: [],
-        windDirection: [],
-        tideData: tideData // Add tide data to each day
-      };
-    }
-    
-    days[date].waveHeight.push(marineData.hourly.wave_height[index]);
-    days[date].swellHeight.push(marineData.hourly.swell_wave_height[index]);
-    days[date].period.push(marineData.hourly.swell_wave_period[index] || marineData.hourly.wave_period[index]);
-    days[date].swellDirection.push(marineData.hourly.swell_wave_direction[index] || marineData.hourly.wave_direction[index]);
-    days[date].windSpeed.push(windData.hourly.wind_speed_10m[index]);
-    days[date].windDirection.push(windData.hourly.wind_direction_10m[index]);
-  });
-  
-  return Object.values(days);
+	const times = marineData.hourly?.time || [];
+	const dailyData = [];
+
+	// Group by day
+	const days = {};
+	times.forEach((time, index) => {
+		const date = time.split("T")[0];
+		if (!days[date]) {
+			days[date] = {
+				date,
+				waveHeight: [],
+				swellHeight: [],
+				period: [],
+				swellDirection: [],
+				windSpeed: [],
+				windDirection: [],
+				tideData: tideData, // Add tide data to each day
+			};
+		}
+
+		days[date].waveHeight.push(marineData.hourly.wave_height[index]);
+		days[date].swellHeight.push(marineData.hourly.swell_wave_height[index]);
+		days[date].period.push(
+			marineData.hourly.swell_wave_period[index] ||
+				marineData.hourly.wave_period[index]
+		);
+		days[date].swellDirection.push(
+			marineData.hourly.swell_wave_direction[index] ||
+				marineData.hourly.wave_direction[index]
+		);
+		days[date].windSpeed.push(windData.hourly.wind_speed_10m[index]);
+		days[date].windDirection.push(
+			windData.hourly.wind_direction_10m[index]
+		);
+	});
+
+	return Object.values(days);
 }
 
 exports.handler = async (event, context) => {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Content-Type': 'application/json',
-  };
+	const headers = {
+		"Access-Control-Allow-Origin": "*",
+		"Access-Control-Allow-Headers": "Content-Type",
+		"Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+		"Content-Type": "application/json",
+	};
 
-  if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers };
-  }
+	if (event.httpMethod === "OPTIONS") {
+		return { statusCode: 200, headers };
+	}
 
-  try {
-    const { lat, lng, spotName } = event.queryStringParameters || {};
-    
-    if (!lat || !lng) {
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({ error: 'Latitude and longitude are required' })
-      };
-    }
+	try {
+		const { lat, lng, spotName } = event.queryStringParameters || {};
 
-    const latitude = parseFloat(lat);
-    const longitude = parseFloat(lng);
-    
-    // Find the spot data
-    const spot = surfSpotsData.find(s => 
-      s.name.toLowerCase().replace(/\s+/g, '-') === spotName?.toLowerCase() ||
-      Math.abs(s.latitude - latitude) < 0.01 && Math.abs(s.longitude - longitude) < 0.01
-    );
+		if (!lat || !lng) {
+			return {
+				statusCode: 400,
+				headers,
+				body: JSON.stringify({
+					error: "Latitude and longitude are required",
+				}),
+			};
+		}
 
-    // Get 5-day forecast and tide data
-    const [forecastData, tideData] = await Promise.all([
-      get5DayForecast(latitude, longitude),
-      getTideData(latitude, longitude)
-    ]);
-    
-    if (!forecastData) {
-      return {
-        statusCode: 500,
-        headers,
-        body: JSON.stringify({ error: 'Failed to fetch forecast data' })
-      };
-    }
+		const latitude = parseFloat(lat);
+		const longitude = parseFloat(lng);
 
-    // Process hourly to daily
-    const dailyData = processHourlyToDaily(forecastData.marineData, forecastData.windData, tideData);
-    
-    // Calculate scores for each day
-    const forecast = dailyData.map(dayData => {
-      const dayScore = calculateDaySurfScore(dayData, spot || {});
-      
-      // Format date
-      const date = new Date(dayData.date);
-      const dayName = date.toLocaleDateString('en-GB', { weekday: 'long' });
-      const dateStr = date.toLocaleDateString('en-GB', { 
-        month: 'short', 
-        day: 'numeric' 
-      });
-      
-      // Create hourly data for this day
-      const hourlyData = {
-        waveHeight: dayData.waveHeight,
-        period: dayData.period,
-        windSpeed: dayData.windSpeed,
-        times: Array.from({length: 24}, (_, hour) => {
-          const hourDate = new Date(date);
-          hourDate.setHours(hour, 0, 0, 0);
-          return hourDate.toISOString();
-        })
-      };
-      
-      // Calculate best time for this specific day
-      const bestTimeAnalysis = calculateBestTimeOfDay(
-        hourlyData, 
-        spot || {}, 
-        dayScore.tideData, 
-        latitude, 
-        longitude, 
-        date
-      );
-      
-      return {
-        date: dayData.date,
-        dayName,
-        dateStr,
-        score: dayScore.score,
-        waveHeight: dayScore.waveHeight,
-        period: dayScore.period,
-        windSpeed: dayScore.windSpeed,
-        factors: dayScore.factors,
-        tideData: dayScore.tideData,
-        hourlyData: hourlyData,
-        bestTime: bestTimeAnalysis, // Add best time data for each day
-        rating: dayScore.score >= 7 ? 'Excellent' : 
-                dayScore.score >= 5.5 ? 'Good' : 
-                dayScore.score >= 4 ? 'Average' : 
-                dayScore.score >= 2 ? 'Poor' : 'Very Poor'
-      };
-    });
+		// Find the spot data
+		const spot = surfSpotsData.find(
+			(s) =>
+				s.name.toLowerCase().replace(/\s+/g, "-") ===
+					spotName?.toLowerCase() ||
+				(Math.abs(s.latitude - latitude) < 0.01 &&
+					Math.abs(s.longitude - longitude) < 0.01)
+		);
 
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({
-        spot: spot || { name: spotName || 'Unknown Spot', latitude, longitude },
-        forecast,
-        timestamp: new Date().toISOString()
-      })
-    };
+		// Get 5-day forecast and tide data
+		const [forecastData, tideData] = await Promise.all([
+			get5DayForecast(latitude, longitude),
+			getTideData(latitude, longitude),
+		]);
 
-  } catch (error) {
-    console.error('Function error:', error);
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ error: 'Internal server error' })
-    };
-  }
+		if (!forecastData) {
+			return {
+				statusCode: 500,
+				headers,
+				body: JSON.stringify({
+					error: "Failed to fetch forecast data",
+				}),
+			};
+		}
+
+		// Process hourly to daily
+		const dailyData = processHourlyToDaily(
+			forecastData.marineData,
+			forecastData.windData,
+			tideData
+		);
+
+		// Calculate scores for each day
+		const forecast = dailyData.map((dayData) => {
+			const dayScore = calculateDaySurfScore(dayData, spot || {});
+
+			// Format date
+			const date = new Date(dayData.date);
+			const dayName = date.toLocaleDateString("en-GB", {
+				weekday: "long",
+			});
+			const dateStr = date.toLocaleDateString("en-GB", {
+				month: "short",
+				day: "numeric",
+			});
+
+			// Create hourly data for this day
+			const hourlyData = {
+				waveHeight: dayData.waveHeight,
+				period: dayData.period,
+				windSpeed: dayData.windSpeed,
+				times: Array.from({ length: 24 }, (_, hour) => {
+					const hourDate = new Date(date);
+					hourDate.setHours(hour, 0, 0, 0);
+					return hourDate.toISOString();
+				}),
+			};
+
+			// Calculate best time for this specific day
+			const bestTimeAnalysis = calculateBestTimeOfDay(
+				hourlyData,
+				spot || {},
+				dayScore.tideData,
+				latitude,
+				longitude,
+				date
+			);
+
+			return {
+				date: dayData.date,
+				dayName,
+				dateStr,
+				score: dayScore.score,
+				waveHeight: dayScore.waveHeight,
+				period: dayScore.period,
+				windSpeed: dayScore.windSpeed,
+				factors: dayScore.factors,
+				tideData: dayScore.tideData,
+				hourlyData: hourlyData,
+				bestTime: bestTimeAnalysis, // Add best time data for each day
+				rating:
+					dayScore.score >= 7
+						? "Excellent"
+						: dayScore.score >= 5.5
+							? "Good"
+							: dayScore.score >= 4
+								? "Average"
+								: dayScore.score >= 2
+									? "Poor"
+									: "Very Poor",
+			};
+		});
+
+		return {
+			statusCode: 200,
+			headers,
+			body: JSON.stringify({
+				spot: spot || {
+					name: spotName || "Unknown Spot",
+					latitude,
+					longitude,
+				},
+				forecast,
+				timestamp: new Date().toISOString(),
+			}),
+		};
+	} catch (error) {
+		console.error("Function error:", error);
+		return {
+			statusCode: 500,
+			headers,
+			body: JSON.stringify({ error: "Internal server error" }),
+		};
+	}
 };

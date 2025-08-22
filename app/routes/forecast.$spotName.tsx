@@ -250,7 +250,7 @@ export default function ForecastSpot() {
 						<button
 							onClick={fetchForecast}
 							disabled={loading}
-							className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 border transition duration-200 disabled:opacity-50"
+							className="bg-black hover:bg-gray-800 text-white px-4 py-2 border transition duration-200 disabled:opacity-50"
 						>
 							Refresh
 						</button>
@@ -287,7 +287,7 @@ export default function ForecastSpot() {
 											{day.score}/10
 										</div>
 										<div
-											className={`inline-block px-3 py-1 rounded-full text-sm font-medium border ${getRatingColor(day.rating)}`}
+											className={`inline-block px-3 py-1 text-sm font-medium border ${getRatingColor(day.rating)}`}
 										>
 											{day.rating}
 										</div>

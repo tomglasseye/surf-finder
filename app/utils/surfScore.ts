@@ -177,7 +177,7 @@ export const getRatingColor = (rating: string): string => {
 		case "Excellent":
 			return "bg-black text-white border-black";
 		case "Good":
-			return "bg-gray-800 text-white border-gray-800";
+			return "bg-black text-white border-black";
 		case "Average":
 			return "bg-gray-600 text-white border-gray-600";
 		case "Poor":

@@ -136,11 +136,11 @@ export default function Home() {
 
 				<div className="max-w-none">
 					{!location && (
-						<div className="bg-white rounded-lg shadow-lg p-8 text-center">
+						<div className="p-8 text-center">
 							<div className="mb-6">
-								<div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+								<div className="w-20 h-20 bg-black rounded-full flex items-center justify-center mx-auto mb-4">
 									<svg
-										className="w-10 h-10 text-blue-600"
+										className="w-10 h-10 text-white"
 										fill="none"
 										stroke="currentColor"
 										viewBox="0 0 24 24"
@@ -159,7 +159,7 @@ export default function Home() {
 										/>
 									</svg>
 								</div>
-								<h2 className="text-2xl font-semibold text-gray-800 mb-2">
+								<h2 className="text-2xl font-semibold text-black mb-2">
 									Ready to find epic surf?
 								</h2>
 								<p className="text-gray-600 mb-6">
@@ -171,7 +171,7 @@ export default function Home() {
 							<button
 								onClick={getLocation}
 								disabled={loading}
-								className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition duration-200 disabled:opacity-50"
+								className="bg-black hover:bg-gray-800 text-white font-semibold py-3 px-8 transition duration-200 disabled:opacity-50"
 							>
 								{loading
 									? "Getting Location..."

@@ -26,17 +26,19 @@ const TrafficLightChart: React.FC<TrafficLightChartProps> = ({
 
 		const hours = [];
 		const now = new Date();
-		const currentHour = now.getHours();
 
+		// Start from midnight (00:00) to arrange hours with midday in the middle
 		for (let i = 0; i < 24; i++) {
-			const hour = (currentHour + i) % 24;
-			const time = new Date(now.getTime() + i * 60 * 60 * 1000);
+			const hour = i; // Hours from 0 to 23
+			const time = new Date();
+			time.setHours(hour, 0, 0, 0);
 			const timeString = time.toLocaleTimeString("en-GB", {
 				hour: "2-digit",
 				minute: "2-digit",
 			});
 
-			const mockScore = 3 + Math.sin((hour / 24) * Math.PI * 2) * 4 + Math.random() * 2;
+			const mockScore =
+				3 + Math.sin((hour / 24) * Math.PI * 2) * 4 + Math.random() * 2;
 
 			hours.push({
 				hour,
@@ -68,9 +70,13 @@ const TrafficLightChart: React.FC<TrafficLightChartProps> = ({
 	const gap = isCompact ? 2 : 4;
 
 	return (
-		<div className={`bg-white border border-gray-200 p-2 md:p-4 ${className}`}>
+		<div
+			className={`bg-white border border-gray-200 p-2 md:p-4 ${className}`}
+		>
 			<div className="flex items-center justify-between mb-3">
-				<h3 className={`font-semibold text-black ${isCompact ? "text-sm" : "text-base"}`}>
+				<h3
+					className={`font-semibold text-black ${isCompact ? "text-sm" : "text-base"}`}
+				>
 					24-Hour Surf Score
 				</h3>
 				<div className="flex items-center space-x-3 text-xs">
@@ -94,7 +100,7 @@ const TrafficLightChart: React.FC<TrafficLightChartProps> = ({
 					{hourlyData.map((dataPoint, index) => {
 						const color = getTrafficLightColor(dataPoint.score);
 						const opacity = Math.max(0.3, dataPoint.score / 10);
-						
+
 						return (
 							<div
 								key={index}
@@ -111,23 +117,20 @@ const TrafficLightChart: React.FC<TrafficLightChartProps> = ({
 									}}
 									title={`${dataPoint.time}: ${dataPoint.score.toFixed(1)}/10 (${getScoreLabel(dataPoint.score)})`}
 								/>
-								
-								{isCompact ? (
-									index % 4 === 0 && (
-										<div className="text-xs text-gray-500 mt-1 absolute -bottom-6">
-											{dataPoint.hour.toString().padStart(2, "0")}
-										</div>
-									)
-								) : (
-									index % 2 === 0 && (
-										<div className="text-xs text-gray-500 mt-1 absolute -bottom-6">
-											{dataPoint.hour.toString().padStart(2, "0")}:00
-										</div>
-									)
-								)}
+
+								<div className="text-xs text-gray-500 mt-1 absolute -bottom-6">
+									{isCompact
+										? dataPoint.hour
+												.toString()
+												.padStart(2, "0")
+										: `${dataPoint.hour
+												.toString()
+												.padStart(2, "0")}:00`}
+								</div>
 
 								<div className="opacity-0 group-hover:opacity-100 absolute bottom-full mb-2 bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10 pointer-events-none transition-opacity">
-									{dataPoint.time}: {dataPoint.score.toFixed(1)}/10
+									{dataPoint.time}:{" "}
+									{dataPoint.score.toFixed(1)}/10
 									<div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-gray-800"></div>
 								</div>
 							</div>
@@ -138,7 +141,8 @@ const TrafficLightChart: React.FC<TrafficLightChartProps> = ({
 
 			<div className="mt-6 text-center">
 				<div className="text-xs text-gray-700">
-					Hover over circles to see detailed scores • Times shown in local time
+					Hover over circles to see detailed scores • Times shown in
+					local time
 				</div>
 			</div>
 		</div>

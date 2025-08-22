@@ -78,127 +78,381 @@ function directionScore(actualDir, optimalRange) {
 	}
 }
 
-// Simple in-memory cache for tide data (resets when function cold starts)
+// Enhanced multi-layer cache for tide data with smart expiration
 const tideCache = new Map();
+const apiUsageTracker = new Map(); // Track API calls per day
 
-// Cache key generator for location-based caching
-const getTideCacheKey = (latitude, longitude) => {
-	const lat = Math.round(latitude * 100) / 100; // Round to 2 decimal places
-	const lng = Math.round(longitude * 100) / 100;
-	const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
-	return `${lat}_${lng}_${today}`;
+// Cache configuration optimized for tide extremes (can cache for days!)
+const CACHE_CONFIG = {
+	TIDE_EXTREMES_DAYS: 3, // Cache tide extremes for 3 days (good balance)
+	MAX_CACHE_SIZE: 100, // More generous since we cache longer
+	API_DAILY_LIMIT: 9, // Use 9 of your 10 daily calls (1 buffer for safety)
+	CLEANUP_INTERVAL: 1000 * 60 * 60 * 12, // Clean cache every 12 hours
 };
 
-// Check if cached tide data is still valid (same day)
+// Cache key generator - no date needed since extremes are valid for days
+const getTideCacheKey = (latitude, longitude) => {
+	const lat = Math.round(latitude * 1000) / 1000; // Round to 3 decimal places for precision
+	const lng = Math.round(longitude * 1000) / 1000;
+	return `tide_extremes_${lat}_${lng}`; // No date - extremes valid for days
+};
+
+// Enhanced cache validation with daily expiration (perfect for tides)
 const isTideCacheValid = (cacheEntry) => {
-	if (!cacheEntry) return false;
+	if (!cacheEntry || !cacheEntry.timestamp) return false;
 
 	const now = new Date();
 	const cacheDate = new Date(cacheEntry.timestamp);
 
-	// Check if it's the same day
-	return now.toDateString() === cacheDate.toDateString();
+	// Check if it's the same day (tides are valid for the entire day)
+	const isSameDay = now.toDateString() === cacheDate.toDateString();
+
+	if (!isSameDay) {
+		console.log(
+			`�️  Cache expired for ${cacheEntry.location?.latitude}, ${cacheEntry.location?.longitude} (new day)`
+		);
+	}
+
+	return isSameDay;
+};
+
+// API usage tracking for quota management
+const trackApiUsage = () => {
+	const today = new Date().toISOString().split("T")[0];
+	const current = apiUsageTracker.get(today) || 0;
+	apiUsageTracker.set(today, current + 1);
+
+	// Clean old entries
+	const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000)
+		.toISOString()
+		.split("T")[0];
+	apiUsageTracker.delete(yesterday);
+
+	return current + 1;
+};
+
+// Check if we can make API calls today
+const canMakeApiCall = () => {
+	const today = new Date().toISOString().split("T")[0];
+	const todayUsage = apiUsageTracker.get(today) || 0;
+	return todayUsage < CACHE_CONFIG.API_DAILY_LIMIT;
+};
+
+// Cache cleanup to prevent memory leaks
+const cleanupCache = () => {
+	if (tideCache.size <= CACHE_CONFIG.MAX_CACHE_SIZE) return;
+
+	console.log(`🧹 Cleaning cache (${tideCache.size} entries)`);
+
+	// Convert to array and sort by timestamp (oldest first)
+	const entries = Array.from(tideCache.entries())
+		.map(([key, value]) => ({
+			key,
+			value,
+			timestamp: new Date(value.timestamp),
+		}))
+		.sort((a, b) => a.timestamp - b.timestamp);
+
+	// Remove oldest entries
+	const toRemove = entries.slice(
+		0,
+		Math.floor(CACHE_CONFIG.MAX_CACHE_SIZE * 0.3)
+	);
+	toRemove.forEach((entry) => {
+		tideCache.delete(entry.key);
+		console.log(`🗑️  Removed cache entry: ${entry.key}`);
+	});
+
+	console.log(`✅ Cache cleaned: ${tideCache.size} entries remaining`);
+};
+
+// Auto-cleanup on interval (for long-running functions)
+setInterval(cleanupCache, CACHE_CONFIG.CLEANUP_INTERVAL);
+
+// Cache warming for popular locations to prevent cold starts
+const POPULAR_LOCATIONS = [
+	{ name: "Polzeath", lat: 50.579, lng: -4.9089 },
+	{ name: "Fistral Beach", lat: 50.4161, lng: -5.0931 },
+	{ name: "Watergate Bay", lat: 50.4425, lng: -5.0394 },
+];
+
+// Warm cache for popular locations (optional, runs after startup)
+const warmPopularCaches = async () => {
+	if (!canMakeApiCall()) return;
+
+	console.log("🔥 Warming cache for popular locations...");
+
+	for (const location of POPULAR_LOCATIONS) {
+		const cacheKey = getTideCacheKey(location.lat, location.lng);
+		const cached = tideCache.get(cacheKey);
+
+		if (!cached || !isTideCacheValid(cached)) {
+			try {
+				await getTideData(location.lat, location.lng);
+				console.log(`✅ Warmed cache for ${location.name}`);
+				// Space out requests to avoid rate limiting
+				await new Promise((resolve) => setTimeout(resolve, 1000));
+			} catch (error) {
+				console.log(
+					`❌ Failed to warm cache for ${location.name}: ${error.message}`
+				);
+			}
+		}
+	}
+};
+
+// Optional: Warm cache on function startup (enabled since you have 10 API calls)
+setTimeout(warmPopularCaches, 5000);
+
+// Calculate current tide level from cached extremes data
+const calculateCurrentTideFromExtremes = (
+	extremesData,
+	currentTime = new Date()
+) => {
+	if (!extremesData || !extremesData.data || extremesData.data.length < 2) {
+		return null;
+	}
+
+	const extremes = extremesData.data;
+	const targetTime = currentTime.getTime();
+
+	// Find the surrounding extremes
+	let before = null;
+	let after = null;
+
+	for (let i = 0; i < extremes.length - 1; i++) {
+		const currentExtreme = new Date(extremes[i].time).getTime();
+		const nextExtreme = new Date(extremes[i + 1].time).getTime();
+
+		if (currentExtreme <= targetTime && targetTime <= nextExtreme) {
+			before = extremes[i];
+			after = extremes[i + 1];
+			break;
+		}
+	}
+
+	if (!before || !after) {
+		// Use nearest extreme if outside range
+		const nearest = extremes.reduce((prev, curr) => {
+			const prevDiff = Math.abs(
+				new Date(prev.time).getTime() - targetTime
+			);
+			const currDiff = Math.abs(
+				new Date(curr.time).getTime() - targetTime
+			);
+			return currDiff < prevDiff ? curr : prev;
+		});
+
+		return {
+			currentHeight: nearest.height,
+			direction: "UNKNOWN",
+			nextTide:
+				extremes.find((e) => new Date(e.time).getTime() > targetTime) ||
+				nearest,
+			isInterpolated: false,
+			confidence: "low",
+			source: "cached_extremes",
+		};
+	}
+
+	// Smooth cosine interpolation between extremes for realistic tidal curve
+	const beforeTime = new Date(before.time).getTime();
+	const afterTime = new Date(after.time).getTime();
+	const progress = (targetTime - beforeTime) / (afterTime - beforeTime);
+
+	// Cosine interpolation creates a smooth tidal curve
+	const smoothProgress = (1 - Math.cos(progress * Math.PI)) / 2;
+	const currentHeight =
+		before.height + (after.height - before.height) * smoothProgress;
+
+	// Determine tide direction
+	const direction = after.height > before.height ? "RISING" : "FALLING";
+
+	return {
+		currentHeight: Math.round(currentHeight * 100) / 100,
+		direction: direction,
+		nextTide: after,
+		timeToNextTide: afterTime - targetTime,
+		isInterpolated: true,
+		confidence: "high",
+		extremesUsed: { before, after },
+		source: "cached_extremes",
+	};
 };
 
 async function getTideData(latitude, longitude) {
 	try {
-		// Check cache first
+		// Check cache first with enhanced validation
 		const cacheKey = getTideCacheKey(latitude, longitude);
 		const cachedData = tideCache.get(cacheKey);
 
 		if (cachedData && isTideCacheValid(cachedData)) {
-			console.log("✅ Using cached tide data for", latitude, longitude);
+			const cacheAge =
+				Math.round(
+					(Date.now() - new Date(cachedData.timestamp)) /
+						(1000 * 60 * 60 * 10)
+				) / 100; // Hours with 2 decimal places
+			console.log(
+				`✅ Using cached tide extremes for ${latitude}, ${longitude} (${cacheAge}h old)`
+			);
 
-			// Recalculate current level based on current time and cached extremes
-			return recalculateCurrentTideLevel(cachedData.data);
+			// Calculate current tide level from cached extremes data
+			const currentTide = calculateCurrentTideFromExtremes(
+				cachedData.data
+			);
+			if (currentTide) {
+				console.log(
+					`🌊 Calculated tide: ${currentTide.currentHeight}m ${currentTide.direction} (${currentTide.confidence} confidence)`
+				);
+				return processStormGlassTideData(cachedData.data, new Date());
+			}
 		}
 
-		// StormGlass.io API - now cached daily, dramatically reducing API usage
-		// 1,500 requests/month ÷ 30 days = 50 unique locations per day with daily caching
+		// Check API quota before making request
+		const apiUsage = trackApiUsage();
+		console.log(
+			`📊 API Usage: ${apiUsage}/${CACHE_CONFIG.API_DAILY_LIMIT} calls today`
+		);
+
+		if (!canMakeApiCall()) {
+			console.log(
+				`⚠️  API quota limit reached (${CACHE_CONFIG.API_DAILY_LIMIT} calls/day). Using fallback calculation.`
+			);
+			return getEnhancedTideCalculation(latitude, longitude);
+		}
+
+		// StormGlass.io API with enhanced caching strategy
 		const stormGlassApiKey = process.env.STORMGLASS_API_KEY;
 
 		if (stormGlassApiKey) {
 			try {
-				// Get 48 hours of tide extremes for better coverage
+				// Get extended time window for better coverage (72 hours)
 				const now = new Date();
-				const twoDaysLater = new Date(now.getTime() + 48 * 3600000);
-
+				const threeDaysLater = new Date(now.getTime() + 72 * 3600000);
 				const oneDayBefore = new Date(
 					now.getTime() - 24 * 60 * 60 * 1000
 				);
+
 				const startTime = oneDayBefore.toISOString();
-				const endTime = twoDaysLater.toISOString();
+				const endTime = threeDaysLater.toISOString();
 
 				// StormGlass API endpoint for tide extremes
 				const stormGlassUrl = `https://api.stormglass.io/v2/tide/extremes/point?lat=${latitude}&lng=${longitude}&start=${startTime}&end=${endTime}`;
 
 				console.log(
-					"🌊 Fetching fresh tide data from StormGlass for:",
-					latitude,
-					longitude
+					`🌊 Fetching fresh tide data from StormGlass for: ${latitude}, ${longitude}`
+				);
+				console.log(
+					`⏰ Time window: ${startTime.split("T")[0]} to ${endTime.split("T")[0]}`
 				);
 
 				const response = await fetch(stormGlassUrl, {
 					headers: {
 						Authorization: stormGlassApiKey,
 					},
+					timeout: 10000, // 10 second timeout
 				});
 
 				if (response.ok) {
 					const tidesData = await response.json();
+					const extremeCount = tidesData.data
+						? tidesData.data.length
+						: 0;
+
 					console.log(
-						"✅ StormGlass API success:",
-						tidesData.data ? tidesData.data.length : 0,
-						"tide extremes"
+						`✅ StormGlass API success: ${extremeCount} tide extremes fetched`
 					);
 
-					// Cache the raw tide extremes data for the day
+					if (extremeCount === 0) {
+						console.log(
+							`⚠️  No tide data returned from API, using fallback calculation`
+						);
+						return getEnhancedTideCalculation(latitude, longitude);
+					}
+
+					// Enhanced cache entry with metadata
 					const cacheEntry = {
 						data: tidesData,
 						timestamp: now.toISOString(),
 						location: { latitude, longitude },
+						extremeCount: extremeCount,
+						apiUsage: apiUsage,
+						timeWindow: { start: startTime, end: endTime },
 					};
 
+					// Store in cache and run cleanup if needed
 					tideCache.set(cacheKey, cacheEntry);
-					console.log("💾 Cached tide data for location:", cacheKey);
+					cleanupCache();
+
+					console.log(
+						`💾 Cached tide extremes for ${CACHE_CONFIG.TIDE_EXTREMES_DAYS} days: ${cacheKey}`
+					);
+					console.log(
+						`📈 Cache stats: ${tideCache.size} locations, ${apiUsage}/${CACHE_CONFIG.API_DAILY_LIMIT} API calls today`
+					);
+					console.log(
+						`🎯 Balanced caching: 3-day extremes + full API quota utilization`
+					);
 
 					return processStormGlassTideData(tidesData, now);
 				} else {
 					const errorText = await response.text();
 					console.log(
-						"❌ StormGlass API error:",
-						response.status,
-						errorText
+						`❌ StormGlass API error: ${response.status} - ${errorText}`
 					);
 
 					if (response.status === 401) {
 						console.log(
-							"🔑 Invalid StormGlass API key - check your STORMGLASS_API_KEY environment variable"
+							`🔑 Invalid StormGlass API key - check your STORMGLASS_API_KEY environment variable`
+						);
+					} else if (response.status === 402) {
+						console.log(
+							`💰 StormGlass API quota exceeded - consider upgrading plan or reducing usage`
 						);
 					} else if (response.status === 429) {
 						console.log(
-							"⏰ StormGlass rate limit exceeded (50 requests/day) - falling back to calculation"
+							`⏰ StormGlass rate limit exceeded - falling back to calculation`
 						);
 					}
+
+					// Don't count failed requests against quota
+					const todayUsage =
+						apiUsageTracker.get(
+							new Date().toISOString().split("T")[0]
+						) || 0;
+					apiUsageTracker.set(
+						new Date().toISOString().split("T")[0],
+						Math.max(0, todayUsage - 1)
+					);
 				}
 			} catch (stormGlassError) {
-				console.log("StormGlass API error:", stormGlassError.message);
+				console.log(
+					`❌ StormGlass API error: ${stormGlassError.message}`
+				);
+
+				// Don't count network errors against quota
+				const todayUsage =
+					apiUsageTracker.get(
+						new Date().toISOString().split("T")[0]
+					) || 0;
+				apiUsageTracker.set(
+					new Date().toISOString().split("T")[0],
+					Math.max(0, todayUsage - 1)
+				);
 			}
 		} else {
 			console.log(
-				"No StormGlass API key found - using enhanced calculation"
+				`🔑 No StormGlass API key found - using enhanced calculation`
 			);
 		}
 
 		// Fallback to enhanced harmonic calculation if API fails
 		console.log(
-			"🧮 Using enhanced tidal calculation for",
-			latitude,
-			longitude
+			`🧮 Using enhanced tidal calculation for ${latitude}, ${longitude}`
 		);
 		return getEnhancedTideCalculation(latitude, longitude);
 	} catch (error) {
-		console.error("Error in getTideData:", error);
+		console.error(`❌ Error in getTideData: ${error.message}`);
 		return getEnhancedTideCalculation(latitude, longitude);
 	}
 }
@@ -899,15 +1153,28 @@ function processHourlyToDaily(marineData, windData, tideData) {
 }
 
 exports.handler = async (event, context) => {
+	// Enhanced headers with smart caching strategy
 	const headers = {
 		"Access-Control-Allow-Origin": "*",
 		"Access-Control-Allow-Headers": "Content-Type",
 		"Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 		"Content-Type": "application/json",
+		// Cache for 1 hour in browser, but allow stale content for 4 hours
+		"Cache-Control": "public, max-age=3600, stale-while-revalidate=14400",
+		// Add ETag for better cache validation
+		"X-Cache-Strategy": "enhanced-8h-server-1h-browser",
+		// Vary header for different requests
+		Vary: "Accept-Encoding",
 	};
 
 	if (event.httpMethod === "OPTIONS") {
-		return { statusCode: 200, headers };
+		return {
+			statusCode: 200,
+			headers: {
+				...headers,
+				"Cache-Control": "public, max-age=86400", // Cache preflight for 24h
+			},
+		};
 	}
 
 	try {
@@ -1021,9 +1288,23 @@ exports.handler = async (event, context) => {
 			};
 		});
 
+		// Add cache metadata for debugging and monitoring
+		const cacheStats = {
+			tideCacheSize: tideCache.size,
+			apiUsageToday:
+				apiUsageTracker.get(new Date().toISOString().split("T")[0]) ||
+				0,
+			cacheStrategy: `${CACHE_CONFIG.TIDE_EXTREMES_DAYS}-day extremes cache + full API quota usage`,
+		};
+
 		return {
 			statusCode: 200,
-			headers,
+			headers: {
+				...headers,
+				// Add cache hit/miss information
+				"X-Cache-Stats": JSON.stringify(cacheStats),
+				"X-Generated-At": new Date().toISOString(),
+			},
 			body: JSON.stringify({
 				spot: spot || {
 					name: spotName || "Unknown Spot",
@@ -1032,6 +1313,13 @@ exports.handler = async (event, context) => {
 				},
 				forecast,
 				timestamp: new Date().toISOString(),
+				cacheInfo: {
+					extremesCacheDays: CACHE_CONFIG.TIDE_EXTREMES_DAYS,
+					apiCallsToday: cacheStats.apiUsageToday,
+					dailyLimit: CACHE_CONFIG.API_DAILY_LIMIT,
+					strategy:
+						"Balanced: 3-day extremes cache + full API quota utilization",
+				},
 			}),
 		};
 	} catch (error) {

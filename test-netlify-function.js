@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // Test the actual Netlify function
-import { handler } from "./netlify/functions/get-forecast.js";
+const { handler } = require("./netlify/functions/get-forecast.js");
 
 // Mock environment with your API key
 process.env.STORMGLASS_API_KEY =

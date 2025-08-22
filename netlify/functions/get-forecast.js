@@ -123,7 +123,8 @@ async function getTideData(latitude, longitude) {
 				const now = new Date();
 				const twoDaysLater = new Date(now.getTime() + 48 * 3600000);
 
-				const startTime = now.toISOString();
+				const oneDayBefore = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+				const startTime = oneDayBefore.toISOString();
 				const endTime = twoDaysLater.toISOString();
 
 				// StormGlass API endpoint for tide extremes
@@ -229,11 +230,13 @@ function processStormGlassTideData(tidesData, now) {
 			}
 		}
 
-		// Calculate current tide level based on position between extremes
+		// Calculate current tide level and direction based on position between extremes
 		const allExtremes = tidesData.data.sort(
 			(a, b) => new Date(a.time) - new Date(b.time)
 		);
 
+		// Find the interval containing current time
+		let intervalFound = false;
 		for (let i = 0; i < allExtremes.length - 1; i++) {
 			const currentExtreme = allExtremes[i];
 			const nextExtreme = allExtremes[i + 1];
@@ -244,6 +247,7 @@ function processStormGlassTideData(tidesData, now) {
 				currentExtremeTime <= currentTime &&
 				currentTime <= nextExtremeTime
 			) {
+				intervalFound = true;
 				const timeDiff = nextExtremeTime - currentExtremeTime;
 				const currentProgress =
 					(currentTime - currentExtremeTime) / timeDiff;
@@ -262,18 +266,31 @@ function processStormGlassTideData(tidesData, now) {
 					// Rising tide: low to high
 					currentLevel = 0.2 + currentProgress * 0.65; // 20% to 85%
 					isRising = true;
-				} else {
-					// Between similar extremes - use sinusoidal approximation
-					const midLevel =
-						currentExtreme.type === "high" ? 0.85 : 0.2;
-					const amplitude =
-						currentExtreme.type === "high" ? -0.32 : 0.32;
-					currentLevel =
-						midLevel +
-						amplitude * Math.cos(currentProgress * Math.PI);
-					isRising = currentExtreme.type === "low";
 				}
 				break;
+			}
+		}
+
+		// If no interval found, determine direction based on next extreme
+		if (!intervalFound) {
+			const nextExtreme = futureExtremes[0];
+			if (nextExtreme) {
+				// If next extreme is low, we're falling towards it
+				// If next extreme is high, we're rising towards it
+				isRising = nextExtreme.type === "high";
+				
+				// Estimate current level based on time to next extreme
+				const timeToNext = new Date(nextExtreme.time).getTime() - currentTime;
+				const typicalTideInterval = 6.2 * 60 * 60 * 1000; // ~6.2 hours
+				const progressToNext = Math.min(timeToNext / typicalTideInterval, 1);
+				
+				if (nextExtreme.type === "high") {
+					// Rising towards high tide
+					currentLevel = 0.2 + (1 - progressToNext) * 0.65;
+				} else {
+					// Falling towards low tide
+					currentLevel = 0.85 - (1 - progressToNext) * 0.65;
+				}
 			}
 		}
 	}

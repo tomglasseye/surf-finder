@@ -260,13 +260,24 @@ const calculateCurrentTideFromExtremes = (
 	const afterTime = new Date(after.time).getTime();
 	const progress = (targetTime - beforeTime) / (afterTime - beforeTime);
 
-	// Cosine interpolation creates a smooth tidal curve
-	const smoothProgress = (1 - Math.cos(progress * Math.PI)) / 2;
-	const currentHeight =
-		before.height + (after.height - before.height) * smoothProgress;
+	// Cosine interpolation - but we need to account for direction!
+	let smoothProgress;
+	let cosineDerivative;
+	
+	if (after.height > before.height) {
+		// RISING tide: LOW → HIGH, use standard cosine curve (0 to 1)
+		smoothProgress = (1 - Math.cos(progress * Math.PI)) / 2;
+		cosineDerivative = Math.sin(progress * Math.PI) * Math.PI * (after.height - before.height) / (afterTime - beforeTime);
+	} else {
+		// FALLING tide: HIGH → LOW, use inverted cosine curve (1 to 0)
+		smoothProgress = (1 + Math.cos(progress * Math.PI)) / 2;
+		cosineDerivative = -Math.sin(progress * Math.PI) * Math.PI * (before.height - after.height) / (afterTime - beforeTime);
+	}
+	
+	const currentHeight = before.height + (after.height - before.height) * smoothProgress;
 
-	// Determine tide direction
-	const direction = after.height > before.height ? "RISING" : "FALLING";
+	// Calculate tide direction based on the derivative of the cosine curve
+	const direction = cosineDerivative > 0 ? "RISING" : "FALLING";
 
 	return {
 		currentHeight: Math.round(currentHeight * 100) / 100,
@@ -277,6 +288,7 @@ const calculateCurrentTideFromExtremes = (
 		confidence: "high",
 		extremesUsed: { before, after },
 		source: "cached_extremes",
+		derivative: cosineDerivative, // For debugging
 	};
 };
 

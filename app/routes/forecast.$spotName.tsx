@@ -293,7 +293,7 @@ export default function ForecastSpot() {
 										</div>
 									</div>
 
-									<div className="space-y-3 mb-4">
+									{/* <div className="space-y-3 mb-4">
 										<div className="bg-blue-50 rounded-lg p-3">
 											<div className="text-gray-600 text-sm">
 												Wave Height
@@ -326,7 +326,7 @@ export default function ForecastSpot() {
 												mph
 											</div>
 										</div>
-									</div>
+									</div> */}
 
 									{/* Traffic Light Score Chart */}
 									<div className="mb-4">

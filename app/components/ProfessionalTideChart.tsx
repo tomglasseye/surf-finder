@@ -498,7 +498,7 @@ export default function ProfessionalTideChart({
 				</div>
 
 				{/* Time labels and info */}
-				<div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+				{/* <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
 					<div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-2 border border-blue-200 shadow-sm">
 						<div className="text-xs font-semibold text-blue-800">
 							Current Tide
@@ -546,7 +546,7 @@ export default function ProfessionalTideChart({
 						</div>
 						<div className="text-xs text-amber-600">Sun hours</div>
 					</div>
-				</div>
+				</div> */}
 
 				{!tideData && (
 					<div className="text-center bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">

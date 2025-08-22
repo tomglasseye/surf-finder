@@ -1,209 +1,273 @@
-import { 
-  ResponsiveContainer, 
-  ComposedChart, 
-  Line, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend,
-  ReferenceLine
-} from 'recharts';
+import {
+	ResponsiveContainer,
+	ComposedChart,
+	Line,
+	Area,
+	XAxis,
+	YAxis,
+	CartesianGrid,
+	Tooltip,
+	Legend,
+	ReferenceLine,
+} from "recharts";
 
 interface HourlyData {
-  waveHeight: number[];
-  period: number[];
-  windSpeed: number[];
-  times: string[];
+	waveHeight: number[];
+	period: number[];
+	windSpeed: number[];
+	times: string[];
 }
 
 interface ProfessionalHourlyChartProps {
-  data?: HourlyData | null;
-  height?: number;
-  className?: string;
-  variant?: 'full' | 'compact';
-  date?: Date;
+	data?: HourlyData | null;
+	height?: number;
+	className?: string;
+	variant?: "full" | "compact";
+	date?: Date;
 }
 
-export default function ProfessionalHourlyChart({ 
-  data, 
-  height = 150,
-  className = '',
-  variant = 'full',
-  date
+export default function ProfessionalHourlyChart({
+	data,
+	height = 150,
+	className = "",
+	variant = "full",
+	date,
 }: ProfessionalHourlyChartProps) {
-  
-  // Generate mock data if no real data provided
-  const generateMockData = (): HourlyData => {
-    const times = [];
-    const waveHeight = [];
-    const period = [];
-    const windSpeed = [];
-    
-    const baseDate = date || new Date();
-    const startOfDay = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate());
-    
-    for (let hour = 0; hour < 24; hour++) {
-      const time = new Date(startOfDay.getTime() + hour * 3600000);
-      times.push(time.toISOString());
-      
-      // Generate realistic surf data curves
-      const dayProgress = hour / 24;
-      const waveBase = 0.8 + Math.sin(dayProgress * Math.PI * 2 + Math.PI/3) * 0.6;
-      const periodBase = 8 + Math.sin(dayProgress * Math.PI * 2 + Math.PI/2) * 3;
-      const windBase = 5 + Math.sin(dayProgress * Math.PI * 2) * 8 + Math.random() * 3;
-      
-      waveHeight.push(Math.max(0.2, waveBase + Math.random() * 0.4));
-      period.push(Math.max(4, periodBase + Math.random() * 2));
-      windSpeed.push(Math.max(0, windBase));
-    }
-    
-    return { waveHeight, period, windSpeed, times };
-  };
+	// Generate mock data if no real data provided
+	const generateMockData = (): HourlyData => {
+		const times = [];
+		const waveHeight = [];
+		const period = [];
+		const windSpeed = [];
 
-  const surfData = data || generateMockData();
-  
-  // Transform data for Recharts with unit conversions
-  const chartData = surfData.times.map((time, index) => {
-    const timeObj = new Date(time);
-    return {
-      time: timeObj.getHours(),
-      timeLabel: `${timeObj.getHours().toString().padStart(2, '0')}:00`,
-      waveHeight: parseFloat(((surfData.waveHeight[index] || 0) * 3.28084).toFixed(1)), // Convert m to ft
-      period: parseFloat(surfData.period[index]?.toFixed(1) || '0'),
-      windSpeed: parseFloat(((surfData.windSpeed[index] || 0) * 0.621371).toFixed(1)), // Convert km/h to mph
-      isNow: timeObj.getHours() === new Date().getHours()
-    };
-  });
+		const baseDate = date || new Date();
+		const startOfDay = new Date(
+			baseDate.getFullYear(),
+			baseDate.getMonth(),
+			baseDate.getDate()
+		);
 
-  // Custom tooltip
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
-          <p className="font-semibold text-gray-800">{`${label}:00`}</p>
-          {payload.map((entry: any, index: number) => (
-            <p key={index} style={{ color: entry.color }} className="text-sm">
-              {`${entry.name}: ${entry.value}${entry.name === 'Wave Height' ? 'ft' : entry.name === 'Period' ? 's' : ' mph'}`}
-            </p>
-          ))}
-        </div>
-      );
-    }
-    return null;
-  };
+		for (let hour = 0; hour < 24; hour++) {
+			const time = new Date(startOfDay.getTime() + hour * 3600000);
+			times.push(time.toISOString());
 
-  // Current hour for reference line
-  const currentHour = new Date().getHours();
+			// Generate realistic surf data curves
+			const dayProgress = hour / 24;
+			const waveBase =
+				0.8 + Math.sin(dayProgress * Math.PI * 2 + Math.PI / 3) * 0.6;
+			const periodBase =
+				8 + Math.sin(dayProgress * Math.PI * 2 + Math.PI / 2) * 3;
+			const windBase =
+				5 + Math.sin(dayProgress * Math.PI * 2) * 8 + Math.random() * 3;
 
-  return (
-    <div className={`bg-white rounded-xl shadow-lg border-0 ${className}`}>
-      <div className="p-4">
-        {variant === 'full' && (
-          <div className="mb-4">
-            <h4 className="text-lg font-semibold text-gray-800 text-center">
-              📊 Hourly Surf Conditions {date ? `- ${date.toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric' })}` : ''}
-            </h4>
-          </div>
-        )}
-        
-        <div style={{ height: `${height}px` }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart
-              data={chartData}
-              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-            >
-              <defs>
-                <linearGradient id="waveGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                  <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.1}/>
-                </linearGradient>
-                <linearGradient id="periodGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.6}/>
-                  <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0.1}/>
-                </linearGradient>
-              </defs>
-              
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
-              
-              <XAxis 
-                dataKey="time"
-                tickFormatter={(value) => `${value}:00`}
-                stroke="#6b7280"
-                fontSize={12}
-                interval="preserveStartEnd"
-              />
-              
-              <YAxis 
-                yAxisId="left"
-                stroke="#3b82f6"
-                fontSize={12}
-                label={{ value: 'Wave Height (ft)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } }}
-              />
-              
-              <YAxis 
-                yAxisId="right"
-                orientation="right"
-                stroke="#8b5cf6"
-                fontSize={12}
-                label={{ value: 'Period (s) / Wind (mph)', angle: 90, position: 'insideRight', style: { textAnchor: 'middle' } }}
-              />
-              
-              {/* Current time reference line */}
-              <ReferenceLine x={currentHour} stroke="#ef4444" strokeDasharray="4 4" opacity={0.8} />
-              
-              {/* Wave Height Area */}
-              <Area
-                yAxisId="left"
-                type="monotone"
-                dataKey="waveHeight"
-                stroke="#1e40af"
-                strokeWidth={3}
-                fill="url(#waveGradient)"
-                name="Wave Height"
-              />
-              
-              {/* Period Line */}
-              <Line
-                yAxisId="right"
-                type="monotone"
-                dataKey="period"
-                stroke="#7c3aed"
-                strokeWidth={2.5}
-                strokeDasharray="6 3"
-                dot={{ fill: '#8b5cf6', strokeWidth: 2, r: 3 }}
-                name="Period"
-              />
-              
-              {/* Wind Speed Line */}
-              <Line
-                yAxisId="right"
-                type="monotone"
-                dataKey="windSpeed"
-                stroke="#059669"
-                strokeWidth={2}
-                strokeDasharray="3 2"
-                dot={{ fill: '#10b981', strokeWidth: 2, r: 2 }}
-                name="Wind Speed"
-              />
-              
-              <Tooltip content={<CustomTooltip />} />
-              
-              {variant === 'full' && (
-                <Legend 
-                  wrapperStyle={{ paddingTop: '20px' }}
-                  iconType="line"
-                />
-              )}
-            </ComposedChart>
-          </ResponsiveContainer>
-        </div>
-        
-        {/* Enhanced current values display */}
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-          {/* Wave Height Card */}
-          <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-3 border border-blue-200 shadow-sm">
+			waveHeight.push(Math.max(0.2, waveBase + Math.random() * 0.4));
+			period.push(Math.max(4, periodBase + Math.random() * 2));
+			windSpeed.push(Math.max(0, windBase));
+		}
+
+		return { waveHeight, period, windSpeed, times };
+	};
+
+	const surfData = data || generateMockData();
+
+	// Transform data for Recharts with unit conversions
+	const chartData = surfData.times.map((time, index) => {
+		const timeObj = new Date(time);
+		return {
+			time: timeObj.getHours(),
+			timeLabel: `${timeObj.getHours().toString().padStart(2, "0")}:00`,
+			waveHeight: parseFloat(
+				((surfData.waveHeight[index] || 0) * 3.28084).toFixed(1)
+			), // Convert m to ft
+			period: parseFloat(surfData.period[index]?.toFixed(1) || "0"),
+			windSpeed: parseFloat(
+				((surfData.windSpeed[index] || 0) * 0.621371).toFixed(1)
+			), // Convert km/h to mph
+			isNow: timeObj.getHours() === new Date().getHours(),
+		};
+	});
+
+	// Custom tooltip
+	const CustomTooltip = ({ active, payload, label }: any) => {
+		if (active && payload && payload.length) {
+			return (
+				<div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
+					<p className="font-semibold text-gray-800">{`${label}:00`}</p>
+					{payload.map((entry: any, index: number) => (
+						<p
+							key={index}
+							style={{ color: entry.color }}
+							className="text-sm"
+						>
+							{`${entry.name}: ${entry.value}${entry.name === "Wave Height" ? "ft" : entry.name === "Period" ? "s" : " mph"}`}
+						</p>
+					))}
+				</div>
+			);
+		}
+		return null;
+	};
+
+	// Current hour for reference line
+	const currentHour = new Date().getHours();
+
+	return (
+		<div className={`bg-white rounded-xl shadow-lg border-0 ${className}`}>
+			<div className="p-4">
+				{variant === "full" && (
+					<div className="mb-4">
+						<h4 className="text-lg font-semibold text-gray-800 text-center">
+							📊 Hourly Surf Conditions{" "}
+							{date
+								? `- ${date.toLocaleDateString("en-GB", { weekday: "short", month: "short", day: "numeric" })}`
+								: ""}
+						</h4>
+					</div>
+				)}
+
+				<div style={{ height: `${height}px` }}>
+					<ResponsiveContainer width="100%" height="100%">
+						<ComposedChart
+							data={chartData}
+							margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+						>
+							<defs>
+								<linearGradient
+									id="waveGradient"
+									x1="0"
+									y1="0"
+									x2="0"
+									y2="1"
+								>
+									<stop
+										offset="0%"
+										stopColor="#3b82f6"
+										stopOpacity={0.8}
+									/>
+									<stop
+										offset="100%"
+										stopColor="#3b82f6"
+										stopOpacity={0.1}
+									/>
+								</linearGradient>
+								<linearGradient
+									id="periodGradient"
+									x1="0"
+									y1="0"
+									x2="0"
+									y2="1"
+								>
+									<stop
+										offset="0%"
+										stopColor="#8b5cf6"
+										stopOpacity={0.6}
+									/>
+									<stop
+										offset="100%"
+										stopColor="#8b5cf6"
+										stopOpacity={0.1}
+									/>
+								</linearGradient>
+							</defs>
+
+							<CartesianGrid
+								strokeDasharray="3 3"
+								stroke="#e5e7eb"
+								opacity={0.5}
+							/>
+
+							<XAxis
+								dataKey="time"
+								tickFormatter={(value) => `${value}:00`}
+								stroke="#6b7280"
+								fontSize={12}
+								interval="preserveStartEnd"
+							/>
+
+							<YAxis
+								yAxisId="left"
+								stroke="#3b82f6"
+								fontSize={12}
+								label={{
+									value: "Wave Height (ft)",
+									angle: -90,
+									position: "insideLeft",
+									style: { textAnchor: "middle" },
+								}}
+							/>
+
+							<YAxis
+								yAxisId="right"
+								orientation="right"
+								stroke="#8b5cf6"
+								fontSize={12}
+								label={{
+									value: "Period (s) / Wind (mph)",
+									angle: 90,
+									position: "insideRight",
+									style: { textAnchor: "middle" },
+								}}
+							/>
+
+							{/* Current time reference line */}
+							<ReferenceLine
+								x={currentHour}
+								stroke="#ef4444"
+								strokeDasharray="4 4"
+								opacity={0.8}
+							/>
+
+							{/* Wave Height Area */}
+							<Area
+								yAxisId="left"
+								type="monotone"
+								dataKey="waveHeight"
+								stroke="#1e40af"
+								strokeWidth={3}
+								fill="url(#waveGradient)"
+								name="Wave Height"
+							/>
+
+							{/* Period Line */}
+							<Line
+								yAxisId="right"
+								type="monotone"
+								dataKey="period"
+								stroke="#7c3aed"
+								strokeWidth={2.5}
+								strokeDasharray="6 3"
+								dot={{ fill: "#8b5cf6", strokeWidth: 2, r: 3 }}
+								name="Period"
+							/>
+
+							{/* Wind Speed Line */}
+							<Line
+								yAxisId="right"
+								type="monotone"
+								dataKey="windSpeed"
+								stroke="#059669"
+								strokeWidth={2}
+								strokeDasharray="3 2"
+								dot={{ fill: "#10b981", strokeWidth: 2, r: 2 }}
+								name="Wind Speed"
+							/>
+
+							<Tooltip content={<CustomTooltip />} />
+
+							{variant === "full" && (
+								<Legend
+									wrapperStyle={{ paddingTop: "20px" }}
+									iconType="line"
+								/>
+							)}
+						</ComposedChart>
+					</ResponsiveContainer>
+				</div>
+
+				{/* Enhanced current values display */}
+				{/* <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3"> */}
+				{/* Wave Height Card */}
+				{/* <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-3 border border-blue-200 shadow-sm">
             <div className="flex items-center gap-2 mb-1">
               <div className="w-3 h-3 rounded-full bg-blue-500 shadow-sm"></div>
               <span className="text-xs font-semibold text-blue-800">Wave Height</span>
@@ -216,10 +280,10 @@ export default function ProfessionalHourlyChart({
             <div className="text-xs text-blue-600">
               Peak: {(Math.max(...surfData.waveHeight) * 3.28084).toFixed(1)}ft
             </div>
-          </div>
-          
-          {/* Period Card */}
-          <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-3 border border-purple-200 shadow-sm">
+          </div> */}
+
+				{/* Period Card */}
+				{/* <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-3 border border-purple-200 shadow-sm">
             <div className="flex items-center gap-2 mb-1">
               <div className="w-3 h-1 bg-purple-500 rounded shadow-sm"></div>
               <span className="text-xs font-semibold text-purple-800">Period</span>
@@ -232,10 +296,10 @@ export default function ProfessionalHourlyChart({
             <div className="text-xs text-purple-600">
               Best: {Math.max(...surfData.period).toFixed(1)}s
             </div>
-          </div>
-          
-          {/* Wind Speed Card */}
-          <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-3 border border-green-200 shadow-sm">
+          </div> */}
+
+				{/* Wind Speed Card */}
+				{/* <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-3 border border-green-200 shadow-sm">
             <div className="flex items-center gap-2 mb-1">
               <div className="w-3 h-1 bg-green-500 rounded shadow-sm"></div>
               <span className="text-xs font-semibold text-green-800">Wind Speed</span>
@@ -248,17 +312,17 @@ export default function ProfessionalHourlyChart({
             <div className="text-xs text-green-600">
               Max: {(Math.max(...surfData.windSpeed) * 0.621371).toFixed(1)} mph
             </div>
-          </div>
-        </div>
-        
-        {!data && (
-          <div className="text-center bg-orange-50 border border-orange-200 rounded-lg p-2 mt-3">
-            <div className="text-xs text-orange-700 font-medium">
-              🔄 Live data loading... showing demo values
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+          </div> */}
+				{/* </div> */}
+
+				{!data && (
+					<div className="text-center bg-orange-50 border border-orange-200 rounded-lg p-2 mt-3">
+						<div className="text-xs text-orange-700 font-medium">
+							🔄 Live data loading... showing demo values
+						</div>
+					</div>
+				)}
+			</div>
+		</div>
+	);
 }

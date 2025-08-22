@@ -11,6 +11,8 @@ import ProfessionalTideChart from "../components/ProfessionalTideChart";
 import ProfessionalHourlyChart from "../components/ProfessionalHourlyChart";
 import BestTimeDisplay from "../components/BestTimeDisplay";
 import TrafficLightChart from "../components/TrafficLightChart";
+import WindDirectionCompass from "../components/WindDirectionCompass";
+import SwellDirectionChart from "../components/SwellDirectionChart";
 
 export function meta({}: Route.MetaArgs) {
 	return [
@@ -417,6 +419,61 @@ export default function Home() {
 															spot.longitude
 														}
 														variant="compact"
+													/>
+
+													{/* Wind Direction Compass */}
+													<WindDirectionCompass
+														spotDirection={(() => {
+															const swellDir =
+																spot.optimalSwellDir;
+															return Array.isArray(
+																swellDir
+															)
+																? swellDir[0]
+																: swellDir ||
+																		180;
+														})()}
+														windDirection={
+															spot.conditions
+																?.windDirection ||
+															225
+														}
+														hourlyWindData={
+															spot.hourlyData
+																?.windDirection
+														}
+														height={120}
+														variant="compact"
+														className="border-0"
+														showHourlyUpdates={true}
+													/>
+
+													{/* Swell Direction Chart */}
+													<SwellDirectionChart
+														spotDirection={(() => {
+															const swellDir =
+																spot.optimalSwellDir;
+															return Array.isArray(
+																swellDir
+															)
+																? swellDir[0]
+																: swellDir ||
+																		180;
+														})()}
+														optimalSwellDir={
+															spot.optimalSwellDir || [
+																270, 315,
+															]
+														}
+														swellDirection={
+															spot.conditions
+																?.swellDirection ||
+															285
+														}
+														height={120}
+														variant="compact"
+														className="border-0"
+														showHourlyUpdates={true}
 													/>
 
 													{/* Professional Hourly Chart */}

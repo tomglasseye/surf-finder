@@ -841,6 +841,8 @@ exports.handler = async (event, context) => {
 				waveHeight: dayData.waveHeight,
 				period: dayData.period,
 				windSpeed: dayData.windSpeed,
+				windDirection: dayData.windDirection,
+				swellDirection: dayData.swellDirection,
 				times: Array.from({ length: 24 }, (_, hour) => {
 					const hourDate = new Date(date);
 					hourDate.setHours(hour, 0, 0, 0);

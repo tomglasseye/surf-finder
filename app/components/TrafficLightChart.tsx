@@ -53,9 +53,9 @@ const TrafficLightChart: React.FC<TrafficLightChartProps> = ({
 	const hourlyData = generateHourlyData();
 
 	const getTrafficLightColor = (score: number): string => {
-		if (score >= 7) return "#000000"; // Black (excellent)
-		if (score >= 5) return "#6b7280"; // Gray (good)
-		return "#d1d5db"; // Light gray (poor)
+		if (score >= 7) return "#10b981"; // Green (excellent)
+		if (score >= 5) return "#f59e0b"; // Orange (good)
+		return "#ef4444"; // Red (poor)
 	};
 
 	const getScoreLabel = (score: number): string => {
@@ -81,15 +81,15 @@ const TrafficLightChart: React.FC<TrafficLightChartProps> = ({
 				</h3>
 				<div className="flex items-center space-x-3 text-xs">
 					<div className="flex items-center space-x-1">
-						<div className="w-3 h-3 bg-gray-300"></div>
+						<div className="w-3 h-3 bg-red-500 rounded"></div>
 						<span className="text-gray-700">Poor</span>
 					</div>
 					<div className="flex items-center space-x-1">
-						<div className="w-3 h-3 bg-gray-500"></div>
+						<div className="w-3 h-3 bg-amber-500 rounded"></div>
 						<span className="text-gray-700">Good</span>
 					</div>
 					<div className="flex items-center space-x-1">
-						<div className="w-3 h-3 bg-black"></div>
+						<div className="w-3 h-3 bg-green-500 rounded"></div>
 						<span className="text-gray-700">Excellent</span>
 					</div>
 				</div>

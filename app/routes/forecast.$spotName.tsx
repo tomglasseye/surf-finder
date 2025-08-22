@@ -14,6 +14,8 @@ import ProfessionalTideChart from "../components/ProfessionalTideChart";
 import ProfessionalHourlyChart from "../components/ProfessionalHourlyChart";
 import BestTimeDisplay from "../components/BestTimeDisplay";
 import TrafficLightChart from "../components/TrafficLightChart";
+import WindDirectionCompass from "../components/WindDirectionCompass";
+import SwellDirectionChart from "../components/SwellDirectionChart";
 import surfSpotsData from "../data/surfSpots.json";
 
 export function meta({ params }: Route.MetaArgs) {
@@ -68,6 +70,14 @@ interface ForecastDay {
 	rating: string;
 	tideData?: TideData;
 	bestTime?: BestTimeData;
+	hourlyData?: {
+		waveHeight: number[];
+		period: number[];
+		windSpeed: number[];
+		windDirection?: number[];
+		swellDirection?: number[];
+		times: string[];
+	};
 }
 
 interface ForecastData {
@@ -348,6 +358,79 @@ export default function ForecastSpot() {
 											latitude={forecast.spot.latitude}
 											longitude={forecast.spot.longitude}
 											date={new Date(day.date)}
+										/>
+									</div>
+
+									{/* Wind Direction Compass */}
+									<div className="mb-4">
+										<WindDirectionCompass
+											spotDirection={(() => {
+												const spot = surfSpotsData.find(
+													(spot) =>
+														spot.name.toLowerCase() ===
+														forecast?.spot.name.toLowerCase()
+												);
+												const swellDir =
+													spot?.optimalSwellDir;
+												return Array.isArray(swellDir)
+													? swellDir[0]
+													: swellDir || 180;
+											})()}
+											windDirection={
+												day.hourlyData?.windDirection?.[
+													new Date().getHours()
+												] || 225
+											}
+											hourlyWindData={
+												day.hourlyData?.windDirection
+											}
+											height={120}
+											variant="compact"
+											className="border-0"
+											showHourlyUpdates={index === 0}
+										/>
+									</div>
+
+									{/* Swell Direction Chart */}
+									<div className="mb-4">
+										<SwellDirectionChart
+											spotDirection={(() => {
+												const spot = surfSpotsData.find(
+													(spot) =>
+														spot.name.toLowerCase() ===
+														forecast?.spot.name.toLowerCase()
+												);
+												const swellDir =
+													spot?.optimalSwellDir;
+												return Array.isArray(swellDir)
+													? swellDir[0]
+													: swellDir || 180;
+											})()}
+											optimalSwellDir={(() => {
+												const spot = surfSpotsData.find(
+													(spot) =>
+														spot.name.toLowerCase() ===
+														forecast?.spot.name.toLowerCase()
+												);
+												return (
+													spot?.optimalSwellDir || [
+														270, 315,
+													]
+												);
+											})()}
+											swellDirection={
+												day.hourlyData
+													?.swellDirection?.[
+													new Date().getHours()
+												] || 285
+											}
+											hourlySwellData={
+												day.hourlyData?.swellDirection
+											}
+											height={120}
+											variant="compact"
+											className="border-0"
+											showHourlyUpdates={index === 0}
 										/>
 									</div>
 

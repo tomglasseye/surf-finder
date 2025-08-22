@@ -9,12 +9,14 @@ import {
 	Tooltip,
 	Legend,
 	ReferenceLine,
+	Scatter,
 } from "recharts";
 
 interface HourlyData {
 	waveHeight: number[];
 	period: number[];
 	windSpeed: number[];
+	windDirection?: number[];
 	times: string[];
 }
 
@@ -33,12 +35,38 @@ export default function ProfessionalHourlyChart({
 	variant = "full",
 	date,
 }: ProfessionalHourlyChartProps) {
+	// Helper function to convert wind direction to compass
+	const getWindDirectionText = (degrees: number): string => {
+		if (degrees === null || degrees === undefined) return "N/A";
+
+		const directions = [
+			"N",
+			"NNE",
+			"NE",
+			"ENE",
+			"E",
+			"ESE",
+			"SE",
+			"SSE",
+			"S",
+			"SSW",
+			"SW",
+			"WSW",
+			"W",
+			"WNW",
+			"NW",
+			"NNW",
+		];
+		const index = Math.round(degrees / 22.5) % 16;
+		return directions[index];
+	};
 	// Generate mock data if no real data provided
 	const generateMockData = (): HourlyData => {
 		const times = [];
 		const waveHeight = [];
 		const period = [];
 		const windSpeed = [];
+		const windDirection = [];
 
 		const baseDate = date || new Date();
 		const startOfDay = new Date(
@@ -59,13 +87,18 @@ export default function ProfessionalHourlyChart({
 				8 + Math.sin(dayProgress * Math.PI * 2 + Math.PI / 2) * 3;
 			const windBase =
 				5 + Math.sin(dayProgress * Math.PI * 2) * 8 + Math.random() * 3;
+			const windDirBase =
+				180 + Math.sin(dayProgress * Math.PI * 2 + Math.PI / 4) * 60; // SW varying to W/NW
 
 			waveHeight.push(Math.max(0.2, waveBase + Math.random() * 0.4));
 			period.push(Math.max(4, periodBase + Math.random() * 2));
 			windSpeed.push(Math.max(0, windBase));
+			windDirection.push(
+				Math.max(0, Math.min(360, windDirBase + Math.random() * 40))
+			);
 		}
 
-		return { waveHeight, period, windSpeed, times };
+		return { waveHeight, period, windSpeed, windDirection, times };
 	};
 
 	const surfData = data || generateMockData();
@@ -73,6 +106,7 @@ export default function ProfessionalHourlyChart({
 	// Transform data for Recharts with unit conversions
 	const chartData = surfData.times.map((time, index) => {
 		const timeObj = new Date(time);
+		const windDir = surfData.windDirection?.[index];
 		return {
 			time: timeObj.getHours(),
 			timeLabel: `${timeObj.getHours().toString().padStart(2, "0")}:00`,
@@ -83,6 +117,9 @@ export default function ProfessionalHourlyChart({
 			windSpeed: parseFloat(
 				((surfData.windSpeed[index] || 0) * 0.621371).toFixed(1)
 			), // Convert km/h to mph
+			windDirection: windDir,
+			windDirectionText:
+				windDir !== undefined ? getWindDirectionText(windDir) : "N/A",
 			isNow: timeObj.getHours() === new Date().getHours(),
 		};
 	});
@@ -90,10 +127,18 @@ export default function ProfessionalHourlyChart({
 	// Custom tooltip
 	const CustomTooltip = ({ active, payload, label }: any) => {
 		if (active && payload && payload.length) {
+			const data = payload[0]?.payload;
+
+			// Filter to only show the metrics we want
+			const wantedMetrics = ["Wave Height", "Period", "Wind Speed"];
+			const filteredPayload = payload.filter((entry: any) =>
+				wantedMetrics.includes(entry.name)
+			);
+
 			return (
 				<div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
 					<p className="font-semibold text-gray-800">{`${label}:00`}</p>
-					{payload.map((entry: any, index: number) => (
+					{filteredPayload.map((entry: any, index: number) => (
 						<p
 							key={index}
 							style={{ color: entry.color }}
@@ -102,6 +147,11 @@ export default function ProfessionalHourlyChart({
 							{`${entry.name}: ${entry.value}${entry.name === "Wave Height" ? "ft" : entry.name === "Period" ? "s" : " mph"}`}
 						</p>
 					))}
+					{data?.windDirectionText && (
+						<p className="text-sm text-orange-600">
+							{`Wind Direction: ${data.windDirectionText}`}
+						</p>
+					)}
 				</div>
 			);
 		}
@@ -251,6 +301,56 @@ export default function ProfessionalHourlyChart({
 								dot={{ fill: "#10b981", strokeWidth: 2, r: 2 }}
 								name="Wind Speed"
 							/>
+
+							{/* Wind Direction Scatter Points */}
+							{surfData.windDirection && (
+								<Scatter
+									yAxisId="right"
+									dataKey="windSpeed"
+									fill="#f59e0b"
+									shape={(props: any) => {
+										const { cx, cy, payload } = props;
+										if (!payload?.windDirection) {
+											return (
+												<circle
+													r={0}
+													fill="transparent"
+												/>
+											);
+										}
+
+										// Convert wind direction to rotation angle (wind direction is "from" direction)
+										const rotation =
+											payload.windDirection + 180; // Add 180 to show where wind is going
+
+										return (
+											<g
+												transform={`translate(${cx}, ${cy})`}
+											>
+												{/* Wind direction arrow */}
+												<g
+													transform={`rotate(${rotation})`}
+												>
+													<path
+														d="M0,-6 L3,0 L0,6 L-3,0 Z"
+														fill="#f59e0b"
+														stroke="#d97706"
+														strokeWidth={0.5}
+													/>
+												</g>
+												{/* Small circle base */}
+												<circle
+													r={1.5}
+													fill="#f59e0b"
+													stroke="#d97706"
+													strokeWidth={0.5}
+												/>
+											</g>
+										);
+									}}
+									name="Wind Direction"
+								/>
+							)}
 
 							<Tooltip content={<CustomTooltip />} />
 

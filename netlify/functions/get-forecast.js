@@ -115,7 +115,7 @@ async function getTideData(latitude, longitude) {
 
 		// StormGlass.io API - now cached daily, dramatically reducing API usage
 		// 1,500 requests/month ÷ 30 days = 50 unique locations per day with daily caching
-		const stormGlassApiKey = process.env.ADMIRALTY_API_KEY; // Using your existing API key
+		const stormGlassApiKey = process.env.STORMGLASS_API_KEY;
 
 		if (stormGlassApiKey) {
 			try {

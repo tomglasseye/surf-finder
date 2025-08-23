@@ -355,6 +355,9 @@ async function getTideData(latitude, longitude) {
 
 		// UK Admiralty API - Official UK Government Tide Data
 		const admiraltyApiKey = process.env.ADMIRALTY_API_KEY;
+		
+		console.log(`🔑 API Key check: ${admiraltyApiKey ? 'PRESENT' : 'MISSING'}`);
+		console.log(`🌍 Environment: ${process.env.NODE_ENV || 'unknown'}`);
 
 		if (admiraltyApiKey) {
 			try {

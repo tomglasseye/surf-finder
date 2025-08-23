@@ -26,6 +26,7 @@ interface TideChartProps {
 	showDays?: number; // 1 for today only, 5 for forecast
 	height?: number;
 	className?: string;
+	targetDate?: Date; // The specific date to show
 }
 
 interface ChartDataPoint {
@@ -50,6 +51,7 @@ export default function TideChart({
 	showDays = 1,
 	height = 300,
 	className = "",
+	targetDate,
 }: TideChartProps) {
 	const [tideData, setTideData] = useState<TideEvent[]>([]);
 	const [sunData, setSunData] = useState<{[date: string]: {sunrise: Date; sunset: Date}}>({});
@@ -58,14 +60,14 @@ export default function TideChart({
 
 	useEffect(() => {
 		loadTideData();
-	}, [latitude, longitude, showDays]);
+	}, [latitude, longitude, showDays, targetDate]);
 
 	const loadTideData = async () => {
 		try {
 			setLoading(true);
 			setError("");
 
-			const startDate = new Date();
+			const startDate = targetDate ? new Date(targetDate) : new Date();
 			startDate.setHours(0, 0, 0, 0);
 			
 			const endDate = new Date(startDate);
@@ -113,13 +115,13 @@ export default function TideChart({
 		}
 	};
 
-	const now = new Date();
+	const now = targetDate ? new Date(targetDate) : new Date();
 	
 	const startDate = useMemo(() => {
-		const start = new Date();
+		const start = targetDate ? new Date(targetDate) : new Date();
 		start.setHours(0, 0, 0, 0);
 		return start;
-	}, []);
+	}, [targetDate]);
 
 	const chartData = useMemo(() => {
 		console.log(`📊 Generating chart data: ${tideData.length} tide events, ${Object.keys(sunData).length} sun days`);
@@ -273,8 +275,11 @@ export default function TideChart({
 			// Ensure bounds
 			tideLevel = Math.max(0.05, Math.min(0.95, tideLevel));
 
-			// Check if current time (accurate to minutes)
-			const isNow = Math.abs(currentTimeMs - now.getTime()) < minuteInterval * 60 * 1000;
+			// Check if current time (accurate to minutes) - only show for today
+			const actualNow = new Date();
+			const isToday = !targetDate || 
+				(targetDate.toDateString() === actualNow.toDateString());
+			const isNow = isToday && Math.abs(currentTimeMs - actualNow.getTime()) < minuteInterval * 60 * 1000;
 
 			// Check daylight status
 			const sunTimes = sunData[dateStr];

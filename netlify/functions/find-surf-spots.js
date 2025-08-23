@@ -234,7 +234,7 @@ async function getTideData(latitude, longitude) {
 					.split("T")[0];
 
 				const tideResponse = await fetch(
-					`https://admiraltyapi.azure-api.net/uktidalapi/api/V1/Stations/${closestStation.properties.Id}/TidalEvents?StartDate=${today}&EndDate=${tomorrow}`,
+					`https://admiraltyapi.azure-api.net/uktidalapi/api/V1/Stations/${closestStation.properties.Id}/TidalEvents?StartDateTime=${today}&EndDateTime=${tomorrow}`,
 					{
 						headers: {
 							"Ocp-Apim-Subscription-Key": admiraltyApiKey,

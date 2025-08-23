@@ -82,11 +82,11 @@ function directionScore(actualDir, optimalRange) {
 const tideCache = new Map();
 const apiUsageTracker = new Map(); // Track API calls per day
 
-// Cache configuration optimized for tide extremes (can cache for days!)
+// Cache configuration - DISABLED for fresh data every time
 const CACHE_CONFIG = {
-	TIDE_EXTREMES_DAYS: 3, // Cache tide extremes for 3 days (good balance)
-	MAX_CACHE_SIZE: 100, // More generous since we cache longer
-	API_DAILY_LIMIT: 9, // Use 9 of your 10 daily calls (1 buffer for safety)
+	TIDE_EXTREMES_DAYS: 0, // No caching
+	MAX_CACHE_SIZE: 0, // No caching
+	API_DAILY_LIMIT: 999, // No limit
 	CLEANUP_INTERVAL: 1000 * 60 * 60 * 12, // Clean cache every 12 hours
 };
 
@@ -113,7 +113,7 @@ const isTideCacheValid = (cacheEntry) => {
 		);
 	}
 
-	return isSameDay;
+	return false; // Always invalid - no caching
 };
 
 // API usage tracking for quota management
@@ -133,9 +133,7 @@ const trackApiUsage = () => {
 
 // Check if we can make API calls today
 const canMakeApiCall = () => {
-	const today = new Date().toISOString().split("T")[0];
-	const todayUsage = apiUsageTracker.get(today) || 0;
-	return todayUsage < CACHE_CONFIG.API_DAILY_LIMIT;
+	return true; // Always allow API calls - no limit
 };
 
 // Cache cleanup to prevent memory leaks
@@ -427,7 +425,7 @@ async function getTideData(latitude, longitude) {
 					.split("T")[0];
 
 				const tideResponse = await fetch(
-					`https://admiraltyapi.azure-api.net/uktidalapi/api/V1/Stations/${closestStation.properties.Id}/TidalEvents?StartDate=${today}&EndDate=${futureDate}`,
+					`https://admiraltyapi.azure-api.net/uktidalapi/api/V1/Stations/${closestStation.properties.Id}/TidalEvents?StartDateTime=${today}&EndDateTime=${futureDate}`,
 					{
 						headers: {
 							"Ocp-Apim-Subscription-Key": admiraltyApiKey,

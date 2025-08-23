@@ -81,13 +81,11 @@ export default function SimpleTideChart({
 		const minuteInterval = 15; // Generate point every 15 minutes
 		const totalMinutes = showHours * 60;
 
-		// If we have real Admiralty data, create a smooth curve based on the tide events
-		if (
-			tideData?.source === "admiralty_uk" &&
-			tideData.tideEvents &&
-			tideData.tideEvents.length > 0
-		) {
-			console.log("🌊 Building smooth curve from real UK tide data");
+		// If we have tide events data (from any source), create a smooth curve based on the tide events
+		if (tideData?.tideEvents && tideData.tideEvents.length > 0) {
+			console.log(
+				`🌊 Building smooth curve from ${tideData.source || "unknown"} tide data`
+			);
 
 			const events = tideData.tideEvents;
 
@@ -245,27 +243,63 @@ export default function SimpleTideChart({
 		const currentHour = now.getHours() + now.getMinutes() / 60;
 
 		// Find actual peaks (high tides) and troughs (low tides) in the curve
-		const peaks = [];
-		const troughs = [];
+		const peaks: any[] = [];
+		const troughs: any[] = [];
 
-		for (let i = 1; i < points.length - 1; i++) {
-			const prev = points[i - 1];
-			const curr = points[i];
-			const next = points[i + 1];
+		// Check if we have explicit tide events marked in the data
+		const explicitTideEvents = points.filter(
+			(p) => p.isHighTide || p.isLowTide
+		);
 
-			// Peak: current point is higher than both neighbors
-			if (curr.level > prev.level && curr.level > next.level) {
-				// Only add if it's a significant peak (avoid small fluctuations)
-				if (curr.level > 0.7) {
-					peaks.push(curr);
+		if (explicitTideEvents.length > 0) {
+			// Use explicit tide event markers from the data
+			explicitTideEvents.forEach((point) => {
+				if (point.isHighTide) peaks.push(point);
+				if (point.isLowTide) troughs.push(point);
+			});
+		} else {
+			// Fallback: detect peaks and troughs from the curve shape
+			for (let i = 2; i < points.length - 2; i++) {
+				const prev2 = points[i - 2];
+				const prev = points[i - 1];
+				const curr = points[i];
+				const next = points[i + 1];
+				const next2 = points[i + 2];
+
+				// More robust peak detection: check if current is higher than 2 points on each side
+				const isPeak =
+					curr.level > prev2.level &&
+					curr.level > prev.level &&
+					curr.level > next.level &&
+					curr.level > next2.level &&
+					curr.level > 0.65; // Significant peak threshold
+
+				// More robust trough detection
+				const isTrough =
+					curr.level < prev2.level &&
+					curr.level < prev.level &&
+					curr.level < next.level &&
+					curr.level < next2.level &&
+					curr.level < 0.35; // Significant trough threshold
+
+				if (isPeak) {
+					// Check if we already have a nearby peak (avoid duplicates)
+					const nearbyPeak = peaks.find(
+						(p) => Math.abs(p.hour - curr.hour) < 2
+					);
+					if (!nearbyPeak) {
+						peaks.push(curr);
+					}
 				}
-			}
 
-			// Trough: current point is lower than both neighbors
-			if (curr.level < prev.level && curr.level < next.level) {
-				// Only add if it's a significant trough
-				if (curr.level < 0.3) {
-					troughs.push(curr);
+				if (isTrough) {
+					// Check if we already have a nearby trough (avoid duplicates)
+					const nearbyTrough = troughs.find(
+						(t) => Math.abs(t.hour - curr.hour) < 2
+					);
+					if (!nearbyTrough) {
+						troughs.push(curr);
+					}
 				}
 			}
 		}
@@ -373,7 +407,12 @@ export default function SimpleTideChart({
 				<div className="text-sm text-gray-600">
 					{tideData?.source === "admiralty_uk"
 						? "🇬🇧 UK Admiralty"
-						: "📊 Estimated"}
+						: tideData?.source === "enhanced_calculation"
+							? "📊 Estimated"
+							: tideData?.tideEvents &&
+								  tideData.tideEvents.length > 0
+								? "🌊 Live Tide Data"
+								: "📊 Estimated"}
 				</div>
 			</div>
 

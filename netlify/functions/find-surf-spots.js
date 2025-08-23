@@ -1119,53 +1119,49 @@ exports.handler = async (event, context) => {
 					spot
 				);
 
-				// Generate hourly data for today
-				const today = new Date();
-				const hourlyData = {
-					waveHeight: Array.from({ length: 24 }, (_, hour) => {
-						const baseHeight = conditions?.waveHeight || 1.0;
-						const variation =
-							Math.sin((hour / 24) * Math.PI * 2) * 0.3;
-						return Math.max(
-							0.2,
-							baseHeight + variation + (Math.random() * 0.2 - 0.1)
-						);
-					}),
-					period: Array.from({ length: 24 }, (_, hour) => {
-						const basePeriod =
-							conditions?.swellWavePeriod ||
-							conditions?.wavePeriod ||
-							8;
-						const variation =
-							Math.sin((hour / 24) * Math.PI * 2 + Math.PI / 3) *
-							2;
-						return Math.max(
-							4,
-							basePeriod + variation + (Math.random() * 1 - 0.5)
-						);
-					}),
-					windSpeed: Array.from({ length: 24 }, (_, hour) => {
-						const baseWind = conditions?.windSpeed || 10;
-						const variation =
-							Math.sin((hour / 24) * Math.PI * 2 + Math.PI / 6) *
-							5;
-						return Math.max(
-							0,
-							baseWind + variation + (Math.random() * 2 - 1)
-						);
-					}),
-					times: Array.from({ length: 24 }, (_, hour) => {
-						const hourDate = new Date(
-							today.getFullYear(),
-							today.getMonth(),
-							today.getDate(),
-							hour,
-							0,
-							0
-						);
-						return hourDate.toISOString();
-					}),
-				};
+				// Use real marine data from API (24 hours)
+				let hourlyData;
+				if (marineData?.hourly?.time && marineData.hourly.time.length >= 24) {
+					// Transform real marine API data to expected format
+					hourlyData = {
+						waveHeight: marineData.hourly.wave_height?.slice(0, 24) || Array(24).fill(1.0),
+						period: marineData.hourly.swell_wave_period?.slice(0, 24) || 
+								marineData.hourly.wave_period?.slice(0, 24) || 
+								Array(24).fill(8.0),
+						windSpeed: windData.hourly.wind_speed_10m?.slice(0, 24).map(ws => ws * 3.6) || Array(24).fill(15.0), // Convert m/s to km/h
+						windDirection: windData.hourly.wind_direction_10m?.slice(0, 24) || Array(24).fill(225),
+						times: marineData.hourly.time.slice(0, 24).map(time => {
+							const date = new Date(time);
+							return `${date.getHours().toString().padStart(2, '0')}:00`;
+						}),
+					};
+					console.log(`🌊 Using real marine data for ${spot.name}: ${hourlyData.waveHeight.length} hours`);
+				} else {
+					// Fallback to mock data if marine API failed
+					console.warn(`⚠️ Marine data not available for ${spot.name}, using fallback`);
+					const today = new Date();
+					hourlyData = {
+						waveHeight: Array.from({ length: 24 }, (_, hour) => {
+							const baseHeight = conditions?.waveHeight || 1.0;
+							const variation = Math.sin((hour / 24) * Math.PI * 2) * 0.3;
+							return Math.max(0.2, baseHeight + variation + (Math.random() * 0.2 - 0.1));
+						}),
+						period: Array.from({ length: 24 }, (_, hour) => {
+							const basePeriod = conditions?.swellWavePeriod || conditions?.wavePeriod || 8;
+							const variation = Math.sin((hour / 24) * Math.PI * 2 + Math.PI / 3) * 2;
+							return Math.max(4, basePeriod + variation + (Math.random() * 1 - 0.5));
+						}),
+						windSpeed: Array.from({ length: 24 }, (_, hour) => {
+							const baseWind = (conditions?.windSpeed || 10) * 3.6; // Convert to km/h
+							const variation = Math.sin((hour / 24) * Math.PI * 2 + Math.PI / 6) * 5;
+							return Math.max(0, baseWind + variation + (Math.random() * 2 - 1));
+						}),
+						windDirection: Array.from({ length: 24 }, () => 
+							conditions?.windDirection || 225 + (Math.random() * 60 - 30)
+						),
+						times: Array.from({ length: 24 }, (_, hour) => `${hour.toString().padStart(2, '0')}:00`),
+					};
+				}
 
 				// Calculate best time of day
 				const bestTimeAnalysis = calculateBestTimeOfDay(
@@ -1176,6 +1172,19 @@ exports.handler = async (event, context) => {
 					spot.longitude
 				);
 
+				// Transform hourlyData to array format for frontend charts
+				const hourlyDataArray = hourlyData.times.map((time, index) => ({
+					hour: new Date(`2000-01-01T${time}`).getHours(),
+					time: time,
+					waveHeight: hourlyData.waveHeight[index] || 0,
+					period: hourlyData.period[index] || 8,
+					windSpeed: hourlyData.windSpeed[index] || 15,
+					windDirection: hourlyData.windDirection[index] || 225,
+					swellDirection: hourlyData.windDirection[index] || 270, // Use wind direction as fallback
+					swellHeight: hourlyData.waveHeight[index] * 0.8 || 0, // Estimate swell as portion of total wave
+					tideLevel: 0.5, // Default mid-tide
+				}));
+
 				return {
 					...spot,
 					conditions,
@@ -1184,7 +1193,7 @@ exports.handler = async (event, context) => {
 					waveHeight: conditions?.waveHeight || 0,
 					windSpeed: conditions?.windSpeed || 0,
 					tideData: conditions?.tideData || null,
-					hourlyData: hourlyData,
+					hourlyData: hourlyDataArray,
 					bestTime: bestTimeAnalysis,
 				};
 			})

@@ -103,21 +103,8 @@ export default function ProfessionalHourlyChart({
 
 	const surfData = data || generateMockData();
 	
-	console.log('📊 ProfessionalHourlyChart received data:', {
-		hasData: !!data,
-		dataKeys: data ? Object.keys(data) : 'null',
-		timesLength: data?.times?.length || 0,
-		waveHeightLength: data?.waveHeight?.length || 0,
-		usingMockData: !data,
-		surfDataKeys: surfData ? Object.keys(surfData) : 'null',
-		surfDataTimesLength: surfData?.times?.length || 0
-	});
-	
-	console.log('🔥🔥🔥 TRANSFORMATION STARTING NOW 🔥🔥🔥');
-	console.log('surfData.times type:', typeof surfData?.times, 'isArray:', Array.isArray(surfData?.times));
-	console.log('surfData.times sample:', surfData?.times?.slice(0, 2));
-	console.log('surfData.times full array:', surfData?.times);
-	console.log('surfData full object:', surfData);
+	// Debug: Check if we have real data
+	const hasRealData = data && data.times && data.times.length > 0;
 
 	// Transform data for Recharts with unit conversions
 	let chartData;
@@ -155,10 +142,6 @@ export default function ProfessionalHourlyChart({
 			isNow: hourValue === new Date().getHours(),
 		};
 		
-		// Log first few data points to debug
-		if (index < 3) {
-			console.log(`📊 Chart data point ${index}:`, transformedData);
-		}
 		
 		return transformedData;
 	});
@@ -167,17 +150,6 @@ export default function ProfessionalHourlyChart({
 		chartData = [];
 	}
 	
-	console.log('📊 Final chartData array:', {
-		length: chartData.length,
-		firstItem: chartData[0],
-		lastItem: chartData[chartData.length - 1],
-		hasValidWaveHeight: chartData.some(d => d.waveHeight > 0),
-		hasValidPeriod: chartData.some(d => d.period > 0),
-		hasValidWindSpeed: chartData.some(d => d.windSpeed > 0),
-		waveHeightRange: [Math.min(...chartData.map(d => d.waveHeight)), Math.max(...chartData.map(d => d.waveHeight))],
-		periodRange: [Math.min(...chartData.map(d => d.period)), Math.max(...chartData.map(d => d.period))],
-		windSpeedRange: [Math.min(...chartData.map(d => d.windSpeed)), Math.max(...chartData.map(d => d.windSpeed))]
-	});
 
 	// Ensure we have valid data
 	if (chartData.length === 0) {
@@ -478,7 +450,7 @@ export default function ProfessionalHourlyChart({
           </div> */}
 				{/* </div> */}
 
-				{!data && (
+				{!hasRealData && (
 					<div className="text-center bg-orange-50 border border-orange-200 rounded-lg p-2 mt-3">
 						<div className="text-xs text-orange-700 font-medium">
 							🔄 Live data loading... showing demo values

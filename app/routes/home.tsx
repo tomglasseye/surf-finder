@@ -493,25 +493,13 @@ export default function Home() {
 
 													{/* Professional Hourly Chart */}
 													<ProfessionalHourlyChart
-														data={spot.hourlyData && Array.isArray(spot.hourlyData) ? (() => {
-															console.log('🔍 HOME PAGE HOURLY CHART DATA CHECK:', {
-																hasData: !!spot.hourlyData,
-																length: spot.hourlyData?.length,
-																sampleItem: spot.hourlyData?.[0],
-																spotName: spot.name,
-																fullHourlyData: spot.hourlyData
-															});
-															return {
-																waveHeight: spot.hourlyData.map(h => h.waveHeight || 0),
-																period: spot.hourlyData.map(h => h.period || 0),
-																windSpeed: spot.hourlyData.map(h => h.windSpeed || 0),
-																windDirection: spot.hourlyData.map(h => h.windDirection || 0),
-																times: spot.hourlyData.map(h => h.time || new Date().toISOString())
-															};
-														})() : (() => {
-															console.log('🔍 HOURLY CHART: NO DATA - spot.hourlyData is null/undefined/empty');
-															return null;
-														})()}
+														data={spot.hourlyData && Array.isArray(spot.hourlyData) && spot.hourlyData.length > 0 ? {
+															waveHeight: spot.hourlyData.map(h => h.waveHeight || 0),
+															period: spot.hourlyData.map(h => h.period || 0),
+															windSpeed: spot.hourlyData.map(h => h.windSpeed || 0),
+															windDirection: spot.hourlyData.map(h => h.windDirection || 0),
+															times: spot.hourlyData.map(h => h.time || `${new Date().getHours()}:00`)
+														} : null}
 														height={150}
 														className="border-0"
 														variant="compact"

@@ -5,9 +5,8 @@ import surfSpotsData from "../data/surfSpots.json";
 import { getScoreColor, getScoreEmoji } from "../utils/surfScore";
 import { createEnrichedSpot } from "../utils/mockData";
 import { useFavorites } from "../hooks/useFavorites";
-import TideGraph from "../components/TideGraph";
 import HourlySurfChart from "../components/HourlySurfChart";
-import SimpleTideChart from "../components/SimpleTideChart";
+import TideChart from "../components/TideChart";
 import ProfessionalHourlyChart from "../components/ProfessionalHourlyChart";
 import BestTimeDisplay from "../components/BestTimeDisplay";
 import TrafficLightChart from "../components/TrafficLightChart";
@@ -408,16 +407,14 @@ export default function Home() {
 														className="border-0"
 													/>
 
-													{/* Simple Tide Chart */}
-													<SimpleTideChart
-														tideData={spot.tideData}
-														showHours={24}
+													{/* New Comprehensive Tide Chart */}
+													<TideChart
+														latitude={spot.latitude}
+														longitude={spot.longitude}
+														spotName={spot.name}
+														showDays={1}
 														height={180}
 														className="border-0"
-														latitude={spot.latitude}
-														longitude={
-															spot.longitude
-														}
 													/>
 
 													{/* Wind Direction Compass */}

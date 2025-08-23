@@ -8,11 +8,8 @@ import {
 } from "../utils/surfScore";
 import { generateMockForecast } from "../utils/mockData";
 import { useSpotFavorite } from "../hooks/useFavorites";
-import TideGraph from "../components/TideGraph";
 import HourlySurfChart from "../components/HourlySurfChart";
-import ProfessionalTideChart from "../components/ProfessionalTideChart";
-import SimpleTideChart from "../components/SimpleTideChart";
-import RawTideChart from "../components/RawTideChart";
+import TideChart from "../components/TideChart";
 import ProfessionalHourlyChart from "../components/ProfessionalHourlyChart";
 import BestTimeDisplay from "../components/BestTimeDisplay";
 import TrafficLightChart from "../components/TrafficLightChart";
@@ -271,6 +268,18 @@ export default function ForecastSpot() {
 
 				{forecast && (
 					<div className="mx-auto">
+						{/* 5-Day Tide Overview */}
+						<div className="mb-8 bg-white rounded-lg shadow-lg p-6">
+							<TideChart
+								latitude={parseFloat(lat || "0")}
+								longitude={parseFloat(lng || "0")}
+								spotName={forecast.spot.name}
+								showDays={5}
+								height={400}
+								className="border-0"
+							/>
+						</div>
+
 						<div className="space-y-6">
 							{forecast.forecast.map((day, index) => (
 								<div
@@ -349,17 +358,19 @@ export default function ForecastSpot() {
 										/>
 									</div>
 
-									{/* Daily Tide Chart - Testing Raw Data Version */}
-									<div className="mb-4">
-										{day.tideData && (
-											<RawTideChart
-												tideData={day.tideData}
-												spotName={
-													spotName || "Unknown Spot"
-												}
+									{/* Individual Daily Tide Chart - Only for today */}
+									{index === 0 && (
+										<div className="mb-4">
+											<TideChart
+												latitude={parseFloat(lat || "0")}
+												longitude={parseFloat(lng || "0")}
+												spotName={forecast.spot.name}
+												showDays={1}
+												height={200}
+												className="border-0"
 											/>
-										)}
-									</div>
+										</div>
+									)}
 
 									{/* Wind Direction Compass */}
 									<div className="mb-4">

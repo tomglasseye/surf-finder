@@ -354,14 +354,15 @@ async function getTideData(latitude, longitude) {
 		}
 
 		// UK Admiralty API - Official UK Government Tide Data
-		const admiraltyApiKey = process.env.ADMIRALTY_API_KEY;
+		// const admiraltyApiKey = process.env.ADMIRALTY_API_KEY;
 
-		console.log(
-			`🔑 API Key check: ${admiraltyApiKey ? "PRESENT" : "MISSING"}`
-		);
+		// console.log(
+		// 	`🔑 API Key check: ${admiraltyApiKey ? "PRESENT" : "MISSING"}`
+		// );
 		console.log(`🌍 Environment: ${process.env.NODE_ENV || "unknown"}`);
 
-		if (admiraltyApiKey) {
+		// Disabled API key checking for clean setup
+		if (false) {
 			try {
 				console.log(
 					`�🇧 Fetching tide data from UK Admiralty API for: ${latitude}, ${longitude}`
@@ -489,8 +490,8 @@ async function getTideData(latitude, longitude) {
 					.join(", ")}`
 			);
 			console.log(
-				`🔍 ADMIRALTY vars: ${Object.keys(process.env)
-					.filter((k) => k.includes("ADMIRALTY"))
+				`🔍 Environment vars: ${Object.keys(process.env)
+					.filter((k) => k.includes("NODE_ENV"))
 					.join(", ")}`
 			);
 		}

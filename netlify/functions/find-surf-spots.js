@@ -164,13 +164,14 @@ function directionScore(actualDir, optimalRange) {
 async function getTideData(latitude, longitude) {
 	try {
 		// UK Admiralty API - Official UK Government Tide Data
-		const admiraltyApiKey = process.env.ADMIRALTY_API_KEY;
+		// const admiraltyApiKey = process.env.ADMIRALTY_API_KEY;
 
-		console.log(
-			`🔑 Find-spots API Key check: ${admiraltyApiKey ? "PRESENT" : "MISSING"}`
-		);
+		// console.log(
+		// 	`🔑 Find-spots API Key check: ${admiraltyApiKey ? "PRESENT" : "MISSING"}`
+		// );
 
-		if (admiraltyApiKey) {
+		// Disabled API key checking for clean setup
+		if (false) {
 			try {
 				console.log(
 					`🇬🇧 Find-spots: Fetching tide data from UK Admiralty API for: ${latitude}, ${longitude}`

@@ -48,13 +48,13 @@ export default function BestTimeDisplay({
   const { bestTime, bestWindow, allHours } = bestTimeData;
   
   // Transform data for the chart
-  const chartData = allHours.map(hour => ({
-    hour: hour.hour,
-    score: parseFloat(hour.score.toFixed(1)),
-    time: hour.time,
-    isBest: hour.hour === bestTime.hour,
-    isGood: hour.score >= 6.0,
-    factors: hour.factors
+  const chartData = (allHours && Array.isArray(allHours) ? allHours : []).map(hour => ({
+    hour: hour.hour || 0,
+    score: parseFloat((hour.score || 0).toFixed(1)),
+    time: hour.time || '00:00',
+    isBest: hour.hour === (bestTime?.hour || -1),
+    isGood: (hour.score || 0) >= 6.0,
+    factors: hour.factors || []
   }));
 
   const currentHour = new Date().getHours();
@@ -66,11 +66,11 @@ export default function BestTimeDisplay({
       return (
         <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200 max-w-xs">
           <p className="font-semibold text-gray-800">{`${label}:00`}</p>
-          <p className="text-blue-600 font-medium">{`Score: ${data.score}/10`}</p>
+          <p className="text-blue-600 font-medium">{`Score: ${data.score || 0}/10`}</p>
           {data.factors && data.factors.length > 0 && (
             <div className="mt-2">
               <p className="text-xs text-gray-600 mb-1">Factors:</p>
-              {data.factors.map((factor: string, index: number) => (
+              {data.factors && Array.isArray(data.factors) && data.factors.map((factor: string, index: number) => (
                 <p key={index} className="text-xs text-gray-700">• {factor}</p>
               ))}
             </div>
@@ -90,7 +90,7 @@ export default function BestTimeDisplay({
       return <Bar {...rest} fill="#059669" />;
     } else if (data.isGood) {
       return <Bar {...rest} fill="#0ea5e9" />;
-    } else if (data.score >= 4) {
+    } else if ((data.score || 0) >= 4) {
       return <Bar {...rest} fill="#6b7280" />;
     } else {
       return <Bar {...rest} fill="#dc2626" />;
@@ -124,22 +124,22 @@ export default function BestTimeDisplay({
 
         {/* Best Time Highlight */}
         <div className="mb-6">
-          <div className={`rounded-xl p-4 border-2 ${getScoreColor(bestTime.score)}`}>
+          <div className={`rounded-xl p-4 border-2 ${getScoreColor(bestTime?.score || 0)}`}>
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <span className="text-2xl">{getScoreEmoji(bestTime.score)}</span>
+                <span className="text-2xl">{getScoreEmoji(bestTime?.score || 0)}</span>
                 <div>
-                  <div className="font-bold text-lg">{bestTime.time}</div>
+                  <div className="font-bold text-lg">{bestTime?.time || '00:00'}</div>
                   <div className="text-sm opacity-75">Prime Time</div>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold">{bestTime.score}/10</div>
+                <div className="text-2xl font-bold">{bestTime?.score || 0}/10</div>
                 <div className="text-xs opacity-75">Score</div>
               </div>
             </div>
             <div className="text-sm">
-              <strong>Why it's great:</strong> {bestTime.factors.join(', ')}
+              <strong>Why it's great:</strong> {(bestTime?.factors && Array.isArray(bestTime.factors) ? bestTime.factors.join(', ') : 'No factors available')}
             </div>
           </div>
         </div>
@@ -151,13 +151,13 @@ export default function BestTimeDisplay({
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xl">🕐</span>
                 <div className="font-semibold text-green-800">
-                  Best Session Window: {bestWindow.startTime} - {bestWindow.endTime}
+                  Best Session Window: {bestWindow?.startTime || '00:00'} - {bestWindow?.endTime || '00:00'}
                 </div>
               </div>
               <div className="text-sm text-green-700">
                 Consecutive hours of good conditions with safe lighting for an extended surf session
               </div>
-              {bestWindow.hasGoodLight && (
+              {bestWindow?.hasGoodLight && (
                 <div className="text-xs text-green-600 mt-1">
                   ☀️ Includes optimal lighting conditions (sunrise/sunset considered)
                 </div>

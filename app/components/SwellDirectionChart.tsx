@@ -91,6 +91,24 @@ export default function SwellDirectionChart({
 		return directions[index];
 	};
 
+	// Calculate arrow rotation relative to beach position (beach always at bottom)
+	const getArrowRotation = (swellDirection: number, spotDirection: number): number => {
+		// Beach is always at bottom (180°), so spot faces up (0°)
+		// Swell direction needs to be rotated relative to this beach-bottom orientation
+		// If beach faces North (0°), and swell comes from North (0°), arrow points down (180°)
+		// If beach faces South (180°), and swell comes from North (0°), arrow points up (0°)
+		
+		// Calculate the relative angle
+		let relativeAngle = swellDirection - spotDirection + 180;
+		
+		// Normalize to 0-360 range
+		while (relativeAngle < 0) relativeAngle += 360;
+		while (relativeAngle >= 360) relativeAngle -= 360;
+		
+		// Convert to SVG rotation (subtract 90 for SVG coordinate system)
+		return relativeAngle - 90;
+	};
+
 	// Generate hourly data if not provided
 	const generateHourlySwellData = (): number[] => {
 		const data = [];
@@ -210,7 +228,7 @@ export default function SwellDirectionChart({
 									{/* Colored arrow showing swell direction relative to beach */}
 									<g transform={`translate(${x}, 6)`}>
 										<g
-											transform={`rotate(${swellDir - 90})`}
+											transform={`rotate(${getArrowRotation(swellDir, spotDirection)})`}
 										>
 											<path
 												d="M0,-0.8 L0.4,0.4 L0.15,0.2 L0.15,0.8 L-0.15,0.8 L-0.15,0.2 L-0.4,0.4 Z"

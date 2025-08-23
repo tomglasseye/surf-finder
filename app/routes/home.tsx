@@ -4,6 +4,7 @@ import type { Route } from "./+types/home";
 import surfSpotsData from "../data/surfSpots.json";
 import { getScoreColor, getScoreEmoji } from "../utils/surfScore";
 import { createEnrichedSpot } from "../utils/mockData";
+import { createLiveEnrichedSpot } from "../utils/liveData";
 import { useFavorites } from "../hooks/useFavorites";
 import HourlySurfChart from "../components/HourlySurfChart";
 import TideChart from "../components/TideChart";
@@ -87,16 +88,33 @@ export default function Home() {
 				console.log("Netlify function not available, using local data");
 			}
 
-			// Fallback to local data processing with consistent mock data
+			// Try to use live data first, fallback to mock data
 			const mockSeed = latitude + longitude;
-			const nearbySpots = surfSpotsData
-				.map((spot, index) => {
-					const spotSeed = mockSeed + index * 37;
-					return createEnrichedSpot(spot, spotSeed, {
+			const spotsWithLiveData = [];
+			
+			console.log("🌊 Attempting to fetch live data for nearby spots...");
+			
+			for (const [index, spot] of surfSpotsData.entries()) {
+				try {
+					// Try live data first
+					const liveSpot = await createLiveEnrichedSpot(spot, mockSeed + index * 37, {
 						latitude,
 						longitude,
 					});
-				})
+					spotsWithLiveData.push(liveSpot);
+					console.log(`✅ Live data loaded for ${spot.name}`);
+				} catch (error) {
+					// Fallback to mock data
+					console.log(`⚠️ Using mock data for ${spot.name}:`, error);
+					const mockSpot = createEnrichedSpot(spot, mockSeed + index * 37, {
+						latitude,
+						longitude,
+					});
+					spotsWithLiveData.push(mockSpot);
+				}
+			}
+			
+			const nearbySpots = spotsWithLiveData
 				.filter((spot) => spot.distance <= 100) // 100km
 				.sort((a, b) => b.surfScore - a.surfScore) // Sort by score, not distance
 				.slice(0, 10);
@@ -420,13 +438,13 @@ export default function Home() {
 													{/* Wind Direction Compass */}
 													<WindDirectionCompass
 														spotDirection={(() => {
-															const swellDir =
-																spot.optimalSwellDir;
+															const windDir =
+																spot.optimalWindDir;
 															return Array.isArray(
-																swellDir
+																windDir
 															)
-																? swellDir[0]
-																: swellDir ||
+																? windDir[0]
+																: windDir ||
 																		180;
 														})()}
 														windDirection={
@@ -435,8 +453,9 @@ export default function Home() {
 															225
 														}
 														hourlyWindData={
-															spot.hourlyData
-																?.windDirection
+															spot.hourlyData && Array.isArray(spot.hourlyData)
+																? spot.hourlyData.map(h => h.windDirection || 225)
+																: undefined
 														}
 														height={120}
 														variant="compact"
@@ -474,7 +493,7 @@ export default function Home() {
 
 													{/* Professional Hourly Chart */}
 													<ProfessionalHourlyChart
-														data={spot.hourlyData}
+														data={spot.hourlyData && Array.isArray(spot.hourlyData) ? spot.hourlyData : []}
 														height={150}
 														className="border-0"
 														variant="compact"

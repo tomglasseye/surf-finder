@@ -104,18 +104,18 @@ export default function ProfessionalHourlyChart({
 	const surfData = data || generateMockData();
 
 	// Transform data for Recharts with unit conversions
-	const chartData = surfData.times.map((time, index) => {
+	const chartData = (surfData?.times && Array.isArray(surfData.times) ? surfData.times : []).map((time, index) => {
 		const timeObj = new Date(time);
 		const windDir = surfData.windDirection?.[index];
 		return {
 			time: timeObj.getHours(),
 			timeLabel: `${timeObj.getHours().toString().padStart(2, "0")}:00`,
 			waveHeight: parseFloat(
-				((surfData.waveHeight[index] || 0) * 3.28084).toFixed(1)
+				(((surfData?.waveHeight?.[index] || 0)) * 3.28084).toFixed(1)
 			), // Convert m to ft
-			period: parseFloat(surfData.period[index]?.toFixed(1) || "0"),
+			period: parseFloat(surfData?.period?.[index]?.toFixed(1) || "0"),
 			windSpeed: parseFloat(
-				((surfData.windSpeed[index] || 0) * 0.621371).toFixed(1)
+				(((surfData?.windSpeed?.[index] || 0)) * 0.621371).toFixed(1)
 			), // Convert km/h to mph
 			windDirection: windDir,
 			windDirectionText:
@@ -138,7 +138,7 @@ export default function ProfessionalHourlyChart({
 			return (
 				<div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
 					<p className="font-semibold text-gray-800">{`${label}:00`}</p>
-					{filteredPayload.map((entry: any, index: number) => (
+					{filteredPayload && Array.isArray(filteredPayload) && filteredPayload.map((entry: any, index: number) => (
 						<p
 							key={index}
 							style={{ color: entry.color }}

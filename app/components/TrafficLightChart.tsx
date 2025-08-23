@@ -1,4 +1,5 @@
 import React from "react";
+import { calculateSurfScore } from "../utils/surfScore";
 
 interface TrafficLightData {
 	hour: number;
@@ -6,11 +7,19 @@ interface TrafficLightData {
 	time: string;
 }
 
+interface SpotPreferences {
+	bestTide?: string;
+	optimalWindDir?: number[];
+	optimalSwellDir?: number[];
+}
+
 interface TrafficLightChartProps {
 	data?: TrafficLightData[];
 	height?: number;
 	className?: string;
 	variant?: "default" | "compact";
+	spotPreferences?: SpotPreferences;
+	hourlyData?: any[];
 }
 
 const TrafficLightChart: React.FC<TrafficLightChartProps> = ({
@@ -18,12 +27,41 @@ const TrafficLightChart: React.FC<TrafficLightChartProps> = ({
 	height = 80,
 	className = "",
 	variant = "default",
+	spotPreferences,
+	hourlyData,
 }) => {
 	const generateHourlyData = (): TrafficLightData[] => {
 		if (data && data.length > 0) {
 			return data;
 		}
 
+		// If we have real hourly data and spot preferences, calculate real scores
+		if (hourlyData && Array.isArray(hourlyData) && spotPreferences && hourlyData.length > 0) {
+			return hourlyData.map(hourData => {
+				// Ensure hourData is valid
+				if (!hourData || typeof hourData !== 'object') {
+					return null;
+				}
+				const conditions = {
+					waveHeight: hourData.waveHeight || 1.2,
+					period: hourData.period || 8,
+					windSpeed: hourData.windSpeed || 10,
+					windDirection: hourData.windDirection || 225,
+					swellDirection: hourData.swellDirection || 270,
+					tideLevel: hourData.tideLevel || 0.5, // This is the key tide integration
+				};
+
+				const score = calculateSurfScore(conditions, spotPreferences);
+				
+				return {
+					hour: hourData.hour || 0,
+					score: score,
+					time: hourData.time || `${(hourData.hour || 0).toString().padStart(2, '0')}:00`,
+				};
+			}).filter(item => item !== null); // Remove any null entries
+		}
+
+		// Fallback to mock data
 		const hours = [];
 		const now = new Date();
 
@@ -50,7 +88,7 @@ const TrafficLightChart: React.FC<TrafficLightChartProps> = ({
 		return hours;
 	};
 
-	const hourlyData = generateHourlyData();
+	const trafficLightData = generateHourlyData();
 
 	const getTrafficLightColor = (score: number): string => {
 		if (score >= 7) return "#10b981"; // Green (excellent)
@@ -97,9 +135,10 @@ const TrafficLightChart: React.FC<TrafficLightChartProps> = ({
 
 			<div className="relative" style={{ height: `${height}px` }}>
 				<div className="flex items-end justify-between h-full">
-					{hourlyData.map((dataPoint, index) => {
-						const color = getTrafficLightColor(dataPoint.score);
-						const opacity = Math.max(0.3, dataPoint.score / 10);
+					{trafficLightData.map((dataPoint, index) => {
+						const score = dataPoint?.score || 0;
+						const color = getTrafficLightColor(score);
+						const opacity = Math.max(0.3, score / 10);
 
 						return (
 							<div
@@ -115,7 +154,7 @@ const TrafficLightChart: React.FC<TrafficLightChartProps> = ({
 										backgroundColor: color,
 										opacity: opacity,
 									}}
-									title={`${dataPoint.time}: ${dataPoint.score.toFixed(1)}/10 (${getScoreLabel(dataPoint.score)})`}
+									title={`${dataPoint?.time || '00:00'}: ${score.toFixed(1)}/10 (${getScoreLabel(score)})`}
 								/>
 
 								<div className="text-xs text-gray-500 mt-1 absolute -bottom-6">
@@ -129,8 +168,8 @@ const TrafficLightChart: React.FC<TrafficLightChartProps> = ({
 								</div>
 
 								<div className="opacity-0 group-hover:opacity-100 absolute bottom-full mb-2 bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10 pointer-events-none transition-opacity">
-									{dataPoint.time}:{" "}
-									{dataPoint.score.toFixed(1)}/10
+									{dataPoint?.time || '00:00'}:{" "}
+									{score.toFixed(1)}/10
 									<div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-gray-800"></div>
 								</div>
 							</div>

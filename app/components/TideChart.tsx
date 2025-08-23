@@ -364,19 +364,14 @@ export default function TideChart({
 		
 		console.log(`📅 Found ${todaysEvents.length} events for today:`, todaysEvents);
 		
-		// Find the next high and low tide from today's events
-		const nextHigh = todaysEvents.find(event => event.type === "high");
-		const nextLow = todaysEvents.find(event => event.type === "low");
+		// Add all high and low tides from today's events
+		todaysEvents.forEach((event, index) => {
+			if (event.type === "high" || event.type === "low") {
+				uniqueTideEvents.set(`${event.type}-${event.time}-${index}`, event);
+			}
+		});
 		
-		console.log(`🏔️ Next high:`, nextHigh);
-		console.log(`🏞️ Next low:`, nextLow);
-		
-		if (nextHigh) {
-			uniqueTideEvents.set(`high-${nextHigh.time}`, nextHigh);
-		}
-		if (nextLow) {
-			uniqueTideEvents.set(`low-${nextLow.time}`, nextLow);
-		}
+		console.log(`🏔️ All tide events for today:`, Array.from(uniqueTideEvents.values()));
 
 		console.log(`🌊 Found ${uniqueTideEvents.size} unique tide events:`, Array.from(uniqueTideEvents.keys()));
 		
@@ -435,7 +430,7 @@ export default function TideChart({
 						strokeDasharray="4 4"
 						label={{
 							value: `Low ${event.height.toFixed(1)}m`,
-							position: "bottom",
+							position: "top",
 							fontSize: 11,
 							fill: "#ef4444",
 						}}
@@ -593,9 +588,11 @@ export default function TideChart({
 					}
 				});
 				
-				const endTime = "23:59";
+				// Use the last data point in the chart as the end time
+				const lastDataPoint = chartData[chartData.length - 1];
+				const endTime = lastDataPoint.time;
 				
-				// Night area from sunset to midnight
+				// Night area from sunset to end of day
 				areas.push(
 					<ReferenceArea
 						key="night-end"
@@ -606,7 +603,7 @@ export default function TideChart({
 						stroke="none"
 					/>
 				);
-				console.log(`🌙 Added evening night area: ${closestSunsetPoint.time} (sunset closest match) to ${endTime}`);
+				console.log(`🌙 Added evening night area: ${closestSunsetPoint.time} (sunset closest match) to ${endTime} (last data point)`);
 			}
 		} else {
 			console.log(`❌ No sun times found for night areas on ${todayStr}`);

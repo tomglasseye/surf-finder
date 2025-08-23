@@ -55,7 +55,8 @@ export default function HourlySurfChart({
 
   // Create paths for each metric
   const createPath = (values: number[], maxValue: number) => {
-    const normalizedValues = values.map(v => Math.min(v / maxValue, 1));
+    const safeValues = values && Array.isArray(values) ? values : [];
+    const normalizedValues = safeValues.map(v => Math.min(v / maxValue, 1));
     const pathData = normalizedValues.map((value, index) => {
       const x = (index / (values.length - 1)) * graphWidth;
       const y = graphHeight - (value * graphHeight * 0.8) - (graphHeight * 0.1); // Leave 10% margin top/bottom
@@ -174,13 +175,13 @@ export default function HourlySurfChart({
             />
             
             {/* Enhanced data points */}
-            {surfData.waveHeight.map((_, index) => {
+            {(surfData?.waveHeight && Array.isArray(surfData.waveHeight) ? surfData.waveHeight : []).map((_, index) => {
               if (index % (variant === 'compact' ? 6 : 3) !== 0) return null;
               
-              const x = (index / (surfData.waveHeight.length - 1)) * graphWidth;
-              const waveY = graphHeight - ((surfData.waveHeight[index] / maxWave) * graphHeight * 0.8) - (graphHeight * 0.1);
-              const periodY = graphHeight - ((surfData.period[index] / maxPeriod) * graphHeight * 0.8) - (graphHeight * 0.1);
-              const windY = graphHeight - ((surfData.windSpeed[index] / maxWind) * graphHeight * 0.8) - (graphHeight * 0.1);
+              const x = (index / ((surfData?.waveHeight?.length || 1) - 1)) * graphWidth;
+              const waveY = graphHeight - (((surfData?.waveHeight?.[index] || 0) / maxWave) * graphHeight * 0.8) - (graphHeight * 0.1);
+              const periodY = graphHeight - (((surfData?.period?.[index] || 0) / maxPeriod) * graphHeight * 0.8) - (graphHeight * 0.1);
+              const windY = graphHeight - (((surfData?.windSpeed?.[index] || 0) / maxWind) * graphHeight * 0.8) - (graphHeight * 0.1);
               
               return (
                 <g key={index}>
@@ -226,7 +227,7 @@ export default function HourlySurfChart({
           {[0, 6, 12, 18, 23].map(hour => (
             <div key={hour} className="text-center">
               <div className="text-xs font-medium text-gray-600 bg-white rounded px-2 py-1 shadow-sm border">
-                {formatTime(surfData.times[hour])}
+                {formatTime(surfData?.times?.[hour] || new Date().toISOString())}
               </div>
               {hour === new Date().getHours() && (
                 <div className="text-xs text-red-500 font-bold mt-1">NOW</div>

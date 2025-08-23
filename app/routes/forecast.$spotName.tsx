@@ -12,6 +12,7 @@ import TideGraph from "../components/TideGraph";
 import HourlySurfChart from "../components/HourlySurfChart";
 import ProfessionalTideChart from "../components/ProfessionalTideChart";
 import SimpleTideChart from "../components/SimpleTideChart";
+import RawTideChart from "../components/RawTideChart";
 import ProfessionalHourlyChart from "../components/ProfessionalHourlyChart";
 import BestTimeDisplay from "../components/BestTimeDisplay";
 import TrafficLightChart from "../components/TrafficLightChart";
@@ -348,24 +349,16 @@ export default function ForecastSpot() {
 										/>
 									</div>
 
-									{/* Daily Tide Chart - Testing Simple Version */}
+									{/* Daily Tide Chart - Testing Raw Data Version */}
 									<div className="mb-4">
-										<SimpleTideChart
-											tideData={day.tideData}
-											height={200}
-											showHours={24}
-											className="border-0"
-											latitude={
-												lat
-													? parseFloat(lat)
-													: undefined
-											}
-											longitude={
-												lng
-													? parseFloat(lng)
-													: undefined
-											}
-										/>
+										{day.tideData && (
+											<RawTideChart
+												tideData={day.tideData}
+												spotName={
+													spotName || "Unknown Spot"
+												}
+											/>
+										)}
 									</div>
 
 									{/* Wind Direction Compass */}

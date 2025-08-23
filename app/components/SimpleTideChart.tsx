@@ -142,14 +142,15 @@ export default function SimpleTideChart({
 						beforeEvent.type === "high" &&
 						afterEvent.type === "low"
 					) {
-						// Falling tide: HIGH → LOW - use inverted cosine curve
-						smoothProgress = (1 + Math.cos(progress * Math.PI)) / 2;
+						// Falling tide: HIGH → LOW - use standard cosine curve (starts high, curves down)
+						smoothProgress = (1 - Math.cos(progress * Math.PI)) / 2;
 					} else if (
 						beforeEvent.type === "low" &&
 						afterEvent.type === "high"
 					) {
-						// Rising tide: LOW → HIGH - use standard cosine curve
-						smoothProgress = (1 - Math.cos(progress * Math.PI)) / 2;
+						// Rising tide: LOW → HIGH - use inverted cosine curve (starts low, curves up)
+						smoothProgress =
+							(1 + Math.cos((1 - progress) * Math.PI)) / 2;
 					} else {
 						// Same type events - linear interpolation
 						smoothProgress = progress;

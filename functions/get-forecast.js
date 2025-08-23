@@ -90,11 +90,12 @@ const CACHE_CONFIG = {
 	CLEANUP_INTERVAL: 1000 * 60 * 60 * 12, // Clean cache every 12 hours
 };
 
-// Cache key generator - no date needed since extremes are valid for days
-const getTideCacheKey = (latitude, longitude) => {
+// Cache key generator - include date for specific tide data
+const getTideCacheKey = (latitude, longitude, targetDate = null) => {
 	const lat = Math.round(latitude * 1000) / 1000; // Round to 3 decimal places for precision
 	const lng = Math.round(longitude * 1000) / 1000;
-	return `tide_extremes_${lat}_${lng}`; // No date - extremes valid for days
+	const date = targetDate ? targetDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+	return `tide_extremes_${lat}_${lng}_${date}`; // Include date for specific tide data
 };
 
 // Enhanced cache validation with daily expiration (perfect for tides)
@@ -181,7 +182,7 @@ const warmPopularCaches = async () => {
 	console.log("🔥 Warming cache for popular locations...");
 
 	for (const location of POPULAR_LOCATIONS) {
-		const cacheKey = getTideCacheKey(location.lat, location.lng);
+		const cacheKey = getTideCacheKey(location.lat, location.lng, new Date());
 		const cached = tideCache.get(cacheKey);
 
 		if (!cached || !isTideCacheValid(cached)) {
@@ -299,71 +300,24 @@ const calculateCurrentTideFromExtremes = (
 	};
 };
 
-async function getTideData(latitude, longitude) {
+async function getTideData(latitude, longitude, targetDate = null) {
 	try {
-		// Check cache first with enhanced validation
-		const cacheKey = getTideCacheKey(latitude, longitude);
-		const cachedData = tideCache.get(cacheKey);
-
-		if (cachedData && isTideCacheValid(cachedData)) {
-			const cacheAge =
-				Math.round(
-					(Date.now() - new Date(cachedData.timestamp)) /
-						(1000 * 60 * 60 * 10)
-				) / 100; // Hours with 2 decimal places
-			console.log(
-				`✅ Using cached tide extremes for ${latitude}, ${longitude} (${cacheAge}h old)`
-			);
-
-			// Calculate current tide level from cached extremes data
-			const currentTide = calculateCurrentTideFromExtremes(
-				cachedData.data
-			);
-			if (currentTide) {
-				console.log(
-					`🌊 Calculated tide: ${currentTide.currentHeight}m ${currentTide.direction} (${currentTide.confidence} confidence)`
-				);
-				// Process cached data based on source
-				if (cachedData.source === "admiralty_api") {
-					return processAdmiraltyTideData(
-						cachedData.data.data,
-						new Date()
-					);
-				} else {
-					return processStormGlassTideData(
-						cachedData.data,
-						new Date()
-					);
-				}
-			}
-		}
-
-		// Check API quota before making request
-		const apiUsage = trackApiUsage();
-		console.log(
-			`📊 API Usage: ${apiUsage}/${CACHE_CONFIG.API_DAILY_LIMIT} calls today`
-		);
-
-		if (!canMakeApiCall()) {
-			console.log(
-				`⚠️  API quota limit reached (${CACHE_CONFIG.API_DAILY_LIMIT} calls/day). Using fallback calculation.`
-			);
-			return getEnhancedTideCalculation(latitude, longitude);
-		}
-
+		// Use target date or current date
+		const dateToUse = targetDate ? new Date(targetDate) : new Date();
+		
 		// UK Admiralty API - Official UK Government Tide Data
-		// const admiraltyApiKey = process.env.ADMIRALTY_API_KEY;
+		const admiraltyApiKey = process.env.ADMIRALTY_API_KEY;
 
-		// console.log(
-		// 	`🔑 API Key check: ${admiraltyApiKey ? "PRESENT" : "MISSING"}`
-		// );
+		console.log(
+			`🔑 API Key check: ${admiraltyApiKey ? "PRESENT" : "MISSING"}`
+		);
 		console.log(`🌍 Environment: ${process.env.NODE_ENV || "unknown"}`);
 
-		// Disabled API key checking for clean setup
-		if (false) {
+		// Try UK Admiralty API first
+		if (admiraltyApiKey) {
 			try {
 				console.log(
-					`�🇧 Fetching tide data from UK Admiralty API for: ${latitude}, ${longitude}`
+					`🇬🇧 Fetching tide data from UK Admiralty API for: ${latitude}, ${longitude} on ${dateToUse.toISOString().split('T')[0]}`
 				);
 
 				// First, find the nearest tidal station
@@ -416,16 +370,12 @@ async function getTideData(latitude, longitude) {
 					`� Using station: ${closestStation.properties.Name} (${(minDistance * 111).toFixed(1)}km away)`
 				);
 
-				// Get tide data for the next 3 days
-				const today = new Date().toISOString().split("T")[0];
-				const futureDate = new Date(
-					Date.now() + 3 * 24 * 60 * 60 * 1000
-				)
-					.toISOString()
-					.split("T")[0];
+				// Get tide data for the target date
+				const startDate = dateToUse.toISOString().split("T")[0];
+				const endDate = new Date(dateToUse.getTime() + 24 * 60 * 60 * 1000).toISOString().split("T")[0]; // Next day
 
 				const tideResponse = await fetch(
-					`https://admiraltyapi.azure-api.net/uktidalapi/api/V1/Stations/${closestStation.properties.Id}/TidalEvents?StartDateTime=${today}&EndDateTime=${futureDate}`,
+					`https://admiraltyapi.azure-api.net/uktidalapi/api/V1/Stations/${closestStation.properties.Id}/TidalEvents?StartDateTime=${startDate}&EndDateTime=${endDate}`,
 					{
 						headers: {
 							"Ocp-Apim-Subscription-Key": admiraltyApiKey,
@@ -442,29 +392,11 @@ async function getTideData(latitude, longitude) {
 
 				const tideEvents = await tideResponse.json();
 				console.log(
-					`✅ Admiralty API success: ${tideEvents.length} tide events fetched`
+					`✅ Admiralty API success: ${tideEvents.length} tide events fetched for ${dateToUse.toISOString().split('T')[0]}`
 				);
 
-				// Store in cache
-				const cacheData = {
-					data: { data: tideEvents }, // Wrap in data object for compatibility
-					timestamp: new Date().toISOString(),
-					latitude: latitude,
-					longitude: longitude,
-					source: "admiralty_api",
-					station: closestStation.properties.Name,
-					stationId: closestStation.properties.Id,
-					extremeCount: tideEvents.length,
-				};
-
-				tideCache.set(cacheKey, cacheData);
-				console.log(
-					`💾 Cached tide data from ${closestStation.properties.Name}`
-				);
-
-				// Process Admiralty data
-				const now = new Date();
-				return processAdmiraltyTideData(tideEvents, now);
+				// Process Admiralty data for the target date
+				return processAdmiraltyTideData(tideEvents, dateToUse);
 			} catch (admiraltyError) {
 				console.log(
 					`❌ Admiralty API error: ${admiraltyError.message}`
@@ -501,7 +433,7 @@ async function getTideData(latitude, longitude) {
 		return getEnhancedTideCalculation(latitude, longitude);
 	} catch (error) {
 		console.error(`❌ Error in getTideData: ${error.message}`);
-		return getEnhancedTideCalculation(latitude, longitude);
+		return getEnhancedTideCalculation(latitude, longitude, dateToUse);
 	}
 }
 
@@ -512,14 +444,14 @@ function recalculateCurrentTideLevel(cachedTideData) {
 }
 
 // Process StormGlass tide extremes data
-function processStormGlassTideData(tidesData, now) {
+function processStormGlassTideData(tidesData, targetDate) {
 	let currentLevel = 0.5;
 	let isRising = true;
 	let nextHigh = null;
 	let nextLow = null;
 
 	if (tidesData.data && tidesData.data.length > 0) {
-		const currentTime = now.getTime();
+		const targetTime = targetDate.getTime();
 
 		// Find next high and low tide times
 		const futureExtremes = tidesData.data
@@ -613,18 +545,19 @@ function processStormGlassTideData(tidesData, now) {
 }
 
 // Process UK Admiralty tide data - official UK government data
-function processAdmiraltyTideData(tideEvents, now) {
+function processAdmiraltyTideData(tideEvents, targetDate) {
 	let currentLevel = 0.5;
 	let isRising = true;
 	let nextHigh = null;
 	let nextLow = null;
 
 	if (tideEvents && tideEvents.length > 0) {
-		const currentTime = now.getTime();
+		// Use target date instead of current time for forecast days
+		const targetTime = targetDate.getTime();
 
-		// Find next high and low tide times
+		// Find next high and low tide times from the target date
 		const futureEvents = tideEvents
-			.filter((event) => new Date(event.DateTime).getTime() > currentTime)
+			.filter((event) => new Date(event.DateTime).getTime() > targetTime)
 			.sort((a, b) => new Date(a.DateTime) - new Date(b.DateTime));
 
 		for (const event of futureEvents) {
@@ -649,12 +582,12 @@ function processAdmiraltyTideData(tideEvents, now) {
 			const nextEventTime = new Date(nextEvent.DateTime).getTime();
 
 			if (
-				currentEventTime <= currentTime &&
-				currentTime <= nextEventTime
+				currentEventTime <= targetTime &&
+				targetTime <= nextEventTime
 			) {
 				intervalFound = true;
 				const progress =
-					(currentTime - currentEventTime) /
+					(targetTime - currentEventTime) /
 					(nextEventTime - currentEventTime);
 
 				// Use actual height data if available
@@ -742,8 +675,8 @@ function processAdmiraltyTideData(tideEvents, now) {
 }
 
 // Enhanced harmonic calculation fallback
-function getEnhancedTideCalculation(latitude, longitude) {
-	const currentTime = new Date();
+function getEnhancedTideCalculation(latitude, longitude, targetDate = null) {
+	const currentTime = targetDate ? new Date(targetDate) : new Date();
 
 	// Enhanced tidal calculation with multiple harmonic components
 	const M2_PERIOD = 12.420601 * 3600000; // Main lunar semi-diurnal
@@ -1289,7 +1222,7 @@ function calculateBestTimeOfDay(
 	};
 }
 
-function processHourlyToDaily(marineData, windData, tideData) {
+async function processHourlyToDaily(marineData, windData, latitude, longitude) {
 	const times = marineData.hourly?.time || [];
 	const dailyData = [];
 
@@ -1306,7 +1239,6 @@ function processHourlyToDaily(marineData, windData, tideData) {
 				swellDirection: [],
 				windSpeed: [],
 				windDirection: [],
-				tideData: tideData, // Add tide data to each day
 			};
 		}
 
@@ -1326,7 +1258,18 @@ function processHourlyToDaily(marineData, windData, tideData) {
 		);
 	});
 
-	return Object.values(days);
+	// Get tide data for each day
+	const daysArray = Object.values(days);
+	for (let dayData of daysArray) {
+		try {
+			dayData.tideData = await getTideData(latitude, longitude, dayData.date);
+		} catch (error) {
+			console.error(`Error getting tide data for ${dayData.date}:`, error);
+			dayData.tideData = getEnhancedTideCalculation(latitude, longitude, dayData.date);
+		}
+	}
+
+	return daysArray;
 }
 
 export const handler = async (event, context) => {
@@ -1379,11 +1322,8 @@ export const handler = async (event, context) => {
 					Math.abs(s.longitude - longitude) < 0.01)
 		);
 
-		// Get 5-day forecast and tide data
-		const [forecastData, tideData] = await Promise.all([
-			get5DayForecast(latitude, longitude),
-			getTideData(latitude, longitude),
-		]);
+		// Get 5-day forecast
+		const forecastData = await get5DayForecast(latitude, longitude);
 
 		if (!forecastData) {
 			return {
@@ -1395,11 +1335,12 @@ export const handler = async (event, context) => {
 			};
 		}
 
-		// Process hourly to daily
-		const dailyData = processHourlyToDaily(
+		// Process hourly to daily (including tide data for each day)
+		const dailyData = await processHourlyToDaily(
 			forecastData.marineData,
 			forecastData.windData,
-			tideData
+			latitude,
+			longitude
 		);
 
 		// Calculate scores for each day

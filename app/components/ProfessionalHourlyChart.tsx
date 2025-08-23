@@ -102,14 +102,46 @@ export default function ProfessionalHourlyChart({
 	};
 
 	const surfData = data || generateMockData();
+	
+	console.log('📊 ProfessionalHourlyChart received data:', {
+		hasData: !!data,
+		dataKeys: data ? Object.keys(data) : 'null',
+		timesLength: data?.times?.length || 0,
+		waveHeightLength: data?.waveHeight?.length || 0,
+		usingMockData: !data,
+		surfDataKeys: surfData ? Object.keys(surfData) : 'null',
+		surfDataTimesLength: surfData?.times?.length || 0
+	});
+	
+	console.log('🔥🔥🔥 TRANSFORMATION STARTING NOW 🔥🔥🔥');
+	console.log('surfData.times type:', typeof surfData?.times, 'isArray:', Array.isArray(surfData?.times));
+	console.log('surfData.times sample:', surfData?.times?.slice(0, 2));
+	console.log('surfData.times full array:', surfData?.times);
+	console.log('surfData full object:', surfData);
 
 	// Transform data for Recharts with unit conversions
-	const chartData = (surfData?.times && Array.isArray(surfData.times) ? surfData.times : []).map((time, index) => {
-		const timeObj = new Date(time);
+	let chartData;
+	try {
+		chartData = (surfData?.times && Array.isArray(surfData.times) ? surfData.times : []).map((time, index) => {
+		// Handle time parsing - could be ISO string or hour string like '00:00'
+		let timeObj;
+		let hourValue;
+		
+		if (time.includes(':')) {
+			// Time format like '00:00' - extract hour
+			hourValue = parseInt(time.split(':')[0]);
+			timeObj = new Date();
+			timeObj.setHours(hourValue, 0, 0, 0);
+		} else {
+			// ISO string format
+			timeObj = new Date(time);
+			hourValue = timeObj.getHours();
+		}
+		
 		const windDir = surfData.windDirection?.[index];
-		return {
-			time: timeObj.getHours(),
-			timeLabel: `${timeObj.getHours().toString().padStart(2, "0")}:00`,
+		const transformedData = {
+			time: hourValue,
+			timeLabel: `${hourValue.toString().padStart(2, "0")}:00`,
 			waveHeight: parseFloat(
 				(((surfData?.waveHeight?.[index] || 0)) * 3.28084).toFixed(1)
 			), // Convert m to ft
@@ -120,9 +152,38 @@ export default function ProfessionalHourlyChart({
 			windDirection: windDir,
 			windDirectionText:
 				windDir !== undefined ? getWindDirectionText(windDir) : "N/A",
-			isNow: timeObj.getHours() === new Date().getHours(),
+			isNow: hourValue === new Date().getHours(),
 		};
+		
+		// Log first few data points to debug
+		if (index < 3) {
+			console.log(`📊 Chart data point ${index}:`, transformedData);
+		}
+		
+		return transformedData;
 	});
+	} catch (error) {
+		console.error('📊 Error transforming chart data:', error);
+		chartData = [];
+	}
+	
+	console.log('📊 Final chartData array:', {
+		length: chartData.length,
+		firstItem: chartData[0],
+		lastItem: chartData[chartData.length - 1],
+		hasValidWaveHeight: chartData.some(d => d.waveHeight > 0),
+		hasValidPeriod: chartData.some(d => d.period > 0),
+		hasValidWindSpeed: chartData.some(d => d.windSpeed > 0),
+		waveHeightRange: [Math.min(...chartData.map(d => d.waveHeight)), Math.max(...chartData.map(d => d.waveHeight))],
+		periodRange: [Math.min(...chartData.map(d => d.period)), Math.max(...chartData.map(d => d.period))],
+		windSpeedRange: [Math.min(...chartData.map(d => d.windSpeed)), Math.max(...chartData.map(d => d.windSpeed))]
+	});
+
+	// Ensure we have valid data
+	if (chartData.length === 0) {
+		console.error('📊 No chart data generated!');
+		return <div className="text-red-500 p-4">No chart data available</div>;
+	}
 
 	// Custom tooltip
 	const CustomTooltip = ({ active, payload, label }: any) => {
@@ -238,6 +299,7 @@ export default function ProfessionalHourlyChart({
 								yAxisId="left"
 								stroke="#3b82f6"
 								fontSize={12}
+								domain={[0, 'dataMax + 1']}
 								label={{
 									value: "Wave Height (ft)",
 									angle: -90,
@@ -251,6 +313,7 @@ export default function ProfessionalHourlyChart({
 								orientation="right"
 								stroke="#8b5cf6"
 								fontSize={12}
+								domain={[0, 'dataMax + 2']}
 								label={{
 									value: "Period (s) / Wind (mph)",
 									angle: 90,

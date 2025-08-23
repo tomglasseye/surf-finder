@@ -493,7 +493,24 @@ export default function Home() {
 
 													{/* Professional Hourly Chart */}
 													<ProfessionalHourlyChart
-														data={spot.hourlyData && Array.isArray(spot.hourlyData) ? spot.hourlyData : []}
+														data={spot.hourlyData && Array.isArray(spot.hourlyData) ? (() => {
+															console.log('🔍 HOURLY CHART DATA CHECK:', {
+																hasData: !!spot.hourlyData,
+																length: spot.hourlyData?.length,
+																sampleItem: spot.hourlyData?.[0],
+																transformedWaveHeight: spot.hourlyData.map(h => h.waveHeight || 0).slice(0, 3)
+															});
+															return {
+																waveHeight: spot.hourlyData.map(h => h.waveHeight || 0),
+																period: spot.hourlyData.map(h => h.period || 0),
+																windSpeed: spot.hourlyData.map(h => h.windSpeed || 0),
+																windDirection: spot.hourlyData.map(h => h.windDirection || 0),
+																times: spot.hourlyData.map(h => h.time || new Date().toISOString())
+															};
+														})() : (() => {
+															console.log('🔍 HOURLY CHART: NO DATA - spot.hourlyData is null/undefined/empty');
+															return null;
+														})()}
 														height={150}
 														className="border-0"
 														variant="compact"

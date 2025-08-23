@@ -512,7 +512,13 @@ export default function ForecastSpot() {
 									{/* Hourly Surf Conditions Chart */}
 									<div className="mb-4">
 										<ProfessionalHourlyChart
-											data={day.hourlyData && Array.isArray(day.hourlyData) ? day.hourlyData : []}
+											data={day.hourlyData && Array.isArray(day.hourlyData) ? {
+												waveHeight: day.hourlyData.map(h => h.waveHeight || 0),
+												period: day.hourlyData.map(h => h.period || 0),
+												windSpeed: day.hourlyData.map(h => h.windSpeed || 0),
+												windDirection: day.hourlyData.map(h => h.windDirection || 0),
+												times: day.hourlyData.map(h => h.time || new Date().toISOString())
+											} : null}
 											height={180}
 											className="border-0"
 											variant="compact"

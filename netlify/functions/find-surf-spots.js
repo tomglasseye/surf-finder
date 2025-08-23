@@ -163,210 +163,361 @@ function directionScore(actualDir, optimalRange) {
 
 async function getTideData(latitude, longitude) {
 	try {
-		// UK Admiralty API for real tide predictions
-		// Sign up at https://developer.admiralty.co.uk/ to get your API key
+		// UK Admiralty API - Official UK Government Tide Data
 		const admiraltyApiKey = process.env.ADMIRALTY_API_KEY;
+
+		console.log(
+			`🔑 Find-spots API Key check: ${admiraltyApiKey ? "PRESENT" : "MISSING"}`
+		);
 
 		if (admiraltyApiKey) {
 			try {
-				// UK Admiralty API endpoint for tide predictions
-				const admiraltyUrl = `https://admiraltyapi.portal.azure-api.net/ukho/tides/api/V1/Stations/${latitude}/${longitude}/TidalPredictions`;
+				console.log(
+					`🇬🇧 Find-spots: Fetching tide data from UK Admiralty API for: ${latitude}, ${longitude}`
+				);
 
-				const response = await fetch(admiraltyUrl, {
-					headers: {
-						"Ocp-Apim-Subscription-Key": admiraltyApiKey,
-						"Content-Type": "application/json",
-					},
-				});
-
-				if (response.ok) {
-					const tidesData = await response.json();
-
-					// Process Admiralty API response
-					const now = new Date();
-					let currentLevel = 0.5; // Default fallback
-					let isRising = true;
-					let nextHigh = null;
-					let nextLow = null;
-
-					if (tidesData && tidesData.tidalPredictions) {
-						const predictions = tidesData.tidalPredictions;
-
-						// Find current tide level by interpolating between nearest predictions
-						const currentTime = now.getTime();
-						let closestBefore = null;
-						let closestAfter = null;
-
-						for (const prediction of predictions) {
-							const predictionTime = new Date(
-								prediction.dateTime
-							).getTime();
-
-							if (predictionTime <= currentTime) {
-								closestBefore = prediction;
-							} else if (
-								predictionTime > currentTime &&
-								!closestAfter
-							) {
-								closestAfter = prediction;
-							}
-
-							// Find next high and low tides
-							if (predictionTime > currentTime) {
-								if (
-									prediction.eventType === "HighWater" &&
-									!nextHigh
-								) {
-									nextHigh = new Date(prediction.dateTime);
-								} else if (
-									prediction.eventType === "LowWater" &&
-									!nextLow
-								) {
-									nextLow = new Date(prediction.dateTime);
-								}
-							}
-						}
-
-						// Interpolate current tide level
-						if (closestBefore && closestAfter) {
-							const beforeTime = new Date(
-								closestBefore.dateTime
-							).getTime();
-							const afterTime = new Date(
-								closestAfter.dateTime
-							).getTime();
-							const timeDiff = afterTime - beforeTime;
-							const currentProgress =
-								(currentTime - beforeTime) / timeDiff;
-
-							// Normalize heights to 0-1 scale (assuming typical UK tide range of 0-10m)
-							const beforeHeight = Math.max(
-								0,
-								Math.min(1, closestBefore.height / 10)
-							);
-							const afterHeight = Math.max(
-								0,
-								Math.min(1, closestAfter.height / 10)
-							);
-
-							currentLevel =
-								beforeHeight +
-								(afterHeight - beforeHeight) * currentProgress;
-							isRising = afterHeight > beforeHeight;
-						}
+				// First, find the nearest tidal station
+				const stationsResponse = await fetch(
+					"https://admiraltyapi.azure-api.net/uktidalapi/api/V1/Stations",
+					{
+						headers: {
+							"Ocp-Apim-Subscription-Key": admiraltyApiKey,
+							"Content-Type": "application/json",
+						},
 					}
+				);
 
-					return {
-						currentLevel: currentLevel,
-						isRising: isRising,
-						nextHigh:
-							nextHigh || new Date(now.getTime() + 6 * 3600000), // Fallback: 6 hours
-						nextLow:
-							nextLow || new Date(now.getTime() + 3 * 3600000), // Fallback: 3 hours
-						source: "admiralty",
-					};
+				if (!stationsResponse.ok) {
+					throw new Error(
+						`Stations API error: ${stationsResponse.status}`
+					);
 				}
+
+				const stationsData = await stationsResponse.json();
+
+				// Find closest station
+				let closestStation = null;
+				let minDistance = Infinity;
+
+				if (stationsData.features) {
+					stationsData.features.forEach((station) => {
+						if (station.geometry && station.geometry.coordinates) {
+							const stationLng = station.geometry.coordinates[0];
+							const stationLat = station.geometry.coordinates[1];
+
+							const distance = Math.sqrt(
+								Math.pow(stationLat - latitude, 2) +
+									Math.pow(stationLng - longitude, 2)
+							);
+
+							if (distance < minDistance) {
+								minDistance = distance;
+								closestStation = station;
+							}
+						}
+					});
+				}
+
+				if (!closestStation) {
+					throw new Error("No suitable tidal station found");
+				}
+
+				console.log(
+					`📍 Find-spots: Using station: ${closestStation.properties.Name} (${(minDistance * 111).toFixed(1)}km away)`
+				);
+
+				// Get tide data for today and tomorrow
+				const today = new Date().toISOString().split("T")[0];
+				const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000)
+					.toISOString()
+					.split("T")[0];
+
+				const tideResponse = await fetch(
+					`https://admiraltyapi.azure-api.net/uktidalapi/api/V1/Stations/${closestStation.properties.Id}/TidalEvents?StartDate=${today}&EndDate=${tomorrow}`,
+					{
+						headers: {
+							"Ocp-Apim-Subscription-Key": admiraltyApiKey,
+							"Content-Type": "application/json",
+						},
+					}
+				);
+
+				if (!tideResponse.ok) {
+					throw new Error(
+						`Tide data API error: ${tideResponse.status}`
+					);
+				}
+
+				const tideEvents = await tideResponse.json();
+				console.log(
+					`✅ Find-spots Admiralty API success: ${tideEvents.length} tide events fetched`
+				);
+
+				// Process Admiralty data using the same function as get-forecast
+				const now = new Date();
+				return processAdmiraltyTideDataFindSpots(tideEvents, now);
 			} catch (admiraltyError) {
 				console.log(
-					"Admiralty API error, falling back to calculation:",
-					admiraltyError.message
+					`❌ Find-spots Admiralty API error: ${admiraltyError.message}`
 				);
+				// Fall through to enhanced calculation below
+			}
+		} else {
+			console.log(
+				"⚠️ Find-spots: No Admiralty API key found - using enhanced calculation"
+			);
+		}
+
+		// Fallback to enhanced harmonic calculation if API fails
+		console.log(
+			`🧮 Find-spots: Using enhanced tidal calculation for ${latitude}, ${longitude}`
+		);
+		return getEnhancedTideCalculationFindSpots(latitude, longitude);
+	} catch (error) {
+		console.error(`❌ Find-spots Error in getTideData: ${error.message}`);
+		return getEnhancedTideCalculationFindSpots(latitude, longitude);
+	}
+}
+
+// Process UK Admiralty tide data - official UK government data (for find-surf-spots)
+function processAdmiraltyTideDataFindSpots(tideEvents, now) {
+	let currentLevel = 0.5;
+	let isRising = true;
+	let nextHigh = null;
+	let nextLow = null;
+
+	if (tideEvents && tideEvents.length > 0) {
+		const currentTime = now.getTime();
+
+		// Find next high and low tide times
+		const futureEvents = tideEvents
+			.filter((event) => new Date(event.DateTime).getTime() > currentTime)
+			.sort((a, b) => new Date(a.DateTime) - new Date(b.DateTime));
+
+		for (const event of futureEvents) {
+			if (event.EventType === "HighWater" && !nextHigh) {
+				nextHigh = new Date(event.DateTime);
+			} else if (event.EventType === "LowWater" && !nextLow) {
+				nextLow = new Date(event.DateTime);
 			}
 		}
 
-		// Fallback: Enhanced tidal calculation based on location and lunar cycles
-		console.log(
-			"Using enhanced tidal calculation for",
-			latitude,
-			longitude
+		// Calculate current tide level using improved cosine interpolation
+		const allEvents = tideEvents.sort(
+			(a, b) => new Date(a.DateTime) - new Date(b.DateTime)
 		);
 
-		const currentTime = new Date();
-		const lunarCycleMs = 12.42 * 60 * 60 * 1000; // ~12.42 hours between high tides
+		// Find the interval containing current time
+		let intervalFound = false;
+		for (let i = 0; i < allEvents.length - 1; i++) {
+			const currentEvent = allEvents[i];
+			const nextEvent = allEvents[i + 1];
+			const currentEventTime = new Date(currentEvent.DateTime).getTime();
+			const nextEventTime = new Date(nextEvent.DateTime).getTime();
 
-		// Location-specific adjustments for UK coastal areas
-		let locationOffset = 0;
+			if (
+				currentEventTime <= currentTime &&
+				currentTime <= nextEventTime
+			) {
+				intervalFound = true;
+				const progress =
+					(currentTime - currentEventTime) /
+					(nextEventTime - currentEventTime);
 
-		// Cornwall (SW England) - earlier tides
-		if (
-			latitude >= 50 &&
-			latitude <= 51 &&
-			longitude >= -6 &&
-			longitude <= -4
-		) {
-			locationOffset = -1.5 * 3600000; // 1.5 hours earlier
-		}
-		// Devon/Dorset coast
-		else if (
-			latitude >= 50 &&
-			latitude <= 51 &&
-			longitude >= -4 &&
-			longitude <= -2
-		) {
-			locationOffset = -1 * 3600000; // 1 hour earlier
-		}
-		// East coast (Norfolk, Suffolk)
-		else if (
-			latitude >= 52 &&
-			latitude <= 53 &&
-			longitude >= 0 &&
-			longitude <= 2
-		) {
-			locationOffset = 2 * 3600000; // 2 hours later
-		}
-		// Scotland west coast
-		else if (latitude >= 55 && longitude <= -4) {
-			locationOffset = -2 * 3600000; // 2 hours earlier
-		}
+				// Use actual height data if available
+				const currentHeight = currentEvent.Height || 0;
+				const nextHeight = nextEvent.Height || 0;
+				const maxHeight = Math.max(
+					...tideEvents.map((e) => e.Height || 0)
+				);
+				const minHeight = Math.min(
+					...tideEvents.map((e) => e.Height || 0)
+				);
 
-		// Calculate base tide times with location offset
-		const adjustedTime = currentTime.getTime() + locationOffset;
-		const seedTime = Math.floor(adjustedTime / lunarCycleMs);
-
-		const tideHigh1 = new Date(seedTime * lunarCycleMs - locationOffset);
-		const tideLow1 = new Date(tideHigh1.getTime() + lunarCycleMs / 2);
-		const tideHigh2 = new Date(tideHigh1.getTime() + lunarCycleMs);
-		const tideLow2 = new Date(tideLow1.getTime() + lunarCycleMs);
-
-		// Calculate current tide level with location-specific range
-		let tideRange = 1.0; // Default range factor
-
-		// Adjust range based on known UK tidal characteristics
-		if (
-			latitude >= 51 &&
-			latitude <= 52 &&
-			longitude >= -3 &&
-			longitude <= -1
-		) {
-			tideRange = 1.2; // Bristol Channel - large tidal range
-		} else if (
-			latitude >= 50 &&
-			latitude <= 51 &&
-			longitude >= -6 &&
-			longitude <= -4
-		) {
-			tideRange = 0.8; // Cornwall - moderate range
+				if (
+					currentEvent.EventType === "HighWater" &&
+					nextEvent.EventType === "LowWater"
+				) {
+					// Falling tide: HIGH → LOW - use inverted cosine curve
+					const smoothProgress =
+						(1 + Math.cos(progress * Math.PI)) / 2;
+					const interpolatedHeight =
+						currentHeight +
+						(nextHeight - currentHeight) * smoothProgress;
+					currentLevel =
+						(interpolatedHeight - minHeight) /
+						(maxHeight - minHeight);
+					isRising = false;
+				} else if (
+					currentEvent.EventType === "LowWater" &&
+					nextEvent.EventType === "HighWater"
+				) {
+					// Rising tide: LOW → HIGH - use standard cosine curve
+					const smoothProgress =
+						(1 - Math.cos(progress * Math.PI)) / 2;
+					const interpolatedHeight =
+						currentHeight +
+						(nextHeight - currentHeight) * smoothProgress;
+					currentLevel =
+						(interpolatedHeight - minHeight) /
+						(maxHeight - minHeight);
+					isRising = true;
+				}
+				break;
+			}
 		}
 
-		const timeSinceHigh =
-			(currentTime.getTime() - tideHigh1.getTime()) % lunarCycleMs;
-		const tidePosition =
-			Math.abs(Math.cos((timeSinceHigh / lunarCycleMs) * 2 * Math.PI)) *
-			tideRange;
-		const normalizedLevel = Math.max(0, Math.min(1, tidePosition));
+		// If no interval found, determine direction based on next event
+		if (!intervalFound && futureEvents.length > 0) {
+			const nextEvent = futureEvents[0];
+			isRising = nextEvent.EventType === "HighWater";
 
-		return {
-			currentLevel: normalizedLevel,
-			nextHigh: currentTime < tideHigh1 ? tideHigh1 : tideHigh2,
-			nextLow: timeSinceHigh < lunarCycleMs / 2 ? tideLow1 : tideLow2,
-			isRising:
-				Math.sin((timeSinceHigh / lunarCycleMs) * 2 * Math.PI) > 0,
-			source: "calculated",
-		};
-	} catch (error) {
-		console.error("Error calculating tide data:", error);
-		return null;
+			// Estimate current level based on time to next event
+			const timeToNext =
+				new Date(nextEvent.DateTime).getTime() - currentTime;
+			const typicalTideInterval = 6.2 * 60 * 60 * 1000; // ~6.2 hours
+			const progressToNext = Math.min(
+				timeToNext / typicalTideInterval,
+				1
+			);
+
+			if (nextEvent.EventType === "HighWater") {
+				// Rising towards high tide
+				currentLevel = 0.2 + (1 - progressToNext) * 0.65;
+			} else {
+				// Falling towards low tide
+				currentLevel = 0.85 - (1 - progressToNext) * 0.65;
+			}
+		}
 	}
+
+	return {
+		currentLevel: Math.max(0.05, Math.min(0.95, currentLevel)),
+		isRising: isRising,
+		nextHigh: nextHigh || new Date(now.getTime() + 6 * 3600000),
+		nextLow: nextLow || new Date(now.getTime() + 3 * 3600000),
+		source: "admiralty_uk",
+		// Include the raw tide events for frontend chart generation
+		tideEvents: tideEvents
+			? tideEvents.map((event) => ({
+					time: event.DateTime,
+					type: event.EventType === "HighWater" ? "high" : "low",
+					height: event.Height,
+				}))
+			: [],
+	};
+}
+
+// Enhanced harmonic calculation fallback (for find-surf-spots)
+function getEnhancedTideCalculationFindSpots(latitude, longitude) {
+	const currentTime = new Date();
+
+	// Enhanced tidal calculation with multiple harmonic components
+	const M2_PERIOD = 12.420601 * 3600000; // Main lunar semi-diurnal
+	const S2_PERIOD = 12.0 * 3600000; // Solar semi-diurnal
+	const O1_PERIOD = 25.819342 * 3600000; // Lunar diurnal
+
+	// UK location-specific corrections
+	let locationOffset = 0;
+	let amplitudeCorrection = 1.0;
+	let phaseCorrection = 0;
+
+	// Regional adjustments for UK coast
+	if (
+		latitude >= 50 &&
+		latitude <= 51 &&
+		longitude >= -6 &&
+		longitude <= -4
+	) {
+		// Cornwall - Atlantic influence
+		locationOffset = -1.5 * 3600000;
+		amplitudeCorrection = 0.8;
+		phaseCorrection = Math.PI * 0.2;
+	} else if (
+		latitude >= 50 &&
+		latitude <= 51 &&
+		longitude >= -4 &&
+		longitude <= -2
+	) {
+		// Devon/Dorset coast
+		locationOffset = -1 * 3600000;
+		amplitudeCorrection = 0.9;
+		phaseCorrection = Math.PI * 0.1;
+	} else if (
+		latitude >= 51 &&
+		latitude <= 52 &&
+		longitude >= -3 &&
+		longitude <= -1
+	) {
+		// Bristol Channel - large tidal range
+		locationOffset = 0.5 * 3600000;
+		amplitudeCorrection = 1.5;
+		phaseCorrection = Math.PI * 0.3;
+	} else if (
+		latitude >= 52 &&
+		latitude <= 53 &&
+		longitude >= 0 &&
+		longitude <= 2
+	) {
+		// East coast (Norfolk, Suffolk)
+		locationOffset = 2 * 3600000;
+		amplitudeCorrection = 0.7;
+		phaseCorrection = Math.PI * 0.4;
+	} else if (latitude >= 55 && longitude <= -4) {
+		// Scotland west coast
+		locationOffset = -2 * 3600000;
+		amplitudeCorrection = 1.1;
+		phaseCorrection = Math.PI * 0.15;
+	}
+
+	const adjustedTime = currentTime.getTime() + locationOffset;
+
+	// Calculate tidal components
+	const M2_component = Math.cos(
+		(adjustedTime / M2_PERIOD) * 2 * Math.PI + phaseCorrection
+	);
+	const S2_component = Math.cos(
+		(adjustedTime / S2_PERIOD) * 2 * Math.PI + phaseCorrection * 0.5
+	);
+	const O1_component = Math.cos(
+		(adjustedTime / O1_PERIOD) * 2 * Math.PI + phaseCorrection * 0.3
+	);
+
+	const tideLevel =
+		0.5 +
+		amplitudeCorrection *
+			(0.4 * M2_component + 0.15 * S2_component + 0.1 * O1_component);
+
+	const normalizedLevel = Math.max(0.05, Math.min(0.95, tideLevel));
+
+	// Calculate next extremes
+	const M2_cycle_position = (adjustedTime % M2_PERIOD) / M2_PERIOD;
+	let timeToNextHigh, timeToNextLow;
+
+	if (M2_cycle_position < 0.25) {
+		timeToNextHigh = (0.25 - M2_cycle_position) * M2_PERIOD;
+		timeToNextLow = (0.75 - M2_cycle_position) * M2_PERIOD;
+	} else if (M2_cycle_position < 0.75) {
+		timeToNextHigh = (1.25 - M2_cycle_position) * M2_PERIOD;
+		timeToNextLow = (0.75 - M2_cycle_position) * M2_PERIOD;
+	} else {
+		timeToNextHigh = (1.25 - M2_cycle_position) * M2_PERIOD;
+		timeToNextLow = (1.75 - M2_cycle_position) * M2_PERIOD;
+	}
+
+	// Rising/falling determination
+	const M2_derivative = -Math.sin(
+		(adjustedTime / M2_PERIOD) * 2 * Math.PI + phaseCorrection
+	);
+	const isRising = M2_derivative > 0;
+
+	return {
+		currentLevel: normalizedLevel,
+		nextHigh: new Date(currentTime.getTime() + timeToNextHigh),
+		nextLow: new Date(currentTime.getTime() + timeToNextLow),
+		isRising: isRising,
+		source: "enhanced_calculation",
+	};
 }
 
 async function getSurfConditions(latitude, longitude) {

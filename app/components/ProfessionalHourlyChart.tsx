@@ -114,15 +114,20 @@ export default function ProfessionalHourlyChart({
 		let timeObj;
 		let hourValue;
 		
-		if (time.includes(':')) {
-			// Time format like '00:00' - extract hour
+		if (time.includes('T') || time.includes('Z') || time.length > 8) {
+			// Full ISO string format like "2025-08-23T15:00:00.000Z"
+			timeObj = new Date(time);
+			hourValue = timeObj.getHours();
+		} else if (time.includes(':')) {
+			// Simple time format like '00:00' - extract hour
 			hourValue = parseInt(time.split(':')[0]);
 			timeObj = new Date();
 			timeObj.setHours(hourValue, 0, 0, 0);
 		} else {
-			// ISO string format
-			timeObj = new Date(time);
-			hourValue = timeObj.getHours();
+			// Fallback - assume it's a number
+			hourValue = parseInt(time) || 0;
+			timeObj = new Date();
+			timeObj.setHours(hourValue, 0, 0, 0);
 		}
 		
 		const windDir = surfData.windDirection?.[index];

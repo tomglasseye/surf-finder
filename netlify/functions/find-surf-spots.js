@@ -1121,24 +1121,28 @@ exports.handler = async (event, context) => {
 
 				// Use real marine data from API (24 hours)
 				let hourlyData;
-				if (marineData?.hourly?.time && marineData.hourly.time.length >= 24) {
+				try {
+					if (marineData?.hourly?.time && marineData.hourly.time.length >= 24) {
 					// Transform real marine API data to expected format
 					hourlyData = {
 						waveHeight: marineData.hourly.wave_height?.slice(0, 24) || Array(24).fill(1.0),
 						period: marineData.hourly.swell_wave_period?.slice(0, 24) || 
 								marineData.hourly.wave_period?.slice(0, 24) || 
 								Array(24).fill(8.0),
-						windSpeed: windData.hourly.wind_speed_10m?.slice(0, 24).map(ws => ws * 3.6) || Array(24).fill(15.0), // Convert m/s to km/h
-						windDirection: windData.hourly.wind_direction_10m?.slice(0, 24) || Array(24).fill(225),
+						windSpeed: windData.hourly?.wind_speed_10m ? windData.hourly.wind_speed_10m.slice(0, 24).map(ws => (ws || 0) * 3.6) : Array(24).fill(15.0), // Convert m/s to km/h
+						windDirection: windData.hourly?.wind_direction_10m ? windData.hourly.wind_direction_10m.slice(0, 24) : Array(24).fill(225),
 						times: marineData.hourly.time.slice(0, 24).map(time => {
 							const date = new Date(time);
 							return `${date.getHours().toString().padStart(2, '0')}:00`;
 						}),
 					};
 					console.log(`🌊 Using real marine data for ${spot.name}: ${hourlyData.waveHeight.length} hours`);
-				} else {
-					// Fallback to mock data if marine API failed
-					console.warn(`⚠️ Marine data not available for ${spot.name}, using fallback`);
+					} else {
+						throw new Error('Marine data not available or insufficient');
+					}
+				} catch (marineError) {
+					// Fallback to mock data if marine API processing failed
+					console.warn(`⚠️ Marine data error for ${spot.name}: ${marineError.message}, using fallback`);
 					const today = new Date();
 					hourlyData = {
 						waveHeight: Array.from({ length: 24 }, (_, hour) => {

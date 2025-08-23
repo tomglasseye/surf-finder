@@ -11,6 +11,7 @@ import { useSpotFavorite } from "../hooks/useFavorites";
 import TideGraph from "../components/TideGraph";
 import HourlySurfChart from "../components/HourlySurfChart";
 import ProfessionalTideChart from "../components/ProfessionalTideChart";
+import SimpleTideChart from "../components/SimpleTideChart";
 import ProfessionalHourlyChart from "../components/ProfessionalHourlyChart";
 import BestTimeDisplay from "../components/BestTimeDisplay";
 import TrafficLightChart from "../components/TrafficLightChart";
@@ -347,17 +348,15 @@ export default function ForecastSpot() {
 										/>
 									</div>
 
-									{/* Daily Tide Chart */}
+									{/* Daily Tide Chart - Testing Simple Version */}
 									<div className="mb-4">
-										<ProfessionalTideChart
+										<SimpleTideChart
 											tideData={day.tideData}
-											variant="daily"
-											height={150}
+											height={200}
 											showHours={24}
 											className="border-0"
-											latitude={forecast.spot.latitude}
-											longitude={forecast.spot.longitude}
-											date={new Date(day.date)}
+											latitude={lat ? parseFloat(lat) : undefined}
+											longitude={lng ? parseFloat(lng) : undefined}
 										/>
 									</div>
 

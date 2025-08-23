@@ -152,10 +152,11 @@ export default function ProfessionalTideChart({
 				const hourTime = startTime.getTime() + i * 3600000;
 				const hourDate = new Date(hourTime);
 
-				// Find surrounding tide events
+				// Find surrounding tide events (including extrapolation)
 				let before = null;
 				let after = null;
 
+				// First try to find exact surrounding events
 				for (let j = 0; j < tideEvents.length - 1; j++) {
 					const currentEvent = new Date(tideEvents[j].time).getTime();
 					const nextEvent = new Date(
@@ -167,6 +168,30 @@ export default function ProfessionalTideChart({
 						after = tideEvents[j + 1];
 						break;
 					}
+				}
+
+				// If no surrounding events found, extrapolate from nearest events
+				if (!before || !after) {
+					// Find the closest event before this time
+					let closestBefore = null;
+					let closestAfter = null;
+					
+					for (const event of tideEvents) {
+						const eventTime = new Date(event.time).getTime();
+						if (eventTime <= hourTime) {
+							if (!closestBefore || eventTime > new Date(closestBefore.time).getTime()) {
+								closestBefore = event;
+							}
+						} else {
+							if (!closestAfter || eventTime < new Date(closestAfter.time).getTime()) {
+								closestAfter = event;
+							}
+						}
+					}
+					
+					// Use the closest events for extrapolation
+					before = closestBefore;
+					after = closestAfter;
 				}
 
 				let tideLevel = tideData.currentLevel || 0.5; // Default fallback
@@ -230,17 +255,30 @@ export default function ProfessionalTideChart({
 				});
 			}
 
-			// Mark actual high and low tide times
+			// Mark actual high and low tide times (find closest hour points)
 			tideEvents.forEach((event) => {
 				const eventTime = new Date(event.time);
 				if (eventTime.toDateString() === targetDate.toDateString()) {
-					const eventHour = eventTime.getHours();
-					const point = points.find((p) => p.hour === eventHour);
-					if (point) {
+					// Find the closest hour point to this tide event
+					let closestPoint: TidePoint | null = null;
+					let minDistance = Infinity;
+					
+					points.forEach((point) => {
+						const pointTime = point.time.getTime();
+						const distance = Math.abs(eventTime.getTime() - pointTime);
+						if (distance < minDistance) {
+							minDistance = distance;
+							closestPoint = point;
+						}
+					});
+					
+					if (closestPoint) {
 						if (event.type === "high") {
-							point.isHighTide = true;
+							closestPoint.isHighTide = true;
+							console.log(`🌊 Marked HIGH tide at ${closestPoint.timeLabel} (actual: ${eventTime.toLocaleTimeString()})`);
 						} else if (event.type === "low") {
-							point.isLowTide = true;
+							closestPoint.isLowTide = true;
+							console.log(`🏖️ Marked LOW tide at ${closestPoint.timeLabel} (actual: ${eventTime.toLocaleTimeString()})`);
 						}
 					}
 				}

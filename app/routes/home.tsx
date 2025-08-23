@@ -7,7 +7,7 @@ import { createEnrichedSpot } from "../utils/mockData";
 import { useFavorites } from "../hooks/useFavorites";
 import TideGraph from "../components/TideGraph";
 import HourlySurfChart from "../components/HourlySurfChart";
-import ProfessionalTideChart from "../components/ProfessionalTideChart";
+import SimpleTideChart from "../components/SimpleTideChart";
 import ProfessionalHourlyChart from "../components/ProfessionalHourlyChart";
 import BestTimeDisplay from "../components/BestTimeDisplay";
 import TrafficLightChart from "../components/TrafficLightChart";
@@ -408,8 +408,8 @@ export default function Home() {
 														className="border-0"
 													/>
 
-													{/* Professional Tide Chart */}
-													<ProfessionalTideChart
+													{/* Simple Tide Chart */}
+													<SimpleTideChart
 														tideData={spot.tideData}
 														showHours={24}
 														height={180}
@@ -418,7 +418,6 @@ export default function Home() {
 														longitude={
 															spot.longitude
 														}
-														variant="compact"
 													/>
 
 													{/* Wind Direction Compass */}

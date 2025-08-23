@@ -10,6 +10,12 @@ export interface TideData {
 	isRising: boolean;
 	nextHigh: Date;
 	nextLow: Date;
+	source?: string;
+	tideEvents?: Array<{
+		time: string;
+		type: "high" | "low";
+		height: number;
+	}>;
 }
 
 export interface MockSurfConditions extends SurfConditions {
@@ -38,6 +44,34 @@ export const generateMockSurfConditions = (
 	const tideLevel = seededRandom(seed * 2.7); // 0-1 scale
 	const tideRising = seededRandom(seed * 3.1) > 0.5;
 
+	// Generate realistic tide events for today
+	const generateTideEvents = () => {
+		const now = new Date();
+		const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+		const events = [];
+		
+		// Typical UK tide pattern: 2 highs and 2 lows per day, ~6 hours apart
+		const baseOffset = seededRandom(seed * 4.1) * 3; // Random start offset 0-3 hours
+		
+		for (let i = 0; i < 4; i++) {
+			const eventTime = new Date(startOfDay.getTime() + (baseOffset + i * 6.2) * 3600000);
+			const isHigh = i % 2 === 0;
+			const baseHeight = isHigh ? 3.8 + seededRandom(seed * (5.1 + i)) * 1.2 : 0.8 + seededRandom(seed * (6.3 + i)) * 0.8;
+			
+			if (eventTime.getDate() === now.getDate()) { // Only include events for today
+				events.push({
+					time: eventTime.toISOString(),
+					type: (isHigh ? "high" : "low") as "high" | "low",
+					height: Number(baseHeight.toFixed(1))
+				});
+			}
+		}
+		
+		return events.slice(0, 4); // Maximum 4 events per day
+	};
+
+	const tideEvents = generateTideEvents();
+
 	return {
 		waveHeight,
 		period,
@@ -50,6 +84,8 @@ export const generateMockSurfConditions = (
 			isRising: tideRising,
 			nextHigh: new Date(Date.now() + (tideRising ? 3 : 9) * 3600000), // 3-9 hours from now
 			nextLow: new Date(Date.now() + (tideRising ? 9 : 3) * 3600000),
+			source: "admiralty_uk",
+			tideEvents: tideEvents,
 		},
 	};
 };

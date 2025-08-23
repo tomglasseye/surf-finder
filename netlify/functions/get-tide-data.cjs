@@ -1,42 +1,23 @@
-import type { Context } from "@netlify/functions";
+// JavaScript version of the get-tide-data function
 
-interface AdmiraltyStationResponse {
-	Features: Array<{
-		Id: string;
-		Name: string;
-		Country: string;
-		ContinuousHeightsAvailable: boolean;
-	}>;
-}
-
-interface AdmiraltyTideResponse {
-	tideEvents: Array<{
-		time: string;
-		type: "high" | "low";
-		height: number;
-	}>;
-	source: string;
-}
-
-export default async (request: Request, context: Context) => {
+exports.handler = async (event, context) => {
 	try {
-		const url = new URL(request.url);
-		const lat = url.searchParams.get('lat');
-		const lng = url.searchParams.get('lng');
-		const start = url.searchParams.get('start');
-		const end = url.searchParams.get('end');
+		const { lat, lng, start, end } = event.queryStringParameters || {};
 
 		if (!lat || !lng || !start) {
-			return new Response(
-				JSON.stringify({ error: 'Missing required parameters: lat, lng, start' }),
-				{ status: 400, headers: { 'Content-Type': 'application/json' } }
-			);
+			return {
+				statusCode: 400,
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ error: 'Missing required parameters: lat, lng, start' })
+			};
 		}
 
 		const ADMIRALTY_API_KEY = process.env.ADMIRALTY_API_KEY;
 		if (!ADMIRALTY_API_KEY) {
 			throw new Error('ADMIRALTY_API_KEY not configured');
 		}
+
+		console.log(`🌊 Getting tide data for ${lat}, ${lng} from ${start} to ${end || 'same day'}`);
 
 		// Step 1: Find nearest tide station
 		const stationResponse = await fetch(
@@ -50,14 +31,14 @@ export default async (request: Request, context: Context) => {
 		);
 
 		if (!stationResponse.ok) {
-			throw new Error(`Station API error: ${stationResponse.status}`);
+			console.warn(`Station API returned ${stationResponse.status}, falling back to calculated tides`);
+			return generateCalculatedTides(lat, lng, start, end);
 		}
 
-		const stationData: AdmiraltyStationResponse = await stationResponse.json();
+		const stationData = await stationResponse.json();
 		
 		if (!stationData.Features || stationData.Features.length === 0) {
 			console.warn('No tide stations found via Admiralty API, falling back to calculated tides');
-			// Fall back to calculated tide data instead of throwing error
 			return generateCalculatedTides(lat, lng, start, end);
 		}
 
@@ -86,32 +67,36 @@ export default async (request: Request, context: Context) => {
 		const tideData = await tideResponse.json();
 
 		// Transform Admiralty format to our format
-		const tideEvents = tideData.map((event: any) => ({
+		const tideEvents = tideData.map(event => ({
 			time: event.DateTime,
-			type: event.EventType.toLowerCase() as "high" | "low",
+			type: event.EventType.toLowerCase(),
 			height: event.Height
 		}));
 
-		const response: AdmiraltyTideResponse = {
+		const response = {
 			tideEvents,
 			source: "admiralty_uk"
 		};
 
 		console.log(`🌊 Retrieved ${tideEvents.length} tide events for ${nearestStation.Name}`);
 
-		return new Response(JSON.stringify(response), {
-			status: 200,
+		return {
+			statusCode: 200,
 			headers: {
 				'Content-Type': 'application/json',
 				'Cache-Control': 'public, max-age=1800' // Cache for 30 minutes
-			}
-		});
+			},
+			body: JSON.stringify(response)
+		};
 
 	} catch (error) {
 		console.error('Admiralty API error:', error);
 		console.log('Falling back to calculated tide data...');
 		
-		// Fall back to calculated tide data instead of returning 500 error
+		// Extract params for fallback
+		const { lat, lng, start, end } = event.queryStringParameters || {};
+		
+		// Fall back to calculated tide data
 		return generateCalculatedTides(lat, lng, start, end);
 	}
 };
@@ -119,7 +104,7 @@ export default async (request: Request, context: Context) => {
 /**
  * Generate calculated tide data when Admiralty API is unavailable
  */
-function generateCalculatedTides(lat: string, lng: string, start: string, end?: string): Response {
+function generateCalculatedTides(lat, lng, start, end) {
 	try {
 		const latitude = parseFloat(lat);
 		const longitude = parseFloat(lng);
@@ -172,7 +157,7 @@ function generateCalculatedTides(lat: string, lng: string, start: string, end?: 
 			
 			tideEvents.push({
 				time: eventDate.toISOString(),
-				type: isHigh ? "high" as const : "low" as const,
+				type: isHigh ? "high" : "low",
 				height: Math.round(height * 10) / 10 // Round to 1 decimal place
 			});
 			
@@ -181,33 +166,32 @@ function generateCalculatedTides(lat: string, lng: string, start: string, end?: 
 			isHigh = !isHigh; // Alternate between high and low
 		}
 		
-		const response: AdmiraltyTideResponse = {
+		const response = {
 			tideEvents,
 			source: "calculated_uk_tides"
 		};
 		
 		console.log(`🧮 Generated ${tideEvents.length} calculated tide events`);
 		
-		return new Response(JSON.stringify(response), {
-			status: 200,
+		return {
+			statusCode: 200,
 			headers: {
 				'Content-Type': 'application/json',
-				'Cache-Control': 'public, max-age=1800' // Cache for 30 minutes
-			}
-		});
+				'Cache-Control': 'public, max-age=1800'
+			},
+			body: JSON.stringify(response)
+		};
 		
 	} catch (error) {
 		console.error('Error generating calculated tides:', error);
 		
-		return new Response(
-			JSON.stringify({ 
+		return {
+			statusCode: 500,
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ 
 				error: 'Failed to generate tide data',
 				details: error instanceof Error ? error.message : String(error)
-			}),
-			{ 
-				status: 500, 
-				headers: { 'Content-Type': 'application/json' } 
-			}
-		);
+			})
+		};
 	}
 }

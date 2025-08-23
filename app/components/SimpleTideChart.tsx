@@ -105,60 +105,96 @@ export default function SimpleTideChart({
 				const currentTime = new Date(
 					startOfDay.getTime() + minute * 60000
 				);
-
-				// Use a simple sine wave that matches the tidal pattern
-				// Typical UK tides have ~12.4 hour cycles
-				const hoursSinceMidnight = hour;
-				const tideAngle = (hoursSinceMidnight / 12.42) * 2 * Math.PI; // 12.42 hour tidal cycle
-
-				// Create a base sine wave and adjust amplitude based on real data
-				let baseLevel = 0.5 + 0.35 * Math.sin(tideAngle);
-
-				// Fine-tune using nearby real events if available
 				const currentTimeMs = currentTime.getTime();
-				let closestEventInfluence = 0;
 
-				for (const event of events) {
-					const eventTime = new Date(event.time).getTime();
-					const timeDiff = Math.abs(currentTimeMs - eventTime);
-					const hoursDiff = timeDiff / (1000 * 60 * 60);
+				// Find the tide events that bracket this time point
+				let beforeEvent = null;
+				let afterEvent = null;
 
-					// Only influence within 3 hours of an event
-					if (hoursDiff <= 3) {
-						const influence = 1 - hoursDiff / 3; // Stronger influence closer to event
-						const eventLevel =
-							heightRange > 0
-								? (event.height - minHeight) / heightRange
-								: 0.5;
-						closestEventInfluence += eventLevel * influence * 0.3; // 30% influence max
-					}
-				}
+				for (let i = 0; i < events.length; i++) {
+					const eventTime = new Date(events[i].time).getTime();
 
-				// Combine base tide with event influence
-				const tideLevel = Math.max(
-					0.05,
-					Math.min(0.95, baseLevel + closestEventInfluence)
-				);
-
-				// Calculate realistic height in meters
-				const tideHeightMeters = minHeight + tideLevel * heightRange;
-
-				// Find if this hour matches a tide event exactly (within 30 minutes)
-				let isHighTide = false;
-				let isLowTide = false;
-
-				for (const event of events) {
-					const eventTime = new Date(event.time);
-					const eventHourFloat =
-						eventTime.getHours() + eventTime.getMinutes() / 60;
-
-					// Mark if within 30 minutes (0.5 hours) of the event
-					if (Math.abs(eventHourFloat - hour) <= 0.5) {
-						isHighTide = event.type === "high";
-						isLowTide = event.type === "low";
+					if (eventTime <= currentTimeMs) {
+						beforeEvent = events[i];
+					} else if (eventTime > currentTimeMs && !afterEvent) {
+						afterEvent = events[i];
 						break;
 					}
 				}
+
+				let tideLevel = 0.5; // Default middle level
+				let isHighTide = false;
+				let isLowTide = false;
+
+				if (beforeEvent && afterEvent) {
+					// Interpolate between the two tide events using smooth cosine curve
+					const beforeTime = new Date(beforeEvent.time).getTime();
+					const afterTime = new Date(afterEvent.time).getTime();
+					const progress =
+						(currentTimeMs - beforeTime) / (afterTime - beforeTime);
+
+					const beforeHeight = beforeEvent.height;
+					const afterHeight = afterEvent.height;
+
+					// Use cosine interpolation for smooth curves
+					let smoothProgress;
+					if (
+						beforeEvent.type === "high" &&
+						afterEvent.type === "low"
+					) {
+						// Falling tide: HIGH → LOW - use inverted cosine curve
+						smoothProgress = (1 + Math.cos(progress * Math.PI)) / 2;
+					} else if (
+						beforeEvent.type === "low" &&
+						afterEvent.type === "high"
+					) {
+						// Rising tide: LOW → HIGH - use standard cosine curve
+						smoothProgress = (1 - Math.cos(progress * Math.PI)) / 2;
+					} else {
+						// Same type events - linear interpolation
+						smoothProgress = progress;
+					}
+
+					const interpolatedHeight =
+						beforeHeight +
+						(afterHeight - beforeHeight) * smoothProgress;
+					tideLevel =
+						heightRange > 0
+							? (interpolatedHeight - minHeight) / heightRange
+							: 0.5;
+
+					// Mark exact tide event times (within 30 minutes)
+					for (const event of events) {
+						const eventTime = new Date(event.time);
+						const eventHourFloat =
+							eventTime.getHours() + eventTime.getMinutes() / 60;
+
+						if (Math.abs(eventHourFloat - hour) <= 0.5) {
+							// Within 30 minutes
+							isHighTide = event.type === "high";
+							isLowTide = event.type === "low";
+							break;
+						}
+					}
+				} else if (beforeEvent) {
+					// Only have previous event - extrapolate
+					tideLevel =
+						heightRange > 0
+							? (beforeEvent.height - minHeight) / heightRange
+							: 0.5;
+				} else if (afterEvent) {
+					// Only have future event - extrapolate
+					tideLevel =
+						heightRange > 0
+							? (afterEvent.height - minHeight) / heightRange
+							: 0.5;
+				}
+
+				// Ensure tide level is within bounds
+				tideLevel = Math.max(0.05, Math.min(0.95, tideLevel));
+
+				// Calculate realistic height in meters
+				const tideHeightMeters = minHeight + tideLevel * heightRange;
 
 				// Check if this is the exact current time (within 15 minutes)
 				const currentHour = now.getHours() + now.getMinutes() / 60;

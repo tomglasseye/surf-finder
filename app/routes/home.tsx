@@ -494,11 +494,12 @@ export default function Home() {
 													{/* Professional Hourly Chart */}
 													<ProfessionalHourlyChart
 														data={spot.hourlyData && Array.isArray(spot.hourlyData) ? (() => {
-															console.log('🔍 HOURLY CHART DATA CHECK:', {
+															console.log('🔍 HOME PAGE HOURLY CHART DATA CHECK:', {
 																hasData: !!spot.hourlyData,
 																length: spot.hourlyData?.length,
 																sampleItem: spot.hourlyData?.[0],
-																transformedWaveHeight: spot.hourlyData.map(h => h.waveHeight || 0).slice(0, 3)
+																spotName: spot.name,
+																fullHourlyData: spot.hourlyData
 															});
 															return {
 																waveHeight: spot.hourlyData.map(h => h.waveHeight || 0),

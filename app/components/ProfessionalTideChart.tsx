@@ -175,20 +175,28 @@ export default function ProfessionalTideChart({
 					// Find the closest event before this time
 					let closestBefore = null;
 					let closestAfter = null;
-					
+
 					for (const event of tideEvents) {
 						const eventTime = new Date(event.time).getTime();
 						if (eventTime <= hourTime) {
-							if (!closestBefore || eventTime > new Date(closestBefore.time).getTime()) {
+							if (
+								!closestBefore ||
+								eventTime >
+									new Date(closestBefore.time).getTime()
+							) {
 								closestBefore = event;
 							}
 						} else {
-							if (!closestAfter || eventTime < new Date(closestAfter.time).getTime()) {
+							if (
+								!closestAfter ||
+								eventTime <
+									new Date(closestAfter.time).getTime()
+							) {
 								closestAfter = event;
 							}
 						}
 					}
-					
+
 					// Use the closest events for extrapolation
 					before = closestBefore;
 					after = closestAfter;
@@ -262,23 +270,29 @@ export default function ProfessionalTideChart({
 					// Find the closest hour point to this tide event
 					let closestPoint: TidePoint | null = null;
 					let minDistance = Infinity;
-					
+
 					points.forEach((point) => {
 						const pointTime = point.time.getTime();
-						const distance = Math.abs(eventTime.getTime() - pointTime);
+						const distance = Math.abs(
+							eventTime.getTime() - pointTime
+						);
 						if (distance < minDistance) {
 							minDistance = distance;
 							closestPoint = point;
 						}
 					});
-					
+
 					if (closestPoint) {
 						if (event.type === "high") {
 							closestPoint.isHighTide = true;
-							console.log(`🌊 Marked HIGH tide at ${closestPoint.timeLabel} (actual: ${eventTime.toLocaleTimeString()})`);
+							console.log(
+								`🌊 Marked HIGH tide at ${closestPoint.timeLabel} (actual: ${eventTime.toLocaleTimeString()})`
+							);
 						} else if (event.type === "low") {
 							closestPoint.isLowTide = true;
-							console.log(`🏖️ Marked LOW tide at ${closestPoint.timeLabel} (actual: ${eventTime.toLocaleTimeString()})`);
+							console.log(
+								`🏖️ Marked LOW tide at ${closestPoint.timeLabel} (actual: ${eventTime.toLocaleTimeString()})`
+							);
 						}
 					}
 				}

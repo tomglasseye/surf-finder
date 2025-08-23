@@ -355,9 +355,11 @@ async function getTideData(latitude, longitude) {
 
 		// UK Admiralty API - Official UK Government Tide Data
 		const admiraltyApiKey = process.env.ADMIRALTY_API_KEY;
-		
-		console.log(`🔑 API Key check: ${admiraltyApiKey ? 'PRESENT' : 'MISSING'}`);
-		console.log(`🌍 Environment: ${process.env.NODE_ENV || 'unknown'}`);
+
+		console.log(
+			`🔑 API Key check: ${admiraltyApiKey ? "PRESENT" : "MISSING"}`
+		);
+		console.log(`🌍 Environment: ${process.env.NODE_ENV || "unknown"}`);
 
 		if (admiraltyApiKey) {
 			try {
@@ -468,11 +470,28 @@ async function getTideData(latitude, longitude) {
 				console.log(
 					`❌ Admiralty API error: ${admiraltyError.message}`
 				);
+				console.log(`🔍 Error stack: ${admiraltyError.stack}`);
+				console.log(
+					`🔍 Full error details: ${JSON.stringify(admiraltyError, null, 2)}`
+				);
 				// Fall through to enhanced calculation below
 			}
 		} else {
 			console.log(
 				"⚠️ No Admiralty API key found - using enhanced calculation"
+			);
+			console.log(
+				`🔍 Environment variables available: ${Object.keys(process.env).length} total`
+			);
+			console.log(
+				`🔍 API-related vars: ${Object.keys(process.env)
+					.filter((k) => k.toLowerCase().includes("api"))
+					.join(", ")}`
+			);
+			console.log(
+				`🔍 ADMIRALTY vars: ${Object.keys(process.env)
+					.filter((k) => k.includes("ADMIRALTY"))
+					.join(", ")}`
 			);
 		}
 

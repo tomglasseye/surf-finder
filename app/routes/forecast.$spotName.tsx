@@ -355,8 +355,16 @@ export default function ForecastSpot() {
 											height={200}
 											showHours={24}
 											className="border-0"
-											latitude={lat ? parseFloat(lat) : undefined}
-											longitude={lng ? parseFloat(lng) : undefined}
+											latitude={
+												lat
+													? parseFloat(lat)
+													: undefined
+											}
+											longitude={
+												lng
+													? parseFloat(lng)
+													: undefined
+											}
 										/>
 									</div>
 

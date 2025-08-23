@@ -17,6 +17,12 @@ interface TideData {
 	isRising: boolean;
 	nextHigh: Date;
 	nextLow: Date;
+	source?: string; // Add source for Admiralty API
+	tideEvents?: Array<{
+		time: string;
+		type: "high" | "low";
+		height: number;
+	}>; // Add tide events from Admiralty API
 }
 
 interface ProfessionalTideChartProps {
@@ -101,9 +107,21 @@ export default function ProfessionalTideChart({
 		return { sunrise, sunset };
 	};
 
-	// Generate tide points using proper extremes-based interpolation
+	// Generate tide points using real Admiralty tide data
 	const generateTidePoints = () => {
-		const points = [];
+		interface TidePoint {
+			hour: number;
+			time: Date;
+			level: number;
+			levelPercent: number;
+			timeLabel: string;
+			isNow: boolean;
+			isDaylight: boolean;
+			isHighTide: boolean;
+			isLowTide: boolean;
+		}
+
+		const points: TidePoint[] = [];
 		const now = new Date();
 		const targetDate = variant === "daily" && date ? date : now;
 		const startTime = new Date(
@@ -115,22 +133,217 @@ export default function ProfessionalTideChart({
 			0
 		);
 
-		// Create realistic tide extremes for the day (simplified for demo)
-		// In production, this should come from the same API data as the backend
-		const baseLevel = tideData?.currentLevel || 0.5;
+		// Check if we have real tide events from Admiralty API
+		if (
+			tideData &&
+			tideData.source === "admiralty_uk" &&
+			tideData.tideEvents &&
+			tideData.tideEvents.length > 0
+		) {
+			console.log(
+				"🇬🇧 Using real Admiralty tide events for chart generation"
+			);
+
+			const tideEvents = tideData.tideEvents;
+
+			// Generate hourly points using real tide event interpolation
+			for (let i = 0; i < showHours; i++) {
+				const hour = i;
+				const hourTime = startTime.getTime() + i * 3600000;
+				const hourDate = new Date(hourTime);
+
+				// Find surrounding tide events
+				let before = null;
+				let after = null;
+
+				for (let j = 0; j < tideEvents.length - 1; j++) {
+					const currentEvent = new Date(tideEvents[j].time).getTime();
+					const nextEvent = new Date(
+						tideEvents[j + 1].time
+					).getTime();
+
+					if (currentEvent <= hourTime && hourTime <= nextEvent) {
+						before = tideEvents[j];
+						after = tideEvents[j + 1];
+						break;
+					}
+				}
+
+				let tideLevel = tideData.currentLevel || 0.5; // Default fallback
+
+				if (before && after) {
+					// Use the corrected cosine interpolation based on real tide heights
+					const beforeTime = new Date(before.time).getTime();
+					const afterTime = new Date(after.time).getTime();
+					const progress =
+						(hourTime - beforeTime) / (afterTime - beforeTime);
+
+					// Normalize heights to 0-1 scale
+					const maxHeight = Math.max(
+						...tideEvents.map((e) => e.height || 0)
+					);
+					const minHeight = Math.min(
+						...tideEvents.map((e) => e.height || 0)
+					);
+					const heightRange = maxHeight - minHeight;
+
+					const beforeLevel =
+						heightRange > 0
+							? (before.height - minHeight) / heightRange
+							: 0.5;
+					const afterLevel =
+						heightRange > 0
+							? (after.height - minHeight) / heightRange
+							: 0.5;
+
+					let smoothProgress;
+					if (after.type === "high" && before.type === "low") {
+						// RISING tide: LOW → HIGH, use standard cosine curve
+						smoothProgress = (1 - Math.cos(progress * Math.PI)) / 2;
+					} else if (after.type === "low" && before.type === "high") {
+						// FALLING tide: HIGH → LOW, use inverted cosine curve
+						smoothProgress = (1 + Math.cos(progress * Math.PI)) / 2;
+					} else {
+						// Linear interpolation for same types (shouldn't happen normally)
+						smoothProgress = progress;
+					}
+
+					tideLevel =
+						beforeLevel +
+						(afterLevel - beforeLevel) * smoothProgress;
+				}
+
+				const clampedLevel = Math.max(0, Math.min(1, tideLevel));
+
+				points.push({
+					hour: hour,
+					time: hourDate,
+					level: clampedLevel,
+					levelPercent: Math.round(clampedLevel * 100),
+					timeLabel: `${hour.toString().padStart(2, "0")}:00`,
+					isNow:
+						hour === now.getHours() &&
+						targetDate.toDateString() === now.toDateString(),
+					isDaylight: hour >= 6 && hour <= 18,
+					isHighTide: false, // Will be set below
+					isLowTide: false, // Will be set below
+				});
+			}
+
+			// Mark actual high and low tide times
+			tideEvents.forEach((event) => {
+				const eventTime = new Date(event.time);
+				if (eventTime.toDateString() === targetDate.toDateString()) {
+					const eventHour = eventTime.getHours();
+					const point = points.find((p) => p.hour === eventHour);
+					if (point) {
+						if (event.type === "high") {
+							point.isHighTide = true;
+						} else if (event.type === "low") {
+							point.isLowTide = true;
+						}
+					}
+				}
+			});
+		} else {
+			// Fallback: Generate realistic tide extremes using improved interpolation
+			console.log("📊 Using fallback tide calculation");
+
+			const baseLevel = tideData?.currentLevel || 0.5;
+
+			// Generate realistic tide extremes for the day
+			const dayOffset = (targetDate.getDate() * 0.7) % (2 * Math.PI);
+			const extremes = [];
+			for (let i = -1; i <= 2; i++) {
+				const extremeTime =
+					startTime.getTime() + (6 + i * 6.21) * 3600000;
+				const isHigh = i % 2 === 0;
+				const height = isHigh
+					? 0.8 + 0.2 * Math.sin(dayOffset)
+					: 0.2 + 0.1 * Math.cos(dayOffset);
+				extremes.push({
+					time: new Date(extremeTime),
+					height: Math.max(0, Math.min(1, height)),
+					type: isHigh ? "high" : "low",
+				});
+			}
+
+			// Generate hourly points using extremes-based interpolation
+			for (let i = 0; i < showHours; i++) {
+				const hour = i;
+				const hourTime = startTime.getTime() + i * 3600000;
+				const hourDate = new Date(hourTime);
+
+				// Find surrounding extremes
+				let before = null;
+				let after = null;
+
+				for (let j = 0; j < extremes.length - 1; j++) {
+					const currentExtreme = extremes[j].time.getTime();
+					const nextExtreme = extremes[j + 1].time.getTime();
+
+					if (currentExtreme <= hourTime && hourTime <= nextExtreme) {
+						before = extremes[j];
+						after = extremes[j + 1];
+						break;
+					}
+				}
+
+				let tideLevel = baseLevel; // Default fallback
+
+				if (before && after) {
+					// Use the corrected cosine interpolation
+					const beforeTime = before.time.getTime();
+					const afterTime = after.time.getTime();
+					const progress =
+						(hourTime - beforeTime) / (afterTime - beforeTime);
+
+					let smoothProgress;
+					if (after.height > before.height) {
+						// RISING tide: LOW → HIGH, use standard cosine curve
+						smoothProgress = (1 - Math.cos(progress * Math.PI)) / 2;
+					} else {
+						// FALLING tide: HIGH → LOW, use inverted cosine curve
+						smoothProgress = (1 + Math.cos(progress * Math.PI)) / 2;
+					}
+
+					tideLevel =
+						before.height +
+						(after.height - before.height) * smoothProgress;
+				}
+
+				const clampedLevel = Math.max(0, Math.min(1, tideLevel));
+
+				points.push({
+					hour: hour,
+					time: hourDate,
+					level: clampedLevel,
+					levelPercent: Math.round(clampedLevel * 100),
+					timeLabel: `${hour.toString().padStart(2, "0")}:00`,
+					isNow:
+						hour === now.getHours() &&
+						targetDate.toDateString() === now.toDateString(),
+					isDaylight: hour >= 6 && hour <= 18,
+					isHighTide: false, // Will be set below
+					isLowTide: false, // Will be set below
+				});
+			}
+		}
 		const lunarCycleMs = 12.42 * 60 * 60 * 1000; // ~12.42 hours between tides
-		
+
 		// Generate realistic tide extremes for the day
 		const dayOffset = (targetDate.getDate() * 0.7) % (2 * Math.PI);
 		const extremes = [];
 		for (let i = -1; i <= 2; i++) {
 			const extremeTime = startTime.getTime() + (6 + i * 6.21) * 3600000; // ~6.21 hour intervals
 			const isHigh = i % 2 === 0;
-			const height = isHigh ? 0.8 + 0.2 * Math.sin(dayOffset) : 0.2 + 0.1 * Math.cos(dayOffset);
+			const height = isHigh
+				? 0.8 + 0.2 * Math.sin(dayOffset)
+				: 0.2 + 0.1 * Math.cos(dayOffset);
 			extremes.push({
 				time: new Date(extremeTime),
 				height: Math.max(0, Math.min(1, height)),
-				type: isHigh ? 'high' : 'low'
+				type: isHigh ? "high" : "low",
 			});
 		}
 
@@ -143,11 +356,11 @@ export default function ProfessionalTideChart({
 			// Find surrounding extremes
 			let before = null;
 			let after = null;
-			
+
 			for (let j = 0; j < extremes.length - 1; j++) {
 				const currentExtreme = extremes[j].time.getTime();
 				const nextExtreme = extremes[j + 1].time.getTime();
-				
+
 				if (currentExtreme <= hourTime && hourTime <= nextExtreme) {
 					before = extremes[j];
 					after = extremes[j + 1];
@@ -155,14 +368,15 @@ export default function ProfessionalTideChart({
 				}
 			}
 
-			let tideLevel = baseLevel; // Default fallback
-			
+			let tideLevel = tideData?.currentLevel || 0.5; // Default fallback
+
 			if (before && after) {
 				// Use the same corrected cosine interpolation as backend
 				const beforeTime = before.time.getTime();
 				const afterTime = after.time.getTime();
-				const progress = (hourTime - beforeTime) / (afterTime - beforeTime);
-				
+				const progress =
+					(hourTime - beforeTime) / (afterTime - beforeTime);
+
 				let smoothProgress;
 				if (after.height > before.height) {
 					// RISING tide: LOW → HIGH, use standard cosine curve
@@ -171,10 +385,12 @@ export default function ProfessionalTideChart({
 					// FALLING tide: HIGH → LOW, use inverted cosine curve
 					smoothProgress = (1 + Math.cos(progress * Math.PI)) / 2;
 				}
-				
-				tideLevel = before.height + (after.height - before.height) * smoothProgress;
+
+				tideLevel =
+					before.height +
+					(after.height - before.height) * smoothProgress;
 			}
-			
+
 			const clampedLevel = Math.max(0, Math.min(1, tideLevel));
 
 			points.push({

@@ -263,18 +263,27 @@ const calculateCurrentTideFromExtremes = (
 	// Cosine interpolation - but we need to account for direction!
 	let smoothProgress;
 	let cosineDerivative;
-	
+
 	if (after.height > before.height) {
 		// RISING tide: LOW → HIGH, use standard cosine curve (0 to 1)
 		smoothProgress = (1 - Math.cos(progress * Math.PI)) / 2;
-		cosineDerivative = Math.sin(progress * Math.PI) * Math.PI * (after.height - before.height) / (afterTime - beforeTime);
+		cosineDerivative =
+			(Math.sin(progress * Math.PI) *
+				Math.PI *
+				(after.height - before.height)) /
+			(afterTime - beforeTime);
 	} else {
 		// FALLING tide: HIGH → LOW, use inverted cosine curve (1 to 0)
 		smoothProgress = (1 + Math.cos(progress * Math.PI)) / 2;
-		cosineDerivative = -Math.sin(progress * Math.PI) * Math.PI * (before.height - after.height) / (afterTime - beforeTime);
+		cosineDerivative =
+			(-Math.sin(progress * Math.PI) *
+				Math.PI *
+				(before.height - after.height)) /
+			(afterTime - beforeTime);
 	}
-	
-	const currentHeight = before.height + (after.height - before.height) * smoothProgress;
+
+	const currentHeight =
+		before.height + (after.height - before.height) * smoothProgress;
 
 	// Calculate tide direction based on the derivative of the cosine curve
 	const direction = cosineDerivative > 0 ? "RISING" : "FALLING";
@@ -316,7 +325,18 @@ async function getTideData(latitude, longitude) {
 				console.log(
 					`🌊 Calculated tide: ${currentTide.currentHeight}m ${currentTide.direction} (${currentTide.confidence} confidence)`
 				);
-				return processStormGlassTideData(cachedData.data, new Date());
+				// Process cached data based on source
+				if (cachedData.source === "admiralty_api") {
+					return processAdmiraltyTideData(
+						cachedData.data.data,
+						new Date()
+					);
+				} else {
+					return processStormGlassTideData(
+						cachedData.data,
+						new Date()
+					);
+				}
 			}
 		}
 
@@ -333,128 +353,123 @@ async function getTideData(latitude, longitude) {
 			return getEnhancedTideCalculation(latitude, longitude);
 		}
 
-		// StormGlass.io API with enhanced caching strategy
-		const stormGlassApiKey = process.env.STORMGLASS_API_KEY;
+		// UK Admiralty API - Official UK Government Tide Data
+		const admiraltyApiKey = process.env.ADMIRALTY_API_KEY;
 
-		if (stormGlassApiKey) {
+		if (admiraltyApiKey) {
 			try {
-				// Get extended time window for better coverage (72 hours)
-				const now = new Date();
-				const threeDaysLater = new Date(now.getTime() + 72 * 3600000);
-				const oneDayBefore = new Date(
-					now.getTime() - 24 * 60 * 60 * 1000
-				);
-
-				const startTime = oneDayBefore.toISOString();
-				const endTime = threeDaysLater.toISOString();
-
-				// StormGlass API endpoint for tide extremes
-				const stormGlassUrl = `https://api.stormglass.io/v2/tide/extremes/point?lat=${latitude}&lng=${longitude}&start=${startTime}&end=${endTime}`;
-
 				console.log(
-					`🌊 Fetching fresh tide data from StormGlass for: ${latitude}, ${longitude}`
-				);
-				console.log(
-					`⏰ Time window: ${startTime.split("T")[0]} to ${endTime.split("T")[0]}`
+					`�🇧 Fetching tide data from UK Admiralty API for: ${latitude}, ${longitude}`
 				);
 
-				const response = await fetch(stormGlassUrl, {
-					headers: {
-						Authorization: stormGlassApiKey,
-					},
-					timeout: 10000, // 10 second timeout
-				});
-
-				if (response.ok) {
-					const tidesData = await response.json();
-					const extremeCount = tidesData.data
-						? tidesData.data.length
-						: 0;
-
-					console.log(
-						`✅ StormGlass API success: ${extremeCount} tide extremes fetched`
-					);
-
-					if (extremeCount === 0) {
-						console.log(
-							`⚠️  No tide data returned from API, using fallback calculation`
-						);
-						return getEnhancedTideCalculation(latitude, longitude);
+				// First, find the nearest tidal station
+				const stationsResponse = await fetch(
+					"https://admiraltyapi.azure-api.net/uktidalapi/api/V1/Stations",
+					{
+						headers: {
+							"Ocp-Apim-Subscription-Key": admiraltyApiKey,
+							"Content-Type": "application/json",
+						},
 					}
+				);
 
-					// Enhanced cache entry with metadata
-					const cacheEntry = {
-						data: tidesData,
-						timestamp: now.toISOString(),
-						location: { latitude, longitude },
-						extremeCount: extremeCount,
-						apiUsage: apiUsage,
-						timeWindow: { start: startTime, end: endTime },
-					};
-
-					// Store in cache and run cleanup if needed
-					tideCache.set(cacheKey, cacheEntry);
-					cleanupCache();
-
-					console.log(
-						`💾 Cached tide extremes for ${CACHE_CONFIG.TIDE_EXTREMES_DAYS} days: ${cacheKey}`
-					);
-					console.log(
-						`📈 Cache stats: ${tideCache.size} locations, ${apiUsage}/${CACHE_CONFIG.API_DAILY_LIMIT} API calls today`
-					);
-					console.log(
-						`🎯 Balanced caching: 3-day extremes + full API quota utilization`
-					);
-
-					return processStormGlassTideData(tidesData, now);
-				} else {
-					const errorText = await response.text();
-					console.log(
-						`❌ StormGlass API error: ${response.status} - ${errorText}`
-					);
-
-					if (response.status === 401) {
-						console.log(
-							`🔑 Invalid StormGlass API key - check your STORMGLASS_API_KEY environment variable`
-						);
-					} else if (response.status === 402) {
-						console.log(
-							`💰 StormGlass API quota exceeded - consider upgrading plan or reducing usage`
-						);
-					} else if (response.status === 429) {
-						console.log(
-							`⏰ StormGlass rate limit exceeded - falling back to calculation`
-						);
-					}
-
-					// Don't count failed requests against quota
-					const todayUsage =
-						apiUsageTracker.get(
-							new Date().toISOString().split("T")[0]
-						) || 0;
-					apiUsageTracker.set(
-						new Date().toISOString().split("T")[0],
-						Math.max(0, todayUsage - 1)
+				if (!stationsResponse.ok) {
+					throw new Error(
+						`Stations API error: ${stationsResponse.status}`
 					);
 				}
-			} catch (stormGlassError) {
+
+				const stationsData = await stationsResponse.json();
+
+				// Find closest station
+				let closestStation = null;
+				let minDistance = Infinity;
+
+				if (stationsData.features) {
+					stationsData.features.forEach((station) => {
+						if (station.geometry && station.geometry.coordinates) {
+							const stationLng = station.geometry.coordinates[0];
+							const stationLat = station.geometry.coordinates[1];
+
+							const distance = Math.sqrt(
+								Math.pow(stationLat - latitude, 2) +
+									Math.pow(stationLng - longitude, 2)
+							);
+
+							if (distance < minDistance) {
+								minDistance = distance;
+								closestStation = station;
+							}
+						}
+					});
+				}
+
+				if (!closestStation) {
+					throw new Error("No suitable tidal station found");
+				}
+
 				console.log(
-					`❌ StormGlass API error: ${stormGlassError.message}`
+					`� Using station: ${closestStation.properties.Name} (${(minDistance * 111).toFixed(1)}km away)`
 				);
 
-				// Don't count network errors against quota
-				const todayUsage =
-					apiUsageTracker.get(
-						new Date().toISOString().split("T")[0]
-					) || 0;
-				apiUsageTracker.set(
-					new Date().toISOString().split("T")[0],
-					Math.max(0, todayUsage - 1)
+				// Get tide data for the next 3 days
+				const today = new Date().toISOString().split("T")[0];
+				const futureDate = new Date(
+					Date.now() + 3 * 24 * 60 * 60 * 1000
+				)
+					.toISOString()
+					.split("T")[0];
+
+				const tideResponse = await fetch(
+					`https://admiraltyapi.azure-api.net/uktidalapi/api/V1/Stations/${closestStation.properties.Id}/TidalEvents?StartDate=${today}&EndDate=${futureDate}`,
+					{
+						headers: {
+							"Ocp-Apim-Subscription-Key": admiraltyApiKey,
+							"Content-Type": "application/json",
+						},
+					}
 				);
+
+				if (!tideResponse.ok) {
+					throw new Error(
+						`Tide data API error: ${tideResponse.status}`
+					);
+				}
+
+				const tideEvents = await tideResponse.json();
+				console.log(
+					`✅ Admiralty API success: ${tideEvents.length} tide events fetched`
+				);
+
+				// Store in cache
+				const cacheData = {
+					data: { data: tideEvents }, // Wrap in data object for compatibility
+					timestamp: new Date().toISOString(),
+					latitude: latitude,
+					longitude: longitude,
+					source: "admiralty_api",
+					station: closestStation.properties.Name,
+					stationId: closestStation.properties.Id,
+					extremeCount: tideEvents.length,
+				};
+
+				tideCache.set(cacheKey, cacheData);
+				console.log(
+					`💾 Cached tide data from ${closestStation.properties.Name}`
+				);
+
+				// Process Admiralty data
+				const now = new Date();
+				return processAdmiraltyTideData(tideEvents, now);
+			} catch (admiraltyError) {
+				console.log(
+					`❌ Admiralty API error: ${admiraltyError.message}`
+				);
+				// Fall through to enhanced calculation below
 			}
 		} else {
 			console.log(
-				`🔑 No StormGlass API key found - using enhanced calculation`
+				"⚠️ No Admiralty API key found - using enhanced calculation"
 			);
 		}
 
@@ -573,6 +588,135 @@ function processStormGlassTideData(tidesData, now) {
 		nextHigh: nextHigh || new Date(now.getTime() + 6 * 3600000),
 		nextLow: nextLow || new Date(now.getTime() + 3 * 3600000),
 		source: "stormglass",
+	};
+}
+
+// Process UK Admiralty tide data - official UK government data
+function processAdmiraltyTideData(tideEvents, now) {
+	let currentLevel = 0.5;
+	let isRising = true;
+	let nextHigh = null;
+	let nextLow = null;
+
+	if (tideEvents && tideEvents.length > 0) {
+		const currentTime = now.getTime();
+
+		// Find next high and low tide times
+		const futureEvents = tideEvents
+			.filter((event) => new Date(event.DateTime).getTime() > currentTime)
+			.sort((a, b) => new Date(a.DateTime) - new Date(b.DateTime));
+
+		for (const event of futureEvents) {
+			if (event.EventType === "HighWater" && !nextHigh) {
+				nextHigh = new Date(event.DateTime);
+			} else if (event.EventType === "LowWater" && !nextLow) {
+				nextLow = new Date(event.DateTime);
+			}
+		}
+
+		// Calculate current tide level using the improved cosine interpolation
+		const allEvents = tideEvents.sort(
+			(a, b) => new Date(a.DateTime) - new Date(b.DateTime)
+		);
+
+		// Find the interval containing current time
+		let intervalFound = false;
+		for (let i = 0; i < allEvents.length - 1; i++) {
+			const currentEvent = allEvents[i];
+			const nextEvent = allEvents[i + 1];
+			const currentEventTime = new Date(currentEvent.DateTime).getTime();
+			const nextEventTime = new Date(nextEvent.DateTime).getTime();
+
+			if (
+				currentEventTime <= currentTime &&
+				currentTime <= nextEventTime
+			) {
+				intervalFound = true;
+				const progress =
+					(currentTime - currentEventTime) /
+					(nextEventTime - currentEventTime);
+
+				// Use actual height data if available
+				const currentHeight = currentEvent.Height || 0;
+				const nextHeight = nextEvent.Height || 0;
+				const maxHeight = Math.max(
+					...tideEvents.map((e) => e.Height || 0)
+				);
+				const minHeight = Math.min(
+					...tideEvents.map((e) => e.Height || 0)
+				);
+
+				if (
+					currentEvent.EventType === "HighWater" &&
+					nextEvent.EventType === "LowWater"
+				) {
+					// Falling tide: HIGH → LOW - use inverted cosine curve
+					const smoothProgress =
+						(1 + Math.cos(progress * Math.PI)) / 2;
+					const interpolatedHeight =
+						currentHeight +
+						(nextHeight - currentHeight) * smoothProgress;
+					currentLevel =
+						(interpolatedHeight - minHeight) /
+						(maxHeight - minHeight);
+					isRising = false;
+				} else if (
+					currentEvent.EventType === "LowWater" &&
+					nextEvent.EventType === "HighWater"
+				) {
+					// Rising tide: LOW → HIGH - use standard cosine curve
+					const smoothProgress =
+						(1 - Math.cos(progress * Math.PI)) / 2;
+					const interpolatedHeight =
+						currentHeight +
+						(nextHeight - currentHeight) * smoothProgress;
+					currentLevel =
+						(interpolatedHeight - minHeight) /
+						(maxHeight - minHeight);
+					isRising = true;
+				}
+				break;
+			}
+		}
+
+		// If no interval found, determine direction based on next event
+		if (!intervalFound && futureEvents.length > 0) {
+			const nextEvent = futureEvents[0];
+			isRising = nextEvent.EventType === "HighWater";
+
+			// Estimate current level based on time to next event
+			const timeToNext =
+				new Date(nextEvent.DateTime).getTime() - currentTime;
+			const typicalTideInterval = 6.2 * 60 * 60 * 1000; // ~6.2 hours
+			const progressToNext = Math.min(
+				timeToNext / typicalTideInterval,
+				1
+			);
+
+			if (nextEvent.EventType === "HighWater") {
+				// Rising towards high tide
+				currentLevel = 0.2 + (1 - progressToNext) * 0.65;
+			} else {
+				// Falling towards low tide
+				currentLevel = 0.85 - (1 - progressToNext) * 0.65;
+			}
+		}
+	}
+
+	return {
+		currentLevel: Math.max(0.05, Math.min(0.95, currentLevel)),
+		isRising: isRising,
+		nextHigh: nextHigh || new Date(now.getTime() + 6 * 3600000),
+		nextLow: nextLow || new Date(now.getTime() + 3 * 3600000),
+		source: "admiralty_uk",
+		// Include the raw tide events for frontend chart generation
+		tideEvents: tideEvents
+			? tideEvents.map((event) => ({
+					time: event.DateTime,
+					type: event.EventType === "HighWater" ? "high" : "low",
+					height: event.Height,
+				}))
+			: [],
 	};
 }
 

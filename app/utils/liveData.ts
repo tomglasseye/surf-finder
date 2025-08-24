@@ -458,7 +458,7 @@ export async function createLiveForecast(
 				waveHeight: Math.round(avgWaveHeight * 10) / 10,
 				windSpeed: Math.round(avgWindSpeed * 10) / 10,
 				period: dayHourlyData.length > 0 ? dayHourlyData[0].period : 8,
-				hourlyData: dayHourlyData,
+				hourlyData: transformHourlyDataForCharts(dayHourlyData, dayIndex),
 				bestTime: {
 					hour: bestHour,
 					score: bestScore,
@@ -495,6 +495,46 @@ export async function createLiveForecast(
 		console.error(`Failed to create live forecast:`, error);
 		throw error;
 	}
+}
+
+/**
+ * Transform live hourly data array to chart-compatible format
+ */
+function transformHourlyDataForCharts(hourlyDataArray: LiveHourlyData[], dayOffset: number = 0): any {
+	if (!hourlyDataArray || hourlyDataArray.length === 0) {
+		return null;
+	}
+
+	const waveHeight: number[] = [];
+	const period: number[] = [];
+	const windSpeed: number[] = [];
+	const windDirection: number[] = [];
+	const swellDirection: number[] = [];
+	const times: string[] = [];
+
+	hourlyDataArray.forEach((hour, index) => {
+		waveHeight.push(hour.waveHeight || 0);
+		period.push(hour.period || 8);
+		windSpeed.push(hour.windSpeed || 0);
+		windDirection.push(hour.windDirection || 0);
+		swellDirection.push(hour.swellDirection || 0);
+		
+		// Create proper timestamp for this hour on the correct day
+		const now = new Date();
+		const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+		const targetDay = new Date(startOfDay.getTime() + dayOffset * 24 * 60 * 60 * 1000);
+		const hourTimestamp = new Date(targetDay.getTime() + index * 60 * 60 * 1000);
+		times.push(hourTimestamp.toISOString());
+	});
+
+	return {
+		waveHeight,
+		period,
+		windSpeed,
+		windDirection,
+		swellDirection,
+		times
+	};
 }
 
 /**

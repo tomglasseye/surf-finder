@@ -91,29 +91,37 @@ export default function Home() {
 			// Try to use live data first, fallback to mock data
 			const mockSeed = latitude + longitude;
 			const spotsWithLiveData = [];
-			
+
 			console.log("🌊 Attempting to fetch live data for nearby spots...");
-			
+
 			for (const [index, spot] of surfSpotsData.entries()) {
 				try {
 					// Try live data first
-					const liveSpot = await createLiveEnrichedSpot(spot, mockSeed + index * 37, {
-						latitude,
-						longitude,
-					});
+					const liveSpot = await createLiveEnrichedSpot(
+						spot,
+						mockSeed + index * 37,
+						{
+							latitude,
+							longitude,
+						}
+					);
 					spotsWithLiveData.push(liveSpot);
 					console.log(`✅ Live data loaded for ${spot.name}`);
 				} catch (error) {
 					// Fallback to mock data
 					console.log(`⚠️ Using mock data for ${spot.name}:`, error);
-					const mockSpot = createEnrichedSpot(spot, mockSeed + index * 37, {
-						latitude,
-						longitude,
-					});
+					const mockSpot = createEnrichedSpot(
+						spot,
+						mockSeed + index * 37,
+						{
+							latitude,
+							longitude,
+						}
+					);
 					spotsWithLiveData.push(mockSpot);
 				}
 			}
-			
+
 			const nearbySpots = spotsWithLiveData
 				.filter((spot) => spot.distance <= 100) // 100km
 				.sort((a, b) => b.surfScore - a.surfScore) // Sort by score, not distance
@@ -423,13 +431,19 @@ export default function Home() {
 														height={60}
 														variant="compact"
 														className="border-0"
-														dataSource={spot.tideData?.source || 'unknown'}
+														dataSource={
+															spot.tideData
+																?.source ||
+															"unknown"
+														}
 													/>
 
 													{/* New Comprehensive Tide Chart */}
 													<TideChart
 														latitude={spot.latitude}
-														longitude={spot.longitude}
+														longitude={
+															spot.longitude
+														}
 														spotName={spot.name}
 														showDays={1}
 														height={180}
@@ -454,15 +468,28 @@ export default function Home() {
 															225
 														}
 														hourlyWindData={
-															spot.hourlyData && Array.isArray(spot.hourlyData)
-																? spot.hourlyData.map((h: any) => h.windDirection || 225)
+															spot.hourlyData &&
+															Array.isArray(
+																spot.hourlyData
+															)
+																? spot.hourlyData.map(
+																		(
+																			h: any
+																		) =>
+																			h.windDirection ||
+																			225
+																	)
 																: undefined
 														}
 														height={120}
 														variant="compact"
 														className="border-0"
 														showHourlyUpdates={true}
-														dataSource={spot.tideData?.source || 'unknown'}
+														dataSource={
+															spot.tideData
+																?.source ||
+															"unknown"
+														}
 													/>
 
 													{/* Swell Direction Chart */}
@@ -491,22 +518,72 @@ export default function Home() {
 														variant="compact"
 														className="border-0"
 														showHourlyUpdates={true}
-														dataSource={spot.tideData?.source || 'unknown'}
+														dataSource={
+															spot.tideData
+																?.source ||
+															"unknown"
+														}
 													/>
 
 													{/* Professional Hourly Chart */}
 													<ProfessionalHourlyChart
-														data={spot.hourlyData && Array.isArray(spot.hourlyData) && spot.hourlyData.length > 0 ? {
-															waveHeight: spot.hourlyData.map((h: any) => h.waveHeight || 0),
-															period: spot.hourlyData.map((h: any) => h.period || 0),
-															windSpeed: spot.hourlyData.map((h: any) => h.windSpeed || 0),
-															windDirection: spot.hourlyData.map((h: any) => h.windDirection || 0),
-															times: spot.hourlyData.map((h: any) => h.time || `${new Date().getHours()}:00`)
-														} : null}
+														data={
+															spot.hourlyData &&
+															Array.isArray(
+																spot.hourlyData
+															) &&
+															spot.hourlyData
+																.length > 0
+																? {
+																		waveHeight:
+																			spot.hourlyData.map(
+																				(
+																					h: any
+																				) =>
+																					h.waveHeight ||
+																					0
+																			),
+																		period: spot.hourlyData.map(
+																			(
+																				h: any
+																			) =>
+																				h.period ||
+																				0
+																		),
+																		windSpeed:
+																			spot.hourlyData.map(
+																				(
+																					h: any
+																				) =>
+																					h.windSpeed ||
+																					0
+																			),
+																		windDirection:
+																			spot.hourlyData.map(
+																				(
+																					h: any
+																				) =>
+																					h.windDirection ||
+																					0
+																			),
+																		times: spot.hourlyData.map(
+																			(
+																				h: any
+																			) =>
+																				h.time ||
+																				`${new Date().getHours()}:00`
+																		),
+																	}
+																: null
+														}
 														height={150}
 														className="border-0"
 														variant="compact"
-														dataSource={spot.tideData?.source || 'unknown'}
+														dataSource={
+															spot.tideData
+																?.source ||
+															"unknown"
+														}
 													/>
 
 													<p className="text-gray-700 bg-white rounded-lg p-3">

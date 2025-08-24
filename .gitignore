@@ -21,3 +21,29 @@ requirements.txt
 
 # Local Netlify folder
 .netlify
+
+# Test and debug files
+test-*.js
+test-*.cjs
+test-*.ts
+*-debug.js
+verify-*.js
+detailed-debug.js
+force-fresh-call.js
+check-api-status.js
+debug-tide-data.js
+
+# Documentation and analysis files
+*DEBUG*.md
+*SUMMARY*.md
+*VALIDATION*.md
+*ANALYSIS*.md
+*STATUS*.md
+*SETUP*.md
+*GAPS*.md
+*ISSUES*.md
+*TIDE*.md
+*WIND*.md
+*GRAPH*.md
+*CACHING*.md
+*APIs*.md

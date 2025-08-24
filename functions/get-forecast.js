@@ -94,7 +94,9 @@ const CACHE_CONFIG = {
 const getTideCacheKey = (latitude, longitude, targetDate = null) => {
 	const lat = Math.round(latitude * 1000) / 1000; // Round to 3 decimal places for precision
 	const lng = Math.round(longitude * 1000) / 1000;
-	const date = targetDate ? targetDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+	const date = targetDate
+		? targetDate.toISOString().split("T")[0]
+		: new Date().toISOString().split("T")[0];
 	return `tide_extremes_${lat}_${lng}_${date}`; // Include date for specific tide data
 };
 
@@ -182,7 +184,11 @@ const warmPopularCaches = async () => {
 	console.log("🔥 Warming cache for popular locations...");
 
 	for (const location of POPULAR_LOCATIONS) {
-		const cacheKey = getTideCacheKey(location.lat, location.lng, new Date());
+		const cacheKey = getTideCacheKey(
+			location.lat,
+			location.lng,
+			new Date()
+		);
 		const cached = tideCache.get(cacheKey);
 
 		if (!cached || !isTideCacheValid(cached)) {
@@ -304,7 +310,7 @@ async function getTideData(latitude, longitude, targetDate = null) {
 	try {
 		// Use target date or current date
 		const dateToUse = targetDate ? new Date(targetDate) : new Date();
-		
+
 		// UK Admiralty API - Official UK Government Tide Data
 		const admiraltyApiKey = process.env.ADMIRALTY_API_KEY;
 
@@ -317,7 +323,7 @@ async function getTideData(latitude, longitude, targetDate = null) {
 		if (admiraltyApiKey) {
 			try {
 				console.log(
-					`🇬🇧 Fetching tide data from UK Admiralty API for: ${latitude}, ${longitude} on ${dateToUse.toISOString().split('T')[0]}`
+					`🇬🇧 Fetching tide data from UK Admiralty API for: ${latitude}, ${longitude} on ${dateToUse.toISOString().split("T")[0]}`
 				);
 
 				// First, find the nearest tidal station
@@ -372,7 +378,11 @@ async function getTideData(latitude, longitude, targetDate = null) {
 
 				// Get tide data for the target date
 				const startDate = dateToUse.toISOString().split("T")[0];
-				const endDate = new Date(dateToUse.getTime() + 24 * 60 * 60 * 1000).toISOString().split("T")[0]; // Next day
+				const endDate = new Date(
+					dateToUse.getTime() + 24 * 60 * 60 * 1000
+				)
+					.toISOString()
+					.split("T")[0]; // Next day
 
 				const tideResponse = await fetch(
 					`https://admiraltyapi.azure-api.net/uktidalapi/api/V1/Stations/${closestStation.properties.Id}/TidalEvents?StartDateTime=${startDate}&EndDateTime=${endDate}`,
@@ -392,7 +402,7 @@ async function getTideData(latitude, longitude, targetDate = null) {
 
 				const tideEvents = await tideResponse.json();
 				console.log(
-					`✅ Admiralty API success: ${tideEvents.length} tide events fetched for ${dateToUse.toISOString().split('T')[0]}`
+					`✅ Admiralty API success: ${tideEvents.length} tide events fetched for ${dateToUse.toISOString().split("T")[0]}`
 				);
 
 				// Process Admiralty data for the target date
@@ -581,10 +591,7 @@ function processAdmiraltyTideData(tideEvents, targetDate) {
 			const currentEventTime = new Date(currentEvent.DateTime).getTime();
 			const nextEventTime = new Date(nextEvent.DateTime).getTime();
 
-			if (
-				currentEventTime <= targetTime &&
-				targetTime <= nextEventTime
-			) {
+			if (currentEventTime <= targetTime && targetTime <= nextEventTime) {
 				intervalFound = true;
 				const progress =
 					(targetTime - currentEventTime) /
@@ -1262,10 +1269,21 @@ async function processHourlyToDaily(marineData, windData, latitude, longitude) {
 	const daysArray = Object.values(days);
 	for (let dayData of daysArray) {
 		try {
-			dayData.tideData = await getTideData(latitude, longitude, dayData.date);
+			dayData.tideData = await getTideData(
+				latitude,
+				longitude,
+				dayData.date
+			);
 		} catch (error) {
-			console.error(`Error getting tide data for ${dayData.date}:`, error);
-			dayData.tideData = getEnhancedTideCalculation(latitude, longitude, dayData.date);
+			console.error(
+				`Error getting tide data for ${dayData.date}:`,
+				error
+			);
+			dayData.tideData = getEnhancedTideCalculation(
+				latitude,
+				longitude,
+				dayData.date
+			);
 		}
 	}
 

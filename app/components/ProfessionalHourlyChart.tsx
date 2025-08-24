@@ -105,63 +105,69 @@ export default function ProfessionalHourlyChart({
 	};
 
 	const surfData = data || generateMockData();
-	
+
 	// Debug: Check if we have real data
 	const hasRealData = data && data.times && data.times.length > 0;
 
 	// Transform data for Recharts with unit conversions
 	let chartData: any[] = [];
 	try {
-		chartData = (surfData?.times && Array.isArray(surfData.times) ? surfData.times : []).map((time, index) => {
-		// Handle time parsing - could be ISO string or hour string like '00:00'
-		let timeObj;
-		let hourValue;
-		
-		if (time.includes('T') || time.includes('Z') || time.length > 8) {
-			// Full ISO string format like "2025-08-23T15:00:00.000Z"
-			timeObj = new Date(time);
-			hourValue = timeObj.getHours();
-		} else if (time.includes(':')) {
-			// Simple time format like '00:00' - extract hour
-			hourValue = parseInt(time.split(':')[0]);
-			timeObj = new Date();
-			timeObj.setHours(hourValue, 0, 0, 0);
-		} else {
-			// Fallback - assume it's a number
-			hourValue = parseInt(time) || 0;
-			timeObj = new Date();
-			timeObj.setHours(hourValue, 0, 0, 0);
-		}
-		
-		const windDir = surfData.windDirection?.[index];
-		const transformedData = {
-			time: hourValue,
-			timeLabel: `${hourValue.toString().padStart(2, "0")}:00`,
-			waveHeight: parseFloat(
-				(((surfData?.waveHeight?.[index] || 0)) * 3.28084).toFixed(1)
-			), // Convert m to ft
-			period: parseFloat(surfData?.period?.[index]?.toFixed(1) || "0"),
-			windSpeed: parseFloat(
-				(((surfData?.windSpeed?.[index] || 0)) * 0.621371).toFixed(1)
-			), // Convert km/h to mph
-			windDirection: windDir,
-			windDirectionText:
-				windDir !== undefined ? getWindDirectionText(windDir) : "N/A",
-			isNow: hourValue === new Date().getHours(),
-		};
-		
-		
-		return transformedData;
-	});
+		chartData = (
+			surfData?.times && Array.isArray(surfData.times)
+				? surfData.times
+				: []
+		).map((time, index) => {
+			// Handle time parsing - could be ISO string or hour string like '00:00'
+			let timeObj;
+			let hourValue;
+
+			if (time.includes("T") || time.includes("Z") || time.length > 8) {
+				// Full ISO string format like "2025-08-23T15:00:00.000Z"
+				timeObj = new Date(time);
+				hourValue = timeObj.getHours();
+			} else if (time.includes(":")) {
+				// Simple time format like '00:00' - extract hour
+				hourValue = parseInt(time.split(":")[0]);
+				timeObj = new Date();
+				timeObj.setHours(hourValue, 0, 0, 0);
+			} else {
+				// Fallback - assume it's a number
+				hourValue = parseInt(time) || 0;
+				timeObj = new Date();
+				timeObj.setHours(hourValue, 0, 0, 0);
+			}
+
+			const windDir = surfData.windDirection?.[index];
+			const transformedData = {
+				time: hourValue,
+				timeLabel: `${hourValue.toString().padStart(2, "0")}:00`,
+				waveHeight: parseFloat(
+					((surfData?.waveHeight?.[index] || 0) * 3.28084).toFixed(1)
+				), // Convert m to ft
+				period: parseFloat(
+					surfData?.period?.[index]?.toFixed(1) || "0"
+				),
+				windSpeed: parseFloat(
+					((surfData?.windSpeed?.[index] || 0) * 0.621371).toFixed(1)
+				), // Convert km/h to mph
+				windDirection: windDir,
+				windDirectionText:
+					windDir !== undefined
+						? getWindDirectionText(windDir)
+						: "N/A",
+				isNow: hourValue === new Date().getHours(),
+			};
+
+			return transformedData;
+		});
 	} catch (error) {
-		console.error('📊 Error transforming chart data:', error);
+		console.error("📊 Error transforming chart data:", error);
 		chartData = [];
 	}
-	
 
 	// Ensure we have valid data
 	if (chartData.length === 0) {
-		console.error('📊 No chart data generated!');
+		console.error("📊 No chart data generated!");
 		return <div className="text-red-500 p-4">No chart data available</div>;
 	}
 
@@ -179,15 +185,17 @@ export default function ProfessionalHourlyChart({
 			return (
 				<div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
 					<p className="font-semibold text-gray-800">{`${label}:00`}</p>
-					{filteredPayload && Array.isArray(filteredPayload) && filteredPayload.map((entry: any, index: number) => (
-						<p
-							key={index}
-							style={{ color: entry.color }}
-							className="text-sm"
-						>
-							{`${entry.name}: ${entry.value}${entry.name === "Wave Height" ? "ft" : entry.name === "Period" ? "s" : " mph"}`}
-						</p>
-					))}
+					{filteredPayload &&
+						Array.isArray(filteredPayload) &&
+						filteredPayload.map((entry: any, index: number) => (
+							<p
+								key={index}
+								style={{ color: entry.color }}
+								className="text-sm"
+							>
+								{`${entry.name}: ${entry.value}${entry.name === "Wave Height" ? "ft" : entry.name === "Period" ? "s" : " mph"}`}
+							</p>
+						))}
 					{data?.windDirectionText && (
 						<p className="text-sm text-orange-600">
 							{`Wind Direction: ${data.windDirectionText}`}
@@ -201,12 +209,15 @@ export default function ProfessionalHourlyChart({
 
 	// Current hour for reference line
 	const currentHour = new Date().getHours();
-	
+
 	// Determine if this is live data - enhanced_calculation is acceptable fallback
-	const isLiveData = dataSource === 'live' || dataSource === 'admiralty_uk' || dataSource === 'enhanced_calculation';
+	const isLiveData =
+		dataSource === "live" ||
+		dataSource === "admiralty_uk" ||
+		dataSource === "enhanced_calculation";
 
 	return (
-		<DataOverlay 
+		<DataOverlay
 			isLiveData={isLiveData}
 			dataSource={dataSource}
 			className={`bg-white rounded-xl shadow-lg border-0 ${className}`}
@@ -286,7 +297,7 @@ export default function ProfessionalHourlyChart({
 								yAxisId="left"
 								stroke="#3b82f6"
 								fontSize={12}
-								domain={[0, 'dataMax + 1']}
+								domain={[0, "dataMax + 1"]}
 								label={{
 									value: "Wave Height (ft)",
 									angle: -90,
@@ -300,7 +311,7 @@ export default function ProfessionalHourlyChart({
 								orientation="right"
 								stroke="#8b5cf6"
 								fontSize={12}
-								domain={[0, 'dataMax + 2']}
+								domain={[0, "dataMax + 2"]}
 								label={{
 									value: "Period (s) / Wind (mph)",
 									angle: 90,

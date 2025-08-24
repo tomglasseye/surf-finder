@@ -7,11 +7,11 @@ interface DataOverlayProps {
 	className?: string;
 }
 
-export default function DataOverlay({ 
-	children, 
-	isLiveData, 
+export default function DataOverlay({
+	children,
+	isLiveData,
 	dataSource,
-	className = "" 
+	className = "",
 }: DataOverlayProps) {
 	if (isLiveData) {
 		return <>{children}</>;
@@ -25,12 +25,11 @@ export default function DataOverlay({
 					<div className="flex items-center space-x-1">
 						<span className="text-yellow-400">⚠️</span>
 						<span>
-							{dataSource === 'enhanced_calculation' 
-								? 'Mock Data' 
-								: dataSource === 'error'
-								? 'Data Error'
-								: 'Demo Data'
-							}
+							{dataSource === "enhanced_calculation"
+								? "Mock Data"
+								: dataSource === "error"
+									? "Data Error"
+									: "Demo Data"}
 						</span>
 					</div>
 				</div>

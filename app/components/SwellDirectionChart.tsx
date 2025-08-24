@@ -96,19 +96,22 @@ export default function SwellDirectionChart({
 	};
 
 	// Calculate arrow rotation relative to beach position (beach always at bottom)
-	const getArrowRotation = (swellDirection: number, spotDirection: number): number => {
+	const getArrowRotation = (
+		swellDirection: number,
+		spotDirection: number
+	): number => {
 		// Beach is always at bottom (180°), so spot faces up (0°)
 		// Swell direction needs to be rotated relative to this beach-bottom orientation
 		// If beach faces North (0°), and swell comes from North (0°), arrow points down (180°)
 		// If beach faces South (180°), and swell comes from North (0°), arrow points up (0°)
-		
+
 		// Calculate the relative angle
 		let relativeAngle = swellDirection - spotDirection + 180;
-		
+
 		// Normalize to 0-360 range
 		while (relativeAngle < 0) relativeAngle += 360;
 		while (relativeAngle >= 360) relativeAngle -= 360;
-		
+
 		// Convert to SVG rotation (subtract 90 for SVG coordinate system)
 		return relativeAngle - 90;
 	};
@@ -134,12 +137,15 @@ export default function SwellDirectionChart({
 	};
 
 	const swellData = hourlySwellData || generateHourlySwellData();
-	
+
 	// Determine if this is live data - enhanced_calculation is acceptable fallback
-	const isLiveData = dataSource === 'live' || dataSource === 'admiralty_uk' || dataSource === 'enhanced_calculation';
+	const isLiveData =
+		dataSource === "live" ||
+		dataSource === "admiralty_uk" ||
+		dataSource === "enhanced_calculation";
 
 	return (
-		<DataOverlay 
+		<DataOverlay
 			isLiveData={isLiveData}
 			dataSource={dataSource}
 			className={`bg-white rounded-xl shadow-lg border-0 w-full ${className}`}

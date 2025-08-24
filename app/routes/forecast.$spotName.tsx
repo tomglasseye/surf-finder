@@ -137,7 +137,9 @@ export default function ForecastSpot() {
 			setLoading(true);
 			setError("");
 
-			console.log(`🌊 Fetching forecast for ${spotName} at ${lat}, ${lng}`);
+			console.log(
+				`🌊 Fetching forecast for ${spotName} at ${lat}, ${lng}`
+			);
 
 			try {
 				const response = await fetch(
@@ -146,22 +148,28 @@ export default function ForecastSpot() {
 				const data = await response.json();
 
 				if (response.ok) {
-					console.log('✅ Forecast API response:', data);
-					console.log('📊 Data structure:', {
+					console.log("✅ Forecast API response:", data);
+					console.log("📊 Data structure:", {
 						hasSpot: !!data.spot,
 						hasForecast: !!data.forecast,
 						forecastType: typeof data.forecast,
 						forecastIsArray: Array.isArray(data.forecast),
 						forecastLength: data.forecast?.length,
-						source: data.source || 'unknown'
+						source: data.source || "unknown",
 					});
 					setForecast(data);
 					return;
 				} else {
-					console.warn(`⚠️ Forecast API returned ${response.status}:`, data);
+					console.warn(
+						`⚠️ Forecast API returned ${response.status}:`,
+						data
+					);
 				}
 			} catch (networkError) {
-				console.log("⚠️ Netlify function not available, using live data fallback:", networkError);
+				console.log(
+					"⚠️ Netlify function not available, using live data fallback:",
+					networkError
+				);
 			}
 
 			// Fallback: Generate live forecast data
@@ -170,27 +178,34 @@ export default function ForecastSpot() {
 				(spot) =>
 					spot.name.toLowerCase() === currentSpotName?.toLowerCase()
 			);
-			
+
 			if (!spotData) {
 				throw new Error(`Spot not found: ${currentSpotName}`);
 			}
-			
+
 			console.log(`🌊 Loading live forecast for ${currentSpotName}`);
-			
+
 			// Try to get live forecast data (5 days)
 			try {
 				// Create live enriched spot with 5-day data
-				const liveForecast = await createLiveForecast(spotData, lat || "0", lng || "0");
+				const liveForecast = await createLiveForecast(
+					spotData,
+					lat || "0",
+					lng || "0"
+				);
 				console.log(`✅ Live forecast created:`, {
 					hasSpot: !!liveForecast.spot,
 					hasForecast: !!liveForecast.forecast,
 					forecastLength: liveForecast.forecast?.length,
-					source: liveForecast.source
+					source: liveForecast.source,
 				});
 				setForecast(liveForecast);
 				console.log(`✅ Live forecast loaded for ${currentSpotName}`);
 			} catch (liveError) {
-				console.warn(`⚠️ Live forecast failed, using mock for ${currentSpotName}:`, liveError);
+				console.warn(
+					`⚠️ Live forecast failed, using mock for ${currentSpotName}:`,
+					liveError
+				);
 				// Fallback to mock forecast
 				const mockForecast = generateMockForecast(
 					spotName || "",
@@ -249,15 +264,15 @@ export default function ForecastSpot() {
 
 	// Handle both live data format (days) and API format (forecast)
 	const forecastArray = forecast?.forecast || forecast?.days;
-	
+
 	if (!forecast || !forecastArray || !Array.isArray(forecastArray)) {
-		console.log('Forecast validation failed:', {
+		console.log("Forecast validation failed:", {
 			hasForecast: !!forecast,
-			hasForecastForecast: !!(forecast?.forecast),
-			hasForecastDays: !!(forecast?.days),
+			hasForecastForecast: !!forecast?.forecast,
+			hasForecastDays: !!forecast?.days,
 			forecastArrayType: typeof forecastArray,
 			isArray: Array.isArray(forecastArray),
-			forecastKeys: forecast ? Object.keys(forecast) : 'null'
+			forecastKeys: forecast ? Object.keys(forecast) : "null",
 		});
 		return (
 			<div className="min-h-screen bg-white">
@@ -268,7 +283,9 @@ export default function ForecastSpot() {
 							<h2 className="text-xl font-semibold text-gray-800 mb-2">
 								Forecast Unavailable
 							</h2>
-							<p className="text-gray-600 mb-6">Unable to load forecast data</p>
+							<p className="text-gray-600 mb-6">
+								Unable to load forecast data
+							</p>
 							<a
 								href="/"
 								className="bg-black hover:bg-gray-800 text-white px-6 py-2 border transition duration-200"
@@ -285,7 +302,7 @@ export default function ForecastSpot() {
 	// Normalize the forecast object to have consistent structure
 	const normalizedForecast = {
 		...forecast,
-		forecast: forecastArray
+		forecast: forecastArray,
 	};
 
 	return (
@@ -360,10 +377,10 @@ export default function ForecastSpot() {
 								>
 									<div className="text-center mb-4">
 										<h3 className="text-lg font-semibold text-gray-800">
-											{day.dayName || 'Unknown Day'}
+											{day.dayName || "Unknown Day"}
 										</h3>
 										<p className="text-gray-600 text-sm">
-											{day.dateStr || 'Unknown Date'}
+											{day.dateStr || "Unknown Date"}
 										</p>
 										{index === 0 && (
 											<span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mt-1">
@@ -377,12 +394,12 @@ export default function ForecastSpot() {
 											className={`text-3xl ${getScoreColor(day.score || 0)} mb-2`}
 										>
 											{getScoreEmoji(day.score || 0)}{" "}
-											{(day.score || 0)}/10
+											{day.score || 0}/10
 										</div>
 										<div
-											className={`inline-block px-3 py-1 text-sm font-medium border ${getRatingColor(day.rating || 'Unknown')}`}
+											className={`inline-block px-3 py-1 text-sm font-medium border ${getRatingColor(day.rating || "Unknown")}`}
 										>
-											{day.rating || 'Unknown'}
+											{day.rating || "Unknown"}
 										</div>
 									</div>
 
@@ -428,9 +445,14 @@ export default function ForecastSpot() {
 											variant="compact"
 											className="border-0"
 											spotPreferences={{
-												bestTide: forecast.spot.bestTide,
-												optimalWindDir: forecast.spot.optimalWindDir,
-												optimalSwellDir: forecast.spot.optimalSwellDir,
+												bestTide:
+													forecast.spot.bestTide,
+												optimalWindDir:
+													forecast.spot
+														.optimalWindDir,
+												optimalSwellDir:
+													forecast.spot
+														.optimalSwellDir,
 											}}
 											hourlyData={day.hourlyData}
 											dataSource={forecast.source}
@@ -442,7 +464,9 @@ export default function ForecastSpot() {
 										<TideChart
 											latitude={parseFloat(lat || "0")}
 											longitude={parseFloat(lng || "0")}
-											spotName={normalizedForecast.spot.name}
+											spotName={
+												normalizedForecast.spot.name
+											}
 											showDays={1}
 											height={200}
 											className="border-0"
@@ -466,13 +490,22 @@ export default function ForecastSpot() {
 													: windDir || 180;
 											})()}
 											windDirection={
-												day.hourlyData && Array.isArray(day.hourlyData) && day.hourlyData.length > 0
-													? day.hourlyData[0]?.windDirection || 225
+												day.hourlyData &&
+												Array.isArray(day.hourlyData) &&
+												day.hourlyData.length > 0
+													? day.hourlyData[0]
+															?.windDirection ||
+														225
 													: 225
 											}
 											hourlyWindData={
-												day.hourlyData && Array.isArray(day.hourlyData)
-													? day.hourlyData.map((h: any) => h.windDirection || 225)
+												day.hourlyData &&
+												Array.isArray(day.hourlyData)
+													? day.hourlyData.map(
+															(h: any) =>
+																h.windDirection ||
+																225
+														)
 													: undefined
 											}
 											height={120}
@@ -511,13 +544,22 @@ export default function ForecastSpot() {
 												);
 											})()}
 											swellDirection={
-												day.hourlyData && Array.isArray(day.hourlyData) && day.hourlyData.length > 0
-													? day.hourlyData[0]?.swellDirection || 285
+												day.hourlyData &&
+												Array.isArray(day.hourlyData) &&
+												day.hourlyData.length > 0
+													? day.hourlyData[0]
+															?.swellDirection ||
+														285
 													: 285
 											}
 											hourlySwellData={
-												day.hourlyData && Array.isArray(day.hourlyData)
-													? day.hourlyData.map((h: any) => h.swellDirection || 285)
+												day.hourlyData &&
+												Array.isArray(day.hourlyData)
+													? day.hourlyData.map(
+															(h: any) =>
+																h.swellDirection ||
+																285
+														)
 													: undefined
 											}
 											height={120}
@@ -531,13 +573,42 @@ export default function ForecastSpot() {
 									{/* Hourly Surf Conditions Chart */}
 									<div className="mb-4">
 										<ProfessionalHourlyChart
-											data={day.hourlyData && Array.isArray(day.hourlyData) && day.hourlyData.length > 0 ? {
-												waveHeight: day.hourlyData.map((h: any) => h.waveHeight || 0),
-												period: day.hourlyData.map((h: any) => h.period || 0),
-												windSpeed: day.hourlyData.map((h: any) => h.windSpeed || 0),
-												windDirection: day.hourlyData.map((h: any) => h.windDirection || 0),
-												times: day.hourlyData.map((h: any) => h.time || `${new Date().getHours()}:00`)
-											} : null}
+											data={
+												day.hourlyData &&
+												Array.isArray(day.hourlyData) &&
+												day.hourlyData.length > 0
+													? {
+															waveHeight:
+																day.hourlyData.map(
+																	(h: any) =>
+																		h.waveHeight ||
+																		0
+																),
+															period: day.hourlyData.map(
+																(h: any) =>
+																	h.period ||
+																	0
+															),
+															windSpeed:
+																day.hourlyData.map(
+																	(h: any) =>
+																		h.windSpeed ||
+																		0
+																),
+															windDirection:
+																day.hourlyData.map(
+																	(h: any) =>
+																		h.windDirection ||
+																		0
+																),
+															times: day.hourlyData.map(
+																(h: any) =>
+																	h.time ||
+																	`${new Date().getHours()}:00`
+															),
+														}
+													: null
+											}
 											height={180}
 											className="border-0"
 											variant="compact"
@@ -557,25 +628,31 @@ export default function ForecastSpot() {
 										</div>
 									)}
 
-									{day.factors && Array.isArray(day.factors) && day.factors.length > 0 && (
-										<div className="border-t pt-3">
-											<div className="text-xs text-gray-600 mb-2">
-												Key Factors:
+									{day.factors &&
+										Array.isArray(day.factors) &&
+										day.factors.length > 0 && (
+											<div className="border-t pt-3">
+												<div className="text-xs text-gray-600 mb-2">
+													Key Factors:
+												</div>
+												<div className="space-y-1">
+													{day.factors &&
+														Array.isArray(
+															day.factors
+														) &&
+														day.factors.map(
+															(factor, idx) => (
+																<div
+																	key={idx}
+																	className="text-xs text-gray-700 bg-gray-50 px-2 py-1 rounded"
+																>
+																	• {factor}
+																</div>
+															)
+														)}
+												</div>
 											</div>
-											<div className="space-y-1">
-												{day.factors && Array.isArray(day.factors) && day.factors.map(
-													(factor, idx) => (
-														<div
-															key={idx}
-															className="text-xs text-gray-700 bg-gray-50 px-2 py-1 rounded"
-														>
-															• {factor}
-														</div>
-													)
-												)}
-											</div>
-										</div>
-									)}
+										)}
 								</div>
 							))}
 						</div>
@@ -588,13 +665,14 @@ export default function ForecastSpot() {
 							<div className="grid gap-4 md:grid-cols-3">
 								<div className="text-center">
 									<div className="text-2xl font-bold text-green-600">
-										{
-											(normalizedForecast.forecast && Array.isArray(normalizedForecast.forecast) 
-												? normalizedForecast.forecast.filter(
+										{normalizedForecast.forecast &&
+										Array.isArray(
+											normalizedForecast.forecast
+										)
+											? normalizedForecast.forecast.filter(
 													(d) => d.score >= 5.5
 												).length
-												: 0)
-										}
+											: 0}
 									</div>
 									<div className="text-gray-600 text-sm">
 										Good+ Days
@@ -605,9 +683,16 @@ export default function ForecastSpot() {
 									<div className="text-2xl font-bold text-blue-600">
 										{(
 											Math.max(
-												...(normalizedForecast.forecast && Array.isArray(normalizedForecast.forecast) ? normalizedForecast.forecast.map(
-													(d) => d.waveHeight || 0
-												) : [0])
+												...(normalizedForecast.forecast &&
+												Array.isArray(
+													normalizedForecast.forecast
+												)
+													? normalizedForecast.forecast.map(
+															(d) =>
+																d.waveHeight ||
+																0
+														)
+													: [0])
 											) * 3.28084
 										).toFixed(1)}
 										ft
@@ -620,9 +705,14 @@ export default function ForecastSpot() {
 								<div className="text-center">
 									<div className="text-2xl font-bold text-purple-600">
 										{Math.max(
-											...(normalizedForecast.forecast && Array.isArray(normalizedForecast.forecast) ? normalizedForecast.forecast.map(
-												(d) => d.period || 0
-											) : [0])
+											...(normalizedForecast.forecast &&
+											Array.isArray(
+												normalizedForecast.forecast
+											)
+												? normalizedForecast.forecast.map(
+														(d) => d.period || 0
+													)
+												: [0])
 										).toFixed(1)}
 										s
 									</div>

@@ -39,29 +39,41 @@ const TrafficLightChart: React.FC<TrafficLightChartProps> = ({
 		}
 
 		// If we have real hourly data and spot preferences, calculate real scores
-		if (hourlyData && Array.isArray(hourlyData) && spotPreferences && hourlyData.length > 0) {
-			return hourlyData.map(hourData => {
-				// Ensure hourData is valid
-				if (!hourData || typeof hourData !== 'object') {
-					return null;
-				}
-				const conditions = {
-					waveHeight: hourData.waveHeight || 1.2,
-					period: hourData.period || 8,
-					windSpeed: hourData.windSpeed || 10,
-					windDirection: hourData.windDirection || 225,
-					swellDirection: hourData.swellDirection || 270,
-					tideLevel: hourData.tideLevel || 0.5, // This is the key tide integration
-				};
+		if (
+			hourlyData &&
+			Array.isArray(hourlyData) &&
+			spotPreferences &&
+			hourlyData.length > 0
+		) {
+			return hourlyData
+				.map((hourData) => {
+					// Ensure hourData is valid
+					if (!hourData || typeof hourData !== "object") {
+						return null;
+					}
+					const conditions = {
+						waveHeight: hourData.waveHeight || 1.2,
+						period: hourData.period || 8,
+						windSpeed: hourData.windSpeed || 10,
+						windDirection: hourData.windDirection || 225,
+						swellDirection: hourData.swellDirection || 270,
+						tideLevel: hourData.tideLevel || 0.5, // This is the key tide integration
+					};
 
-				const score = calculateSurfScore(conditions, spotPreferences);
-				
-				return {
-					hour: hourData.hour || 0,
-					score: score,
-					time: hourData.time || `${(hourData.hour || 0).toString().padStart(2, '0')}:00`,
-				};
-			}).filter(item => item !== null); // Remove any null entries
+					const score = calculateSurfScore(
+						conditions,
+						spotPreferences
+					);
+
+					return {
+						hour: hourData.hour || 0,
+						score: score,
+						time:
+							hourData.time ||
+							`${(hourData.hour || 0).toString().padStart(2, "0")}:00`,
+					};
+				})
+				.filter((item) => item !== null); // Remove any null entries
 		}
 
 		// Fallback to mock data
@@ -109,12 +121,15 @@ const TrafficLightChart: React.FC<TrafficLightChartProps> = ({
 	const blockWidth = isCompact ? 16 : 24;
 	const blockHeight = isCompact ? 16 : 24;
 	const gap = isCompact ? 2 : 4;
-	
+
 	// Determine if this is live data - enhanced_calculation is acceptable fallback
-	const isLiveData = dataSource === 'live' || dataSource === 'admiralty_uk' || dataSource === 'enhanced_calculation';
+	const isLiveData =
+		dataSource === "live" ||
+		dataSource === "admiralty_uk" ||
+		dataSource === "enhanced_calculation";
 
 	return (
-		<DataOverlay 
+		<DataOverlay
 			isLiveData={isLiveData}
 			dataSource={dataSource}
 			className={`bg-white border border-gray-200 p-2 md:p-4 ${className}`}
@@ -162,7 +177,7 @@ const TrafficLightChart: React.FC<TrafficLightChartProps> = ({
 										backgroundColor: color,
 										opacity: opacity,
 									}}
-									title={`${dataPoint?.time || '00:00'}: ${score.toFixed(1)}/10 (${getScoreLabel(score)})`}
+									title={`${dataPoint?.time || "00:00"}: ${score.toFixed(1)}/10 (${getScoreLabel(score)})`}
 								/>
 
 								<div className="text-xs text-gray-500 mt-1 absolute -bottom-6">
@@ -176,7 +191,7 @@ const TrafficLightChart: React.FC<TrafficLightChartProps> = ({
 								</div>
 
 								<div className="opacity-0 group-hover:opacity-100 absolute bottom-full mb-2 bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10 pointer-events-none transition-opacity">
-									{dataPoint?.time || '00:00'}:{" "}
+									{dataPoint?.time || "00:00"}:{" "}
 									{score.toFixed(1)}/10
 									<div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-gray-800"></div>
 								</div>

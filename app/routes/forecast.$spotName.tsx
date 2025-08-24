@@ -499,19 +499,10 @@ export default function ForecastSpot() {
 													: windDir || 180;
 											})()}
 											windDirection={
-												day.hourlyData &&
-												day.hourlyData.windDirection &&
-												Array.isArray(day.hourlyData.windDirection) &&
-												day.hourlyData.windDirection.length > 0
-													? day.hourlyData.windDirection[0] || 225
-													: 225
+												day.hourlyData?.windDirection?.[0] || 225
 											}
 											hourlyWindData={
-												day.hourlyData &&
-												day.hourlyData.windDirection &&
-												Array.isArray(day.hourlyData.windDirection)
-													? day.hourlyData.windDirection
-													: undefined
+												day.hourlyData?.windDirection
 											}
 											height={120}
 											variant="compact"
@@ -549,19 +540,10 @@ export default function ForecastSpot() {
 												);
 											})()}
 											swellDirection={
-												day.hourlyData &&
-												day.hourlyData.swellDirection &&
-												Array.isArray(day.hourlyData.swellDirection) &&
-												day.hourlyData.swellDirection.length > 0
-													? day.hourlyData.swellDirection[0] || 285
-													: 285
+												day.hourlyData?.swellDirection?.[0] || 285
 											}
 											hourlySwellData={
-												day.hourlyData &&
-												day.hourlyData.swellDirection &&
-												Array.isArray(day.hourlyData.swellDirection)
-													? day.hourlyData.swellDirection
-													: undefined
+												day.hourlyData?.swellDirection
 											}
 											height={120}
 											variant="compact"
@@ -574,21 +556,7 @@ export default function ForecastSpot() {
 									{/* Hourly Surf Conditions Chart */}
 									<div className="mb-4">
 										<ProfessionalHourlyChart
-											data={
-												day.hourlyData &&
-												typeof day.hourlyData === 'object' &&
-												day.hourlyData.waveHeight &&
-												Array.isArray(day.hourlyData.waveHeight) &&
-												day.hourlyData.waveHeight.length > 0
-													? {
-															waveHeight: day.hourlyData.waveHeight,
-															period: day.hourlyData.period || [],
-															windSpeed: day.hourlyData.windSpeed || [],
-															windDirection: day.hourlyData.windDirection || [],
-															times: day.hourlyData.times || [],
-														}
-													: null
-											}
+											data={day.hourlyData || null}
 											height={180}
 											className="border-0"
 											variant="compact"

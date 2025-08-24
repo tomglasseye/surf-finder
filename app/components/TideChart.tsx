@@ -367,10 +367,18 @@ export default function TideChart({
 		
 		console.log(`🗓️ Looking for events between ${targetDateStart.toISOString()} and ${targetDateEnd.toISOString()}`);
 		
+		// Filter tide events to only show events for the specific target date
 		const targetDateEvents = tideData.filter(event => {
 			const eventTime = new Date(event.time);
-			console.log(`🔍 Checking event at ${event.time} (${eventTime.toISOString()}) - in range: ${eventTime >= targetDateStart && eventTime < targetDateEnd}`);
-			return eventTime >= targetDateStart && eventTime < targetDateEnd;
+			const eventDate = new Date(eventTime);
+			eventDate.setHours(0, 0, 0, 0);
+			
+			// Check if this event is on the target date
+			const isOnTargetDate = eventDate.getTime() === targetDateStart.getTime();
+			
+			console.log(`🔍 Checking event at ${event.time} (${eventTime.toISOString()}) - event date: ${eventDate.toISOString()}, target date: ${targetDateStart.toISOString()}, isOnTargetDate: ${isOnTargetDate}`);
+			
+			return isOnTargetDate;
 		});
 		
 		console.log(`📅 Found ${targetDateEvents.length} events for target date:`, targetDateEvents);

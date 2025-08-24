@@ -698,8 +698,8 @@ export default function TideChart({
 
 	console.log(`📊 Rendering TideChart for ${spotName}: ${tideData.length} tide events, ${Object.keys(sunData).length} sun days`);
 
-	// Determine if this is live data
-	const isLiveData = dataSource === 'admiralty_uk';
+	// Determine if this is live data - admiralty_uk is fully live, enhanced_calculation is acceptable fallback
+	const isLiveData = dataSource === 'admiralty_uk' || dataSource === 'enhanced_calculation';
 
 	return (
 		<DataOverlay 

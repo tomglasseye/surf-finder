@@ -116,8 +116,8 @@ export default function WindDirectionCompass({
 
 	const windData = hourlyWindData || generateHourlyWindData();
 	
-	// Determine if this is live data
-	const isLiveData = dataSource === 'live' || dataSource === 'admiralty_uk';
+	// Determine if this is live data - enhanced_calculation is acceptable fallback
+	const isLiveData = dataSource === 'live' || dataSource === 'admiralty_uk' || dataSource === 'enhanced_calculation';
 
 	return (
 		<DataOverlay 

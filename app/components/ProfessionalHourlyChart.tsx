@@ -202,8 +202,8 @@ export default function ProfessionalHourlyChart({
 	// Current hour for reference line
 	const currentHour = new Date().getHours();
 	
-	// Determine if this is live data
-	const isLiveData = dataSource === 'live' || dataSource === 'admiralty_uk';
+	// Determine if this is live data - enhanced_calculation is acceptable fallback
+	const isLiveData = dataSource === 'live' || dataSource === 'admiralty_uk' || dataSource === 'enhanced_calculation';
 
 	return (
 		<DataOverlay 

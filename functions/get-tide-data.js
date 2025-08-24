@@ -179,7 +179,16 @@ export async function handler(event, context) {
         const tideTime = new Date(dayStart);
         tideTime.setMinutes(tide.minutes);
         
-        if (tideTime >= startDate && tideTime <= endDate) {
+        // More lenient filtering - include events that are within the date range
+        // Use date comparison instead of strict time comparison
+        const tideDate = new Date(tideTime);
+        tideDate.setHours(0, 0, 0, 0);
+        const startDateOnly = new Date(startDate);
+        startDateOnly.setHours(0, 0, 0, 0);
+        const endDateOnly = new Date(endDate);
+        endDateOnly.setHours(0, 0, 0, 0);
+        
+        if (tideDate >= startDateOnly && tideDate < endDateOnly) {
           tideEvents.push({
             time: tideTime.toISOString(),
             type: tide.type,

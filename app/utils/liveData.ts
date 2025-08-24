@@ -447,6 +447,13 @@ export async function createLiveForecast(
 			const avgWaveHeight = dayHourlyData.reduce((sum, h) => sum + h.waveHeight, 0) / dayHourlyData.length;
 			const avgWindSpeed = dayHourlyData.reduce((sum, h) => sum + h.windSpeed, 0) / dayHourlyData.length;
 			
+			const transformedHourlyData = transformHourlyDataForCharts(dayHourlyData, dayIndex);
+			console.log(`📊 Day ${dayIndex} hourly data:`, {
+				originalLength: dayHourlyData.length,
+				transformedData: transformedHourlyData ? 'object' : 'null',
+				hasWaveHeight: transformedHourlyData?.waveHeight?.length || 0
+			});
+
 			forecastDays.push({
 				date: date.toISOString(),
 				dayName: date.toLocaleDateString("en-GB", { weekday: "long" }),
@@ -456,9 +463,9 @@ export async function createLiveForecast(
 				}),
 				score: Math.round(bestScore * 10) / 10,
 				waveHeight: Math.round(avgWaveHeight * 10) / 10,
-				windSpeed: Math.round(avgWindSpeed * 10) / 10,
+				windSpeed: Math.round(avgWindSpeed * 1) / 10,
 				period: dayHourlyData.length > 0 ? dayHourlyData[0].period : 8,
-				hourlyData: transformHourlyDataForCharts(dayHourlyData, dayIndex),
+				hourlyData: transformedHourlyData,
 				bestTime: {
 					hour: bestHour,
 					score: bestScore,
@@ -501,7 +508,14 @@ export async function createLiveForecast(
  * Transform live hourly data array to chart-compatible format
  */
 function transformHourlyDataForCharts(hourlyDataArray: LiveHourlyData[], dayOffset: number = 0): any {
+	console.log('🔄 transformHourlyDataForCharts called:', {
+		hasArray: !!hourlyDataArray,
+		arrayLength: hourlyDataArray?.length,
+		dayOffset
+	});
+
 	if (!hourlyDataArray || hourlyDataArray.length === 0) {
+		console.log('❌ transformHourlyDataForCharts: No hourly data provided, returning null');
 		return null;
 	}
 
@@ -527,7 +541,7 @@ function transformHourlyDataForCharts(hourlyDataArray: LiveHourlyData[], dayOffs
 		times.push(hourTimestamp.toISOString());
 	});
 
-	return {
+	const result = {
 		waveHeight,
 		period,
 		windSpeed,
@@ -535,6 +549,15 @@ function transformHourlyDataForCharts(hourlyDataArray: LiveHourlyData[], dayOffs
 		swellDirection,
 		times
 	};
+
+	console.log('✅ transformHourlyDataForCharts result:', {
+		waveHeightLength: result.waveHeight.length,
+		timesLength: result.times.length,
+		sampleWaveHeight: result.waveHeight.slice(0, 3),
+		sampleTimes: result.times.slice(0, 3)
+	});
+
+	return result;
 }
 
 /**

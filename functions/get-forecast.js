@@ -667,16 +667,23 @@ function processAdmiraltyTideData(tideEvents, targetDate) {
 	return {
 		currentLevel: Math.max(0.05, Math.min(0.95, currentLevel)),
 		isRising: isRising,
-		nextHigh: nextHigh || new Date(now.getTime() + 6 * 3600000),
-		nextLow: nextLow || new Date(now.getTime() + 3 * 3600000),
+		nextHigh: nextHigh || new Date(targetDate.getTime() + 6 * 3600000),
+		nextLow: nextLow || new Date(targetDate.getTime() + 3 * 3600000),
 		source: "admiralty_uk",
-		// Include the raw tide events for frontend chart generation
+		// Filter tide events to only include those for the target date
 		tideEvents: tideEvents
-			? tideEvents.map((event) => ({
-					time: event.DateTime,
-					type: event.EventType === "HighWater" ? "high" : "low",
-					height: event.Height,
-				}))
+			? tideEvents
+					.filter((event) => {
+						const eventDate = new Date(event.DateTime);
+						const targetDateStr = targetDate.toISOString().split("T")[0];
+						const eventDateStr = eventDate.toISOString().split("T")[0];
+						return eventDateStr === targetDateStr;
+					})
+					.map((event) => ({
+						time: event.DateTime,
+						type: event.EventType === "HighWater" ? "high" : "low",
+						height: event.Height,
+					}))
 			: [],
 	};
 }
@@ -784,12 +791,38 @@ function getEnhancedTideCalculation(latitude, longitude, targetDate = null) {
 	);
 	const isRising = M2_derivative > 0;
 
+	// Generate tide events for the target date (essential for charts)
+	const tideEvents = [];
+	const baseDate = targetDate ? new Date(targetDate) : new Date();
+	baseDate.setHours(0, 0, 0, 0);
+
+	// Generate 4 tide events for the day (2 highs, 2 lows) - typical for UK
+	for (let i = 0; i < 4; i++) {
+		const hourOffset = (i * 6.21) + (Math.random() * 1.5 - 0.75); // ~6.2 hour tidal cycle with variation
+		const eventTime = new Date(baseDate.getTime() + hourOffset * 3600000);
+		
+		// Alternate between low and high, starting with whichever comes first based on current phase
+		const isHighTide = (i % 2 === 0) ? (M2_cycle_position < 0.5) : (M2_cycle_position >= 0.5);
+		
+		tideEvents.push({
+			time: eventTime.toISOString(),
+			type: isHighTide ? "high" : "low",
+			height: isHighTide ? 
+				(5.5 + amplitudeCorrection * 1.5 + (Math.random() * 0.5 - 0.25)) : 
+				(1.2 + amplitudeCorrection * 0.3 + (Math.random() * 0.3 - 0.15))
+		});
+	}
+
+	// Sort events by time
+	tideEvents.sort((a, b) => new Date(a.time) - new Date(b.time));
+
 	return {
 		currentLevel: normalizedLevel,
 		nextHigh: new Date(currentTime.getTime() + timeToNextHigh),
 		nextLow: new Date(currentTime.getTime() + timeToNextLow),
 		isRising: isRising,
 		source: "enhanced_calculation",
+		tideEvents: tideEvents, // Include tide events for charts
 	};
 }
 

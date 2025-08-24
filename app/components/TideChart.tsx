@@ -73,7 +73,7 @@ export default function TideChart({
 			const endDate = new Date(startDate);
 			endDate.setDate(startDate.getDate() + showDays);
 
-			console.log(`🌊 Loading tide data for ${spotName} (${latitude}, ${longitude}) - ${showDays} days`);
+			console.log(`🌊 Loading tide data for ${spotName} (${latitude}, ${longitude}) - ${showDays} days from ${startDate.toISOString()}`);
 
 			// Load tide data
 			const tideResponse = await getAdmiraltyTideData(
@@ -89,8 +89,8 @@ export default function TideChart({
 			// Load sunrise/sunset data for each day
 			const sunDataMap: {[date: string]: {sunrise: Date; sunset: Date}} = {};
 			for (let i = 0; i < showDays; i++) {
-				const date = new Date();
-				date.setDate(date.getDate() + i);
+				const date = new Date(startDate);
+				date.setDate(startDate.getDate() + i);
 				date.setHours(12, 0, 0, 0); // Use noon to avoid timezone issues
 				const dateStr = date.toISOString().split('T')[0];
 				
@@ -124,7 +124,7 @@ export default function TideChart({
 	}, [targetDate]);
 
 	const chartData = useMemo(() => {
-		console.log(`📊 Generating chart data: ${tideData.length} tide events, ${Object.keys(sunData).length} sun days`);
+		console.log(`📊 Generating chart data: ${tideData.length} tide events, ${Object.keys(sunData).length} sun days, target date: ${startDate.toISOString()}`);
 		
 		if (tideData.length === 0) {
 			console.log("❌ No tide data available for chart generation");

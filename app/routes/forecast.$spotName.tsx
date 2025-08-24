@@ -88,9 +88,14 @@ interface ForecastData {
 		skillLevel?: string;
 		breakType?: string;
 		reliability?: string;
+		bestTide?: string;
+		optimalWindDir?: number[];
+		optimalSwellDir?: number[];
 	};
 	forecast: ForecastDay[];
+	days?: ForecastDay[]; // For backward compatibility
 	timestamp: string;
+	source?: string;
 }
 
 export default function ForecastSpot() {
@@ -132,6 +137,8 @@ export default function ForecastSpot() {
 			setLoading(true);
 			setError("");
 
+			console.log(`🌊 Fetching forecast for ${spotName} at ${lat}, ${lng}`);
+
 			try {
 				const response = await fetch(
 					`/.netlify/functions/get-forecast?lat=${lat}&lng=${lng}&spotName=${spotName}`
@@ -139,22 +146,25 @@ export default function ForecastSpot() {
 				const data = await response.json();
 
 				if (response.ok) {
-					console.log('Forecast API response:', data);
-					console.log('Data structure:', {
+					console.log('✅ Forecast API response:', data);
+					console.log('📊 Data structure:', {
 						hasSpot: !!data.spot,
 						hasForecast: !!data.forecast,
 						forecastType: typeof data.forecast,
 						forecastIsArray: Array.isArray(data.forecast),
-						forecastLength: data.forecast?.length
+						forecastLength: data.forecast?.length,
+						source: data.source || 'unknown'
 					});
 					setForecast(data);
 					return;
+				} else {
+					console.warn(`⚠️ Forecast API returned ${response.status}:`, data);
 				}
 			} catch (networkError) {
-				console.log("Netlify function not available, using mock data");
+				console.log("⚠️ Netlify function not available, using live data fallback:", networkError);
 			}
 
-			// Fallback: Generate mock 5-day forecast for development
+			// Fallback: Generate live forecast data
 			const currentSpotName = spotName?.replace(/-/g, " ");
 			const spotData = surfSpotsData.find(
 				(spot) =>
@@ -171,6 +181,12 @@ export default function ForecastSpot() {
 			try {
 				// Create live enriched spot with 5-day data
 				const liveForecast = await createLiveForecast(spotData, lat || "0", lng || "0");
+				console.log(`✅ Live forecast created:`, {
+					hasSpot: !!liveForecast.spot,
+					hasForecast: !!liveForecast.forecast,
+					forecastLength: liveForecast.forecast?.length,
+					source: liveForecast.source
+				});
 				setForecast(liveForecast);
 				console.log(`✅ Live forecast loaded for ${currentSpotName}`);
 			} catch (liveError) {
@@ -449,13 +465,13 @@ export default function ForecastSpot() {
 													: windDir || 180;
 											})()}
 											windDirection={
-												day.hourlyData && day.hourlyData[0]
-													? day.hourlyData[0].windDirection || 225
+												day.hourlyData && Array.isArray(day.hourlyData) && day.hourlyData.length > 0
+													? day.hourlyData[0]?.windDirection || 225
 													: 225
 											}
 											hourlyWindData={
 												day.hourlyData && Array.isArray(day.hourlyData)
-													? day.hourlyData.map(h => h.windDirection || 225)
+													? day.hourlyData.map((h: any) => h.windDirection || 225)
 													: undefined
 											}
 											height={120}
@@ -493,13 +509,13 @@ export default function ForecastSpot() {
 												);
 											})()}
 											swellDirection={
-												day.hourlyData && day.hourlyData[0]
-													? day.hourlyData[0].swellDirection || 285
+												day.hourlyData && Array.isArray(day.hourlyData) && day.hourlyData.length > 0
+													? day.hourlyData[0]?.swellDirection || 285
 													: 285
 											}
 											hourlySwellData={
 												day.hourlyData && Array.isArray(day.hourlyData)
-													? day.hourlyData.map(h => h.swellDirection || 285)
+													? day.hourlyData.map((h: any) => h.swellDirection || 285)
 													: undefined
 											}
 											height={120}
@@ -512,12 +528,12 @@ export default function ForecastSpot() {
 									{/* Hourly Surf Conditions Chart */}
 									<div className="mb-4">
 										<ProfessionalHourlyChart
-											data={day.hourlyData && Array.isArray(day.hourlyData) ? {
-												waveHeight: day.hourlyData.map(h => h.waveHeight || 0),
-												period: day.hourlyData.map(h => h.period || 0),
-												windSpeed: day.hourlyData.map(h => h.windSpeed || 0),
-												windDirection: day.hourlyData.map(h => h.windDirection || 0),
-												times: day.hourlyData.map(h => h.time || new Date().toISOString())
+											data={day.hourlyData && Array.isArray(day.hourlyData) && day.hourlyData.length > 0 ? {
+												waveHeight: day.hourlyData.map((h: any) => h.waveHeight || 0),
+												period: day.hourlyData.map((h: any) => h.period || 0),
+												windSpeed: day.hourlyData.map((h: any) => h.windSpeed || 0),
+												windDirection: day.hourlyData.map((h: any) => h.windDirection || 0),
+												times: day.hourlyData.map((h: any) => h.time || new Date().toISOString())
 											} : null}
 											height={180}
 											className="border-0"

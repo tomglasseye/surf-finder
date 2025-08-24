@@ -71,36 +71,49 @@ async function getLiveMarineConditions(
 	days: number = 1
 ): Promise<LiveHourlyData[]> {
 	try {
-		console.log(`🌊 Fetching live marine data for ${latitude}, ${longitude}`);
+		console.log(`🌊 Fetching live marine data for ${latitude}, ${longitude} - ${days} days`);
 		
 		// Try server-side function first
 		const response = await fetch(
-			`/.netlify/functions/get-marine-conditions?lat=${latitude}&lng=${longitude}&days=${days}`
+			`/.netlify/functions/get-marine-conditions?lat=${latitude}&lng=${longitude}&days=${days}`,
+			{
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			}
 		);
 
 		if (response.ok) {
 			const data = await response.json();
-			console.log(`🌊 Retrieved live marine data from Open-Meteo: ${data.hourlyData.length} hours`);
+			console.log(`🌊 Retrieved live marine data from Open-Meteo: ${data.hourlyData?.length || 0} hours`);
 			
-			return data.hourlyData.map((hour: any) => ({
-				hour: hour.hour,
-				time: new Date(hour.time).toLocaleTimeString("en-GB", { 
-					hour: "2-digit", 
-					minute: "2-digit" 
-				}),
-				waveHeight: hour.waveHeight,
-				period: hour.period,
-				windSpeed: hour.windSpeed,
-				windDirection: hour.windDirection,
-				swellDirection: hour.swellDirection,
-				swellHeight: hour.swellHeight,
-				tideLevel: 0.5, // Will be updated with tide data
-			}));
+			if (data.hourlyData && Array.isArray(data.hourlyData) && data.hourlyData.length > 0) {
+				return data.hourlyData.map((hour: any) => ({
+					hour: hour.hour,
+					time: new Date(hour.time).toLocaleTimeString("en-GB", { 
+						hour: "2-digit", 
+						minute: "2-digit" 
+					}),
+					waveHeight: hour.waveHeight,
+					period: hour.period,
+					windSpeed: hour.windSpeed,
+					windDirection: hour.windDirection,
+					swellDirection: hour.swellDirection,
+					swellHeight: hour.swellHeight,
+					tideLevel: 0.5, // Will be updated with tide data
+				}));
+			} else {
+				throw new Error(`Invalid data structure: ${JSON.stringify(data)}`);
+			}
 		} else {
-			throw new Error(`Marine API error: ${response.status}`);
+			const errorText = await response.text();
+			console.error(`Marine API error: ${response.status} - ${errorText}`);
+			throw new Error(`Marine API error: ${response.status} - ${errorText}`);
 		}
 	} catch (error) {
-		console.warn("Failed to fetch live marine data, falling back to mock:", error);
+		console.error("Failed to fetch live marine data:", error);
+		console.log("🌊 Falling back to mock data due to API failure");
 		// Return mock data as fallback
 		return generateMockHourlyData(latitude, longitude, days);
 	}
@@ -410,13 +423,13 @@ export async function createLiveForecast(
 						 (spotPrefs.bestTide === "high" && conditions.tideLevel > 0.7))) {
 						bestFactors.push("Optimal tide");
 					}
-					if (spotPrefs.optimalWindDir && spotPrefs.optimalWindDir.some(dir => {
+					if (spotPrefs.optimalWindDir && spotPrefs.optimalWindDir.some((dir: number) => {
 						const diff = Math.abs(conditions.windDirection - dir);
 						return Math.min(diff, 360 - diff) <= 45;
 					})) {
 						bestFactors.push("Favorable winds");
 					}
-					if (spotPrefs.optimalSwellDir && spotPrefs.optimalSwellDir.some(dir => {
+					if (spotPrefs.optimalSwellDir && spotPrefs.optimalSwellDir.some((dir: number) => {
 						const diff = Math.abs(conditions.swellDirection - dir);
 						return Math.min(diff, 360 - diff) <= 30;
 					})) {
@@ -471,7 +484,7 @@ export async function createLiveForecast(
 				description: spotData.description,
 				bestConditions: spotData.bestConditions,
 			},
-			days: forecastDays,
+			forecast: forecastDays, // Changed from 'days' to 'forecast' to match expected format
 			source: "live_apis"
 		};
 		
@@ -516,8 +529,7 @@ function groupHourlyDataByDay(hourlyData: LiveHourlyData[]): LiveHourlyData[][] 
 				time: hourDate.toLocaleTimeString("en-GB", { 
 					hour: "2-digit", 
 					minute: "2-digit" 
-				}),
-				date: hourDate.toISOString()
+				})
 			});
 		}
 	});

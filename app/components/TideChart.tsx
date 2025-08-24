@@ -63,13 +63,17 @@ export default function TideChart({
 	const [sunData, setSunData] = useState<{
 		[date: string]: { sunrise: Date; sunset: Date };
 	}>({});
-	const [loading, setLoading] = useState(!providedTideData);
+	const [loading, setLoading] = useState(!providedTideData || providedTideData.length === 0);
 	const [error, setError] = useState("");
-	const [dataSource, setDataSource] = useState<string>(providedTideData ? "provided" : "");
+	const [dataSource, setDataSource] = useState<string>(providedTideData && providedTideData.length > 0 ? "provided" : "");
 
 	useEffect(() => {
-		if (!providedTideData) {
+		if (!providedTideData || providedTideData.length === 0) {
 			loadTideData();
+		} else {
+			setTideData(providedTideData);
+			setLoading(false);
+			setDataSource("provided");
 		}
 	}, [latitude, longitude, showDays, targetDate, providedTideData]);
 

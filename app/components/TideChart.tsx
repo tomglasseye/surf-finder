@@ -12,6 +12,7 @@ import {
 	ReferenceLine,
 } from "recharts";
 import { getAdmiraltyTideData, getSunriseSunsetData } from "../utils/admiraltyApi";
+import DataOverlay from "./DataOverlay";
 
 interface TideEvent {
 	time: string;
@@ -57,6 +58,7 @@ export default function TideChart({
 	const [sunData, setSunData] = useState<{[date: string]: {sunrise: Date; sunset: Date}}>({});
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState("");
+	const [dataSource, setDataSource] = useState<string>("");
 
 	useEffect(() => {
 		loadTideData();
@@ -84,6 +86,7 @@ export default function TideChart({
 			);
 
 			setTideData(tideResponse.tideEvents);
+			setDataSource(tideResponse.source || 'unknown');
 			console.log(`🌊 Loaded ${tideResponse.tideEvents.length} tide events from ${tideResponse.source}`);
 
 			// Load sunrise/sunset data for each day
@@ -110,6 +113,7 @@ export default function TideChart({
 		} catch (err) {
 			console.error("Failed to load tide data:", err);
 			setError("Failed to load tide data");
+			setDataSource("error");
 		} finally {
 			setLoading(false);
 		}
@@ -694,14 +698,21 @@ export default function TideChart({
 
 	console.log(`📊 Rendering TideChart for ${spotName}: ${tideData.length} tide events, ${Object.keys(sunData).length} sun days`);
 
+	// Determine if this is live data
+	const isLiveData = dataSource === 'admiralty_uk';
+
 	return (
-		<div className={`bg-white rounded-lg p-4 ${className}`}>
+		<DataOverlay 
+			isLiveData={isLiveData}
+			dataSource={dataSource}
+			className={`bg-white rounded-lg p-4 ${className}`}
+		>
 			<div className="flex justify-between items-center mb-4">
 				<h3 className="text-lg font-semibold text-gray-800">
 					🌊 Tide Chart - {spotName}
 				</h3>
 				<div className="text-sm text-gray-600">
-					{showDays === 1 ? "Today" : `${showDays} Days`} • UK Admiralty
+					{showDays === 1 ? "Today" : `${showDays} Days`} • {isLiveData ? 'UK Admiralty' : 'Demo Data'}
 				</div>
 			</div>
 
@@ -777,6 +788,6 @@ export default function TideChart({
 					})}
 				</div>
 			)}
-		</div>
+		</DataOverlay>
 	);
 }

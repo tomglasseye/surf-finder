@@ -1,3 +1,5 @@
+import DataOverlay from "./DataOverlay";
+
 interface SwellDirectionChartProps {
 	spotDirection?: number; // Direction the surf spot faces (e.g., 180 for south-facing)
 	optimalSwellDir?: number[]; // Optimal swell directions for the surf spot
@@ -7,6 +9,7 @@ interface SwellDirectionChartProps {
 	height?: number;
 	variant?: "full" | "compact";
 	showHourlyUpdates?: boolean; // Whether to cycle through hourly data
+	dataSource?: string;
 }
 
 export default function SwellDirectionChart({
@@ -18,6 +21,7 @@ export default function SwellDirectionChart({
 	height = 120,
 	variant = "full",
 	showHourlyUpdates = false,
+	dataSource = "unknown",
 }: SwellDirectionChartProps) {
 	// Helper function to get swell condition relative to optimal directions
 	const getSwellCondition = (
@@ -130,9 +134,14 @@ export default function SwellDirectionChart({
 	};
 
 	const swellData = hourlySwellData || generateHourlySwellData();
+	
+	// Determine if this is live data
+	const isLiveData = dataSource === 'live' || dataSource === 'admiralty_uk';
 
 	return (
-		<div
+		<DataOverlay 
+			isLiveData={isLiveData}
+			dataSource={dataSource}
 			className={`bg-white rounded-xl shadow-lg border-0 w-full ${className}`}
 		>
 			<div className="p-4">
@@ -297,6 +306,6 @@ export default function SwellDirectionChart({
 					</div>
 				</div>
 			</div>
-		</div>
+		</DataOverlay>
 	);
 }

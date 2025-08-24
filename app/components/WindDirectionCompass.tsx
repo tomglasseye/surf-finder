@@ -1,3 +1,5 @@
+import DataOverlay from "./DataOverlay";
+
 interface WindDirectionCompassProps {
 	spotDirection?: number; // Direction the surf spot faces (e.g., 180 for south-facing)
 	windDirection?: number; // Current wind direction in degrees
@@ -6,6 +8,7 @@ interface WindDirectionCompassProps {
 	height?: number;
 	variant?: "full" | "compact";
 	showHourlyUpdates?: boolean; // Whether to cycle through hourly data
+	dataSource?: string;
 }
 
 export default function WindDirectionCompass({
@@ -16,6 +19,7 @@ export default function WindDirectionCompass({
 	height = 120,
 	variant = "full",
 	showHourlyUpdates = false,
+	dataSource = "unknown",
 }: WindDirectionCompassProps) {
 	// Helper function to get wind condition relative to surf spot
 	const getWindCondition = (
@@ -111,9 +115,14 @@ export default function WindDirectionCompass({
 	};
 
 	const windData = hourlyWindData || generateHourlyWindData();
+	
+	// Determine if this is live data
+	const isLiveData = dataSource === 'live' || dataSource === 'admiralty_uk';
 
 	return (
-		<div
+		<DataOverlay 
+			isLiveData={isLiveData}
+			dataSource={dataSource}
 			className={`bg-white rounded-xl shadow-lg border-0 w-full ${className}`}
 		>
 			<div className="p-4">
@@ -275,6 +284,6 @@ export default function WindDirectionCompass({
 					</div>
 				</div>
 			</div>
-		</div>
+		</DataOverlay>
 	);
 }

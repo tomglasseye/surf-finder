@@ -423,6 +423,7 @@ export default function Home() {
 														height={60}
 														variant="compact"
 														className="border-0"
+														dataSource={spot.tideData?.source || 'unknown'}
 													/>
 
 													{/* New Comprehensive Tide Chart */}
@@ -454,13 +455,14 @@ export default function Home() {
 														}
 														hourlyWindData={
 															spot.hourlyData && Array.isArray(spot.hourlyData)
-																? spot.hourlyData.map(h => h.windDirection || 225)
+																? spot.hourlyData.map((h: any) => h.windDirection || 225)
 																: undefined
 														}
 														height={120}
 														variant="compact"
 														className="border-0"
 														showHourlyUpdates={true}
+														dataSource={spot.tideData?.source || 'unknown'}
 													/>
 
 													{/* Swell Direction Chart */}
@@ -489,20 +491,22 @@ export default function Home() {
 														variant="compact"
 														className="border-0"
 														showHourlyUpdates={true}
+														dataSource={spot.tideData?.source || 'unknown'}
 													/>
 
 													{/* Professional Hourly Chart */}
 													<ProfessionalHourlyChart
 														data={spot.hourlyData && Array.isArray(spot.hourlyData) && spot.hourlyData.length > 0 ? {
-															waveHeight: spot.hourlyData.map(h => h.waveHeight || 0),
-															period: spot.hourlyData.map(h => h.period || 0),
-															windSpeed: spot.hourlyData.map(h => h.windSpeed || 0),
-															windDirection: spot.hourlyData.map(h => h.windDirection || 0),
-															times: spot.hourlyData.map(h => h.time || `${new Date().getHours()}:00`)
+															waveHeight: spot.hourlyData.map((h: any) => h.waveHeight || 0),
+															period: spot.hourlyData.map((h: any) => h.period || 0),
+															windSpeed: spot.hourlyData.map((h: any) => h.windSpeed || 0),
+															windDirection: spot.hourlyData.map((h: any) => h.windDirection || 0),
+															times: spot.hourlyData.map((h: any) => h.time || `${new Date().getHours()}:00`)
 														} : null}
 														height={150}
 														className="border-0"
 														variant="compact"
+														dataSource={spot.tideData?.source || 'unknown'}
 													/>
 
 													<p className="text-gray-700 bg-white rounded-lg p-3">

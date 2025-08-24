@@ -11,6 +11,7 @@ import {
 	ReferenceLine,
 	Scatter,
 } from "recharts";
+import DataOverlay from "./DataOverlay";
 
 interface HourlyData {
 	waveHeight: number[];
@@ -26,6 +27,7 @@ interface ProfessionalHourlyChartProps {
 	className?: string;
 	variant?: "full" | "compact";
 	date?: Date;
+	dataSource?: string;
 }
 
 export default function ProfessionalHourlyChart({
@@ -34,6 +36,7 @@ export default function ProfessionalHourlyChart({
 	className = "",
 	variant = "full",
 	date,
+	dataSource = "unknown",
 }: ProfessionalHourlyChartProps) {
 	// Helper function to convert wind direction to compass
 	const getWindDirectionText = (degrees: number): string => {
@@ -107,7 +110,7 @@ export default function ProfessionalHourlyChart({
 	const hasRealData = data && data.times && data.times.length > 0;
 
 	// Transform data for Recharts with unit conversions
-	let chartData;
+	let chartData: any[] = [];
 	try {
 		chartData = (surfData?.times && Array.isArray(surfData.times) ? surfData.times : []).map((time, index) => {
 		// Handle time parsing - could be ISO string or hour string like '00:00'
@@ -198,9 +201,16 @@ export default function ProfessionalHourlyChart({
 
 	// Current hour for reference line
 	const currentHour = new Date().getHours();
+	
+	// Determine if this is live data
+	const isLiveData = dataSource === 'live' || dataSource === 'admiralty_uk';
 
 	return (
-		<div className={`bg-white rounded-xl shadow-lg border-0 ${className}`}>
+		<DataOverlay 
+			isLiveData={isLiveData}
+			dataSource={dataSource}
+			className={`bg-white rounded-xl shadow-lg border-0 ${className}`}
+		>
 			<div className="p-4">
 				{variant === "full" && (
 					<div className="mb-4">
@@ -455,14 +465,8 @@ export default function ProfessionalHourlyChart({
           </div> */}
 				{/* </div> */}
 
-				{!hasRealData && (
-					<div className="text-center bg-orange-50 border border-orange-200 rounded-lg p-2 mt-3">
-						<div className="text-xs text-orange-700 font-medium">
-							🔄 Live data loading... showing demo values
-						</div>
-					</div>
-				)}
+				{/* Remove the manual demo data notice since DataOverlay handles this */}
 			</div>
-		</div>
+		</DataOverlay>
 	);
 }

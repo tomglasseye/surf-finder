@@ -433,6 +433,7 @@ export default function ForecastSpot() {
 												optimalSwellDir: forecast.spot.optimalSwellDir,
 											}}
 											hourlyData={day.hourlyData}
+											dataSource={forecast.source}
 										/>
 									</div>
 
@@ -478,6 +479,7 @@ export default function ForecastSpot() {
 											variant="compact"
 											className="border-0"
 											showHourlyUpdates={index === 0}
+											dataSource={forecast.source}
 										/>
 									</div>
 
@@ -522,6 +524,7 @@ export default function ForecastSpot() {
 											variant="compact"
 											className="border-0"
 											showHourlyUpdates={index === 0}
+											dataSource={forecast.source}
 										/>
 									</div>
 
@@ -539,6 +542,7 @@ export default function ForecastSpot() {
 											className="border-0"
 											variant="compact"
 											date={new Date(day.date)}
+											dataSource={forecast.source}
 										/>
 									</div>
 

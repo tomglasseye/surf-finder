@@ -1,5 +1,6 @@
 import React from "react";
 import { calculateSurfScore } from "../utils/surfScore";
+import DataOverlay from "./DataOverlay";
 
 interface TrafficLightData {
 	hour: number;
@@ -20,6 +21,7 @@ interface TrafficLightChartProps {
 	variant?: "default" | "compact";
 	spotPreferences?: SpotPreferences;
 	hourlyData?: any[];
+	dataSource?: string;
 }
 
 const TrafficLightChart: React.FC<TrafficLightChartProps> = ({
@@ -29,6 +31,7 @@ const TrafficLightChart: React.FC<TrafficLightChartProps> = ({
 	variant = "default",
 	spotPreferences,
 	hourlyData,
+	dataSource = "unknown",
 }) => {
 	const generateHourlyData = (): TrafficLightData[] => {
 		if (data && data.length > 0) {
@@ -106,9 +109,14 @@ const TrafficLightChart: React.FC<TrafficLightChartProps> = ({
 	const blockWidth = isCompact ? 16 : 24;
 	const blockHeight = isCompact ? 16 : 24;
 	const gap = isCompact ? 2 : 4;
+	
+	// Determine if this is live data
+	const isLiveData = dataSource === 'live' || dataSource === 'admiralty_uk';
 
 	return (
-		<div
+		<DataOverlay 
+			isLiveData={isLiveData}
+			dataSource={dataSource}
 			className={`bg-white border border-gray-200 p-2 md:p-4 ${className}`}
 		>
 			<div className="flex items-center justify-between mb-3">
@@ -184,7 +192,7 @@ const TrafficLightChart: React.FC<TrafficLightChartProps> = ({
 					local time
 				</div>
 			</div>
-		</div>
+		</DataOverlay>
 	);
 };
 

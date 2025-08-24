@@ -31,6 +31,7 @@ interface TideChartProps {
 	height?: number;
 	className?: string;
 	targetDate?: Date; // The specific date to show
+	tideData?: TideEvent[]; // Pre-fetched tide data (optional)
 }
 
 interface ChartDataPoint {
@@ -56,18 +57,21 @@ export default function TideChart({
 	height = 300,
 	className = "",
 	targetDate,
+	tideData: providedTideData,
 }: TideChartProps) {
-	const [tideData, setTideData] = useState<TideEvent[]>([]);
+	const [tideData, setTideData] = useState<TideEvent[]>(providedTideData || []);
 	const [sunData, setSunData] = useState<{
 		[date: string]: { sunrise: Date; sunset: Date };
 	}>({});
-	const [loading, setLoading] = useState(true);
+	const [loading, setLoading] = useState(!providedTideData);
 	const [error, setError] = useState("");
-	const [dataSource, setDataSource] = useState<string>("");
+	const [dataSource, setDataSource] = useState<string>(providedTideData ? "provided" : "");
 
 	useEffect(() => {
-		loadTideData();
-	}, [latitude, longitude, showDays, targetDate]);
+		if (!providedTideData) {
+			loadTideData();
+		}
+	}, [latitude, longitude, showDays, targetDate, providedTideData]);
 
 	const loadTideData = async () => {
 		try {

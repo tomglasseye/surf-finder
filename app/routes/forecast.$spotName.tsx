@@ -471,6 +471,7 @@ export default function ForecastSpot() {
 											height={200}
 											className="border-0"
 											targetDate={new Date(day.date)}
+											tideData={day.tideData}
 										/>
 									</div>
 
@@ -491,21 +492,17 @@ export default function ForecastSpot() {
 											})()}
 											windDirection={
 												day.hourlyData &&
-												Array.isArray(day.hourlyData) &&
-												day.hourlyData.length > 0
-													? day.hourlyData[0]
-															?.windDirection ||
-														225
+												day.hourlyData.windDirection &&
+												Array.isArray(day.hourlyData.windDirection) &&
+												day.hourlyData.windDirection.length > 0
+													? day.hourlyData.windDirection[0] || 225
 													: 225
 											}
 											hourlyWindData={
 												day.hourlyData &&
-												Array.isArray(day.hourlyData)
-													? day.hourlyData.map(
-															(h: any) =>
-																h.windDirection ||
-																225
-														)
+												day.hourlyData.windDirection &&
+												Array.isArray(day.hourlyData.windDirection)
+													? day.hourlyData.windDirection
 													: undefined
 											}
 											height={120}
@@ -545,21 +542,17 @@ export default function ForecastSpot() {
 											})()}
 											swellDirection={
 												day.hourlyData &&
-												Array.isArray(day.hourlyData) &&
-												day.hourlyData.length > 0
-													? day.hourlyData[0]
-															?.swellDirection ||
-														285
+												day.hourlyData.swellDirection &&
+												Array.isArray(day.hourlyData.swellDirection) &&
+												day.hourlyData.swellDirection.length > 0
+													? day.hourlyData.swellDirection[0] || 285
 													: 285
 											}
 											hourlySwellData={
 												day.hourlyData &&
-												Array.isArray(day.hourlyData)
-													? day.hourlyData.map(
-															(h: any) =>
-																h.swellDirection ||
-																285
-														)
+												day.hourlyData.swellDirection &&
+												Array.isArray(day.hourlyData.swellDirection)
+													? day.hourlyData.swellDirection
 													: undefined
 											}
 											height={120}
@@ -575,37 +568,16 @@ export default function ForecastSpot() {
 										<ProfessionalHourlyChart
 											data={
 												day.hourlyData &&
-												Array.isArray(day.hourlyData) &&
-												day.hourlyData.length > 0
+												typeof day.hourlyData === 'object' &&
+												day.hourlyData.waveHeight &&
+												Array.isArray(day.hourlyData.waveHeight) &&
+												day.hourlyData.waveHeight.length > 0
 													? {
-															waveHeight:
-																day.hourlyData.map(
-																	(h: any) =>
-																		h.waveHeight ||
-																		0
-																),
-															period: day.hourlyData.map(
-																(h: any) =>
-																	h.period ||
-																	0
-															),
-															windSpeed:
-																day.hourlyData.map(
-																	(h: any) =>
-																		h.windSpeed ||
-																		0
-																),
-															windDirection:
-																day.hourlyData.map(
-																	(h: any) =>
-																		h.windDirection ||
-																		0
-																),
-															times: day.hourlyData.map(
-																(h: any) =>
-																	h.time ||
-																	`${new Date().getHours()}:00`
-															),
+															waveHeight: day.hourlyData.waveHeight,
+															period: day.hourlyData.period || [],
+															windSpeed: day.hourlyData.windSpeed || [],
+															windDirection: day.hourlyData.windDirection || [],
+															times: day.hourlyData.times || [],
 														}
 													: null
 											}

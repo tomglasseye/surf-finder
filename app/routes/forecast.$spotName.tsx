@@ -29,11 +29,19 @@ export function meta({ params }: Route.MetaArgs) {
 	];
 }
 
+interface TideEvent {
+	time: string;
+	type: "high" | "low";
+	height: number;
+}
+
 interface TideData {
 	currentLevel: number;
 	isRising: boolean;
-	nextHigh: Date;
-	nextLow: Date;
+	nextHigh: string;
+	nextLow: string;
+	source: string;
+	tideEvents: TideEvent[];
 }
 
 interface BestTimeData {
@@ -471,7 +479,7 @@ export default function ForecastSpot() {
 											height={200}
 											className="border-0"
 											targetDate={new Date(day.date)}
-											tideData={day.tideData}
+											tideData={day.tideData?.tideEvents}
 										/>
 									</div>
 

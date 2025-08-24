@@ -533,8 +533,8 @@ export default function ForecastSpot() {
 												period: day.hourlyData.map((h: any) => h.period || 0),
 												windSpeed: day.hourlyData.map((h: any) => h.windSpeed || 0),
 												windDirection: day.hourlyData.map((h: any) => h.windDirection || 0),
-												times: day.hourlyData.map((h: any) => h.time || new Date().toISOString())
-											} : null}
+												times: day.hourlyData.map((h: any) => h.time || `${new Date().getHours()}:00`)
+											} : undefined}
 											height={180}
 											className="border-0"
 											variant="compact"

@@ -325,58 +325,64 @@ export default function TideChart({
 		const markers = [];
 		console.log(`🔍 Generating markers with chartData length: ${chartData.length}`);
 		
-		// Current time marker (most accurate)
-		const currentPoints = chartData.filter(p => p.isNow);
-		console.log(`🕐 Found ${currentPoints.length} current time points`);
-		if (currentPoints.length > 0) {
-			const currentPoint = currentPoints[0];
-			console.log(`🕐 Adding current time marker at: ${currentPoint.time}`);
-			markers.push(
-				<ReferenceLine
-					key="current-time"
-					x={currentPoint.time}
-					stroke="#f59e0b"
-					strokeWidth={3}
-					label={{
-						value: "Now",
-						position: "top",
-						fontSize: 12,
-						fill: "#f59e0b",
-						fontWeight: "bold",
-					}}
-				/>
-			);
+		// Current time marker (most accurate) - only show for today
+		const actualNow = new Date();
+		const isToday = !targetDate || 
+			(targetDate.toDateString() === actualNow.toDateString());
+		
+		if (isToday) {
+			const currentPoints = chartData.filter(p => p.isNow);
+			console.log(`🕐 Found ${currentPoints.length} current time points`);
+			if (currentPoints.length > 0) {
+				const currentPoint = currentPoints[0];
+				console.log(`🕐 Adding current time marker at: ${currentPoint.time}`);
+				markers.push(
+					<ReferenceLine
+						key="current-time"
+						x={currentPoint.time}
+						stroke="#f59e0b"
+						strokeWidth={3}
+						label={{
+							value: "Now",
+							position: "top",
+							fontSize: 12,
+							fill: "#f59e0b",
+							fontWeight: "bold",
+						}}
+					/>
+				);
+			}
 		}
 
-		// High/Low tide markers - only show unique tide events
+		// High/Low tide markers - show for the target date
 		const uniqueTideEvents = new Map();
 		
 		console.log(`🔍 Available tide data:`, tideData.map(e => ({ time: e.time, type: e.type, height: e.height })));
 		
-		// Group tide events by actual tide times to avoid duplicates
-		// Filter to only today's events and limit to 1 high and 1 low
-		const today = new Date();
-		today.setHours(0, 0, 0, 0);
-		const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+		// Filter tide events for the target date (not just today)
+		const targetDateStart = new Date(startDate);
+		targetDateStart.setHours(0, 0, 0, 0);
+		const targetDateEnd = new Date(targetDateStart);
+		targetDateEnd.setDate(targetDateStart.getDate() + showDays);
 		
-		console.log(`🗓️ Looking for events between ${today.toISOString()} and ${tomorrow.toISOString()}`);
+		console.log(`🗓️ Looking for events between ${targetDateStart.toISOString()} and ${targetDateEnd.toISOString()}`);
 		
-		const todaysEvents = tideData.filter(event => {
+		const targetDateEvents = tideData.filter(event => {
 			const eventTime = new Date(event.time);
-			console.log(`🔍 Checking event at ${event.time} (${eventTime.toISOString()}) - in range: ${eventTime >= today && eventTime < tomorrow}`);
-			return eventTime >= today && eventTime < tomorrow;
+			console.log(`🔍 Checking event at ${event.time} (${eventTime.toISOString()}) - in range: ${eventTime >= targetDateStart && eventTime < targetDateEnd}`);
+			return eventTime >= targetDateStart && eventTime < targetDateEnd;
 		});
 		
-		console.log(`📅 Found ${todaysEvents.length} events for today:`, todaysEvents);
+		console.log(`📅 Found ${targetDateEvents.length} events for target date:`, targetDateEvents);
 		
-		// Add all high and low tides from today's events
-		todaysEvents.forEach((event, index) => {
+		// Add all high and low tides from the target date's events
+		targetDateEvents.forEach((event, index) => {
 			if (event.type === "high" || event.type === "low") {
 				uniqueTideEvents.set(`${event.type}-${event.time}-${index}`, event);
 			}
 		});
 		
-		console.log(`🏔️ All tide events for today:`, Array.from(uniqueTideEvents.values()));
+		console.log(`🏔️ All tide events for target date:`, Array.from(uniqueTideEvents.values()));
 
 		console.log(`🌊 Found ${uniqueTideEvents.size} unique tide events:`, Array.from(uniqueTideEvents.keys()));
 		
@@ -444,17 +450,17 @@ export default function TideChart({
 			}
 		});
 
-		// Sunrise/Sunset markers - for today only
+		// Sunrise/Sunset markers - for the target date
 		const uniqueSunEvents = new Map();
-		const todayStr = now.toISOString().split('T')[0];
+		const targetDateStr = startDate.toISOString().split('T')[0];
 		
-		console.log(`🌅 Looking for sun data for ${todayStr}, available dates:`, Object.keys(sunData));
-		console.log(`🌅 Now:`, now);
+		console.log(`🌅 Looking for sun data for ${targetDateStr}, available dates:`, Object.keys(sunData));
+		console.log(`🌅 Target date:`, startDate);
 		console.log(`🌅 Available sunData keys:`, Object.keys(sunData));
 		
-		if (sunData[todayStr]) {
-			const sunTimes = sunData[todayStr];
-			console.log(`🌅 Found sun times for today:`, sunTimes);
+		if (sunData[targetDateStr]) {
+			const sunTimes = sunData[targetDateStr];
+			console.log(`🌅 Found sun times for target date:`, sunTimes);
 			
 			const sunriseTime = sunTimes.sunrise.toLocaleTimeString("en-GB", { 
 				hour: "2-digit", 
@@ -465,19 +471,19 @@ export default function TideChart({
 				minute: "2-digit" 
 			});
 			
-			uniqueSunEvents.set(`sunrise-${todayStr}`, {
+			uniqueSunEvents.set(`sunrise-${targetDateStr}`, {
 				time: sunriseTime,
 				type: 'sunrise',
 				emoji: '🌅'
 			});
 			
-			uniqueSunEvents.set(`sunset-${todayStr}`, {
+			uniqueSunEvents.set(`sunset-${targetDateStr}`, {
 				time: sunsetTime,
 				type: 'sunset', 
 				emoji: '🌇'
 			});
 		} else {
-			console.log(`❌ No sun data found for ${todayStr}`);
+			console.log(`❌ No sun data found for ${targetDateStr}`);
 		}
 
 		console.log(`🌊 Generated ${uniqueTideEvents.size} tide markers and ${uniqueSunEvents.size} sun markers`);
@@ -525,19 +531,19 @@ export default function TideChart({
 
 	const generateNightAreas = () => {
 		const areas: ReactElement[] = [];
-		const todayStr = now.toISOString().split('T')[0];
+		const targetDateStr = startDate.toISOString().split('T')[0];
 		
-		console.log(`🌙 Looking for night areas for ${todayStr}`);
+		console.log(`🌙 Looking for night areas for ${targetDateStr}`);
 		
-		const sunTimes = sunData[todayStr];
+		const sunTimes = sunData[targetDateStr];
 		if (sunTimes) {
 			console.log(`🌙 Found sun times for night areas:`, sunTimes);
 			
 			const sunriseTime = sunTimes.sunrise;
 			const sunsetTime = sunTimes.sunset;
 			
-			// Check if sunrise and sunset are on the same day
-			if (sunriseTime.toDateString() === now.toDateString()) {
+			// Check if sunrise and sunset are on the target date
+			if (sunriseTime.toDateString() === startDate.toDateString()) {
 				const startTime = "00:00";
 				
 				// Find closest point for sunrise
@@ -573,7 +579,7 @@ export default function TideChart({
 				console.log(`🌙 Added morning night area: ${startTime} to ${closestSunrisePoint.time} (sunrise closest match)`);
 			}
 			
-			if (sunsetTime.toDateString() === now.toDateString()) {
+			if (sunsetTime.toDateString() === startDate.toDateString()) {
 				// Find closest point for sunset
 				const sunsetHours = sunsetTime.getHours();
 				const sunsetMinutes = sunsetTime.getMinutes();
@@ -611,10 +617,10 @@ export default function TideChart({
 				console.log(`🌙 Added evening night area: ${closestSunsetPoint.time} (sunset closest match) to ${endTime} (last data point)`);
 			}
 		} else {
-			console.log(`❌ No sun times found for night areas on ${todayStr}`);
+			console.log(`❌ No sun times found for night areas on ${targetDateStr}`);
 		}
 
-		console.log(`🌙 Generated ${areas.length} night areas for today`);
+		console.log(`🌙 Generated ${areas.length} night areas for target date`);
 		return areas;
 	};
 
